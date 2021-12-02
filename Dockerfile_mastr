@@ -1,0 +1,22 @@
+FROM python:3.9-slim
+
+COPY ./requirements/requirements_mastr.txt .
+
+RUN python -m pip install --upgrade pip
+RUN pip install --no-cache-dir -r requirements_mastr.txt
+RUN useradd -s /bin/bash admin
+
+ENV TZ="Europe/Berlin"
+
+RUN mkdir /src
+RUN chown -R admin /src
+
+COPY ./model/crawler/__init__.py /src/crawler/__init__.py
+COPY ./model/crawler/MaStR_Crawler.py /src/crawler/MaStR_Crawler.py
+
+COPY ./model/main_mastr.py /src/main_mastr.py
+
+USER admin
+WORKDIR /src
+
+CMD ["python", "./main_mastr.py"]
