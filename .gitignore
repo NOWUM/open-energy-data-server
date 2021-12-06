@@ -1,0 +1,4 @@
+*.orig
+.spyproject
+.vscode
+__pycache__
