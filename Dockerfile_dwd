@@ -13,11 +13,11 @@ RUN mkdir /src/grb_files
 RUN chown -R admin /src
 RUN chown -R admin /src/grb_files
 
-COPY ./model/crawler/__init__.py /src/crawler/__init__.py
-COPY ./model/crawler/dwd.py /src/crawler/dwd.py
-COPY ./model/crawler/data/lat_coordinates.npy /src/crawler/data/lat_coordinates.npy
-COPY ./model/crawler/lon_coordinates.npy /src/crawler/data/lon_coordinates.npy
-COPY ./model/crawler/data/plz_matrix.npy /src/crawler/data/plz_matrix.npy
+COPY ./crawler/__init__.py /src/crawler/__init__.py
+COPY ./crawler/dwd.py /src/crawler/dwd.py
+COPY ./crawler/data/lat_coordinates.npy /src/crawler/data/lat_coordinates.npy
+COPY ./crawler/data/lon_coordinates.npy /src/crawler/data/lon_coordinates.npy
+COPY ./crawler/data/plz_matrix.npy /src/crawler/data/plz_matrix.npy
 
 COPY ./model/main_dwd.py /src/main_dwd.py
 

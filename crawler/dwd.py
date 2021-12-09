@@ -63,8 +63,8 @@ class OpenDWDCrawler:
         if not os.path.exists(self.folder):
             os.makedirs(self.folder)
 
-        self.plz3_matrix = np.load(r'./plz3_matrix.npy')
-        self.plz5_matrix = np.load(r'./plz5_matrix.npy')
+        self.plz3_matrix = np.load(r'./data/plz3_matrix.npy')
+        self.plz5_matrix = np.load(r'./data/plz5_matrix.npy')
 
         log.info('crawler created')
 
