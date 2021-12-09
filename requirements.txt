@@ -1,0 +1,9 @@
+requests
+pygrib
+shapely
+pyshp
+pandas
+numpy
+psycopg2-binary
+sqlalchemy
+tqdm

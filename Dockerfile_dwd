@@ -1,9 +1,9 @@
 FROM python:3.9-slim
 
-COPY ./requirements/requirements_dwd.txt .
+COPY ./requirements.txt .
 
 RUN python -m pip install --upgrade pip
-RUN pip install --no-cache-dir -r requirements_dwd.txt
+RUN pip install --no-cache-dir -r requirements.txt
 RUN useradd -s /bin/bash admin
 
 ENV TZ="Europe/Berlin"
@@ -13,14 +13,12 @@ RUN mkdir /src/grb_files
 RUN chown -R admin /src
 RUN chown -R admin /src/grb_files
 
-
 COPY ./model/crawler/__init__.py /src/crawler/__init__.py
-COPY ./model/crawler/OpenDWD_Crawler.py /src/crawler/OpenDWD_Crawler.py
-COPY ./model/crawler/lat_coordinates.npy /src/crawler/lat_coordinates.npy
-COPY ./model/crawler/lon_coordinates.npy /src/crawler/lon_coordinates.npy
-COPY ./model/crawler/plz_matrix.npy /src/crawler/plz_matrix.npy
-COPY ./model/crawler/plz_geo.dbf /src/crawler/plz_geo.dbf
-COPY ./model/crawler/plz_geo.shp /src/crawler/plz_geo.shp
+COPY ./model/crawler/dwd.py /src/crawler/dwd.py
+COPY ./model/crawler/data/lat_coordinates.npy /src/crawler/data/lat_coordinates.npy
+COPY ./model/crawler/lon_coordinates.npy /src/crawler/data/lon_coordinates.npy
+COPY ./model/crawler/data/plz_matrix.npy /src/crawler/data/plz_matrix.npy
+
 COPY ./model/main_dwd.py /src/main_dwd.py
 
 USER admin
