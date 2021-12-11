@@ -19,7 +19,7 @@ COPY ./crawler/data/lat_coordinates.npy /src/crawler/data/lat_coordinates.npy
 COPY ./crawler/data/lon_coordinates.npy /src/crawler/data/lon_coordinates.npy
 COPY ./crawler/data/plz_matrix.npy /src/crawler/data/plz_matrix.npy
 
-COPY ./model/main_dwd.py /src/main_dwd.py
+COPY ./main_dwd.py /src/main_dwd.py
 
 USER admin
 WORKDIR /src

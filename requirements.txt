@@ -7,3 +7,5 @@ numpy
 psycopg2-binary
 sqlalchemy
 tqdm
+bs4
+json5
