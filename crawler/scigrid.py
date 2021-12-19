@@ -63,11 +63,15 @@ if __name__ == "__main__":
     areas = []
     for index, node in nodes.iterrows():
         point = node['geometry']
+        a = None
         for _, nut in eu_nuts.iterrows():
             geom = nut['geometry']
             if geom.contains(point):
                 areas.append(nut['NUTS_ID'])
+                a = nut['NUTS_ID']
                 break
+        if a is None:
+            areas.append(None)
     nodes['area'] = areas
     nodes['geometry'] = nodes['geometry'].to_numpy(str)
     nodes.to_sql('nodes', engine, if_exists='replace', index=False)
