@@ -73,7 +73,7 @@ class OpenDWDCrawler:
                 log.error(f'error cleaning up file {file_name}')
         self.engine.dispose()
 
-    def save_data_in_file(self, typ='temperature', year='1995', month='01'):
+    def save_data_in_file(self, typ='temp_air', year='1995', month='01'):
         # get data of type for year and month
         for i in range(1, 4):
             try:
@@ -108,6 +108,9 @@ class OpenDWDCrawler:
         df[typ] = data_.values[self.nuts_matrix != 'x'].reshape((-1))
         df['nuts'] = self.nuts_matrix[[self.nuts_matrix != 'x']].reshape((-1))
         df = df.groupby(['nuts'])[typ].mean()
+        if typ not in df.columns:
+            print(df.head())
+            print(df.columns)
         df['nuts'] = df.index
         df['time'] = hour
 
