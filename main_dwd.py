@@ -11,23 +11,21 @@ from crawler.nut_mapper import create_nuts_map
 
 logging.basicConfig()
 
+user = os.getenv('TIMESCALEDB_USER', 'opendata')
+password = os.getenv('TIMESCALEDB_PASSWORD', 'opendata')
+database = os.getenv('TIMESCALEDB_DATABASE', 'weather')
+host = os.getenv('TIMESCALEDB_HOST', '10.13.10.41')
+port = int(os.getenv('TIMESCALEDB_PORT', 5432))
+
 
 def collect_data(start, end):
     try:
-        user = os.getenv('TIMESCALEDB_USER', 'opendata')
-        password = os.getenv('TIMESCALEDB_PASSWORD', 'opendata')
-        database = os.getenv('TIMESCALEDB_DATABASE', 'weather')
-        host = os.getenv('TIMESCALEDB_HOST', '10.13.10.41')
-        port = int(os.getenv('TIMESCALEDB_PORT', 5432))
-
         engine = create_engine(f'postgresql://{user}:{password}@{host}:{port}/{database}')
-        crawler = OpenDWDCrawler(engine, folder=f'./grb_files{start}')
+        crawler = OpenDWDCrawler(engine, folder=f'./grb_files{start}', create_database=False)
         crawler.write_weather_in_timescale(start, end)
-
     except Exception as e:
         print(repr(e))
         logging.exception(f'Error in worker with interval {start} - {end}')
-
 
 
 if __name__ == "__main__":
@@ -68,8 +66,11 @@ if __name__ == "__main__":
     with mp.Pool(max_processes) as pool:
         result = pool.map(create_nuts_map, coordinates)
 
-    result = np.asarray(result).reshape((-1,))
+    result = np.asarray(result).reshape((824, 848))
     np.save('./nuts_matrix', result)
+
+    engine = create_engine(f'postgresql://{user}:{password}@{host}:{port}/{database}')
+    crawler = OpenDWDCrawler(engine, create_database=True)
 
     processes = []
     for year in range(1995, 2019):

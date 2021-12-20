@@ -1,3 +1,5 @@
+import time
+
 import requests
 import bz2
 import pygrib
@@ -15,7 +17,7 @@ log.setLevel(logging.INFO)
 
 class OpenDWDCrawler:
 
-    def __init__(self, engine, folder='./grb_files'):
+    def __init__(self, engine, folder='./grb_files', create_database=True):
         log.info('initialize dwd cosmo crawler')
 
         # base url and parameters to get the weather data from open dwd cosmo model
@@ -33,7 +35,7 @@ class OpenDWDCrawler:
         log.info(f'collect: {self.codecs.keys()}')
 
         self.engine = engine
-        if type(self.engine) != sqlite3.Connection:
+        if create_database and type(self.engine) != sqlite3.Connection:
             self.engine.execute("CREATE TABLE IF NOT EXISTS public.cosmo( "\
                                 "time timestamp without time zone NOT NULL, "\
                                 "nuts text, "\
@@ -65,14 +67,22 @@ class OpenDWDCrawler:
         for key in self.codecs.keys():
             try:
                 file_name = f'{self.folder}/{key}_{self.weather_file_name}'
-                os.remove(file_name)
+                if os.path.isfile(file_name):
+                    os.remove(file_name)
             except Exception:
                 log.exception('error cleaning up file')
         self.engine.dispose()
 
     def save_data_in_file(self, typ='temperature', year='1995', month='01'):
         # get data of type for year and month
-        response = requests.get(f'{self.base_url}{self.codecs[typ]}{year}{month}.grb.bz2')
+        for i in range(1, 4):
+            try:
+                response = requests.get(f'{self.base_url}{self.codecs[typ]}{year}{month}.grb.bz2')
+                break
+            except Exception as e:
+                print(repr(e))
+                time.sleep(i**2)
+
         log.info(f'get weather for {typ} with status code {response.status_code}')
 
         # unzip an save data in file (parameter_weather.grb)
@@ -95,9 +105,9 @@ class OpenDWDCrawler:
         data_ = weather_data.select(name=selector)[counter]
         df = pd.DataFrame()
         # build dataframe
-        df[typ] = data_.values.reshape(-1,)[self.nuts_matrix != None]
+        df[typ] = data_.values[self.nuts_matrix != 'x'].reshape((-1))
         df['time'] = hour
-        df['nuts'] = self.nuts_matrix[[self.nuts_matrix != None]]
+        df['nuts'] = self.nuts_matrix[[self.nuts_matrix != 'x']].reshape((-1))
 
         log.info(f'read data for typ: {typ} and hour: {counter} of {size} in month {hour.month}')
         weather_data.close()
