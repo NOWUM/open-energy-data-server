@@ -46,7 +46,7 @@ class OpenDWDCrawler:
                                 "rain_con double precision,"\
                                 "rain_gsp double precision, "\
                                 "cloud_cover double precision, "\
-                                "PRIMARY KEY (time , nut));")
+                                "PRIMARY KEY (time , nuts));")
 
             self.engine.execute("SELECT create_hypertable('cosmo', 'time', create_default_indexes => FALSE, " \
                                 "if_not_exists => TRUE, migrate_data => TRUE);")
