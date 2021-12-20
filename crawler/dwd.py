@@ -57,7 +57,7 @@ class OpenDWDCrawler:
         if not os.path.exists(self.folder):
             os.makedirs(self.folder)
 
-        self.nuts_matrix = np.load(r'./nuts_matrix.npy')
+        self.nuts_matrix = np.load(r'./nuts_matrix.npy', allow_pickle=True)
 
         log.info('crawler initialized')
 
