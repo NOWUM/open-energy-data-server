@@ -30,41 +30,12 @@ def collect_data(start, end):
 
 if __name__ == "__main__":
 
-    geo_information = gpd.read_file('./shapes/NUTS_EU.shp')
-    geo_information = geo_information.to_crs(4326)
-    nut_levels = {
-        'DE': 3,
-        'NL': 1,
-        'BE': 1,
-        'LU': 1,
-        'PO': 1,
-        'DK': 1,
-        'FR': 1,
-        'CZ': 1,
-        'AT': 1,
-        'CH': 1
-    }
-    data_frames = []
-    for key, value in nut_levels.items():
-        df = geo_information[(geo_information['CNTR_CODE'] == key) &
-                             (geo_information['LEVL_CODE'] == value)]
-        data_frames.append(df)
-
-    geo_information = gpd.GeoDataFrame(pd.concat(data_frames))
-
     max_processes = mp.cpu_count() - 1
-    dwd_latitude_range = np.load(r'./crawler/data/lat_coordinates.npy').reshape((-1,))
-    dwd_longitude_range = np.load(r'./crawler/data/lon_coordinates.npy').reshape((-1))
-
-    dwd_latitude_range = np.array_split(dwd_latitude_range, max_processes)
-    dwd_longitude_range = np.array_split(dwd_longitude_range, max_processes)
-
-    coordinates = []
-    for i in range(max_processes):
-        coordinates.append((dwd_longitude_range[i], dwd_latitude_range[i], geo_information))
+    dwd_latitude_range = np.load(r'./crawler/data/lat_coordinates.npy')
+    dwd_longitude_range = np.load(r'./crawler/data/lon_coordinates.npy')
 
     with mp.Pool(max_processes) as pool:
-        result = pool.map(create_nuts_map, coordinates)
+        result = pool.map(create_nuts_map, [(i, j) for i in range(824) for j in range(848)])
 
     result = np.asarray(result).reshape((824, 848))
     np.save('./nuts_matrix', result)
