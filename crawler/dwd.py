@@ -148,6 +148,7 @@ class OpenDWDCrawler:
                     index = pd.MultiIndex.from_arrays([df['time'], df['nuts']], names=['time', 'nuts'])
                     df.index = index
                     del df['time']
+                    del df['nuts']
                     log.info(f'built data for hour {counter} in {date.month_name()} and start import to postgres')
                     df.to_sql('cosmo', con=self.engine, if_exists='append')
                     log.info('import in postgres complete --> start with next hour')
