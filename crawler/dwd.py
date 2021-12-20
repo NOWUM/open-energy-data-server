@@ -70,7 +70,7 @@ class OpenDWDCrawler:
                 if os.path.isfile(file_name):
                     os.remove(file_name)
             except Exception:
-                log.exception('error cleaning up file')
+                log.error(f'error cleaning up file {file_name}')
         self.engine.dispose()
 
     def save_data_in_file(self, typ='temperature', year='1995', month='01'):
