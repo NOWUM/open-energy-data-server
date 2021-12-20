@@ -69,7 +69,7 @@ if __name__ == "__main__":
         result = pool.map(create_nuts_map, coordinates)
 
     result = np.asarray(result).reshape((-1,))
-    np.save('./data/nuts_matrix', result)
+    np.save('./nuts_matrix', result)
 
     processes = []
     for year in range(1995, 2019):
