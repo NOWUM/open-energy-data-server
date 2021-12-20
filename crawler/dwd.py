@@ -106,8 +106,10 @@ class OpenDWDCrawler:
         df = pd.DataFrame()
         # build dataframe
         df[typ] = data_.values[self.nuts_matrix != 'x'].reshape((-1))
-        df['time'] = hour
         df['nuts'] = self.nuts_matrix[[self.nuts_matrix != 'x']].reshape((-1))
+        df = df.groupby(['nuts'])[typ].mean()
+        df['nuts'] = df.index
+        df['time'] = hour
 
         log.info(f'read data for typ: {typ} and hour: {counter} of {size} in month {hour.month}')
         weather_data.close()
