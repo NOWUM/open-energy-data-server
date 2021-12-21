@@ -107,10 +107,7 @@ class OpenDWDCrawler:
         # build dataframe
         df[typ] = data_.values[self.nuts_matrix != 'x'].reshape((-1))
         df['nuts'] = self.nuts_matrix[[self.nuts_matrix != 'x']].reshape((-1))
-        df = df.groupby(['nuts'])[typ].mean()
-        if typ not in df.columns:
-            print(df.head())
-            print(df.columns)
+        df = pd.DataFrame(df.groupby(['nuts'])[typ].mean())
         df['nuts'] = df.index
         df['time'] = hour
 
