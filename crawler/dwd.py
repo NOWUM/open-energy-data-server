@@ -1,5 +1,4 @@
 import time
-
 import requests
 import bz2
 import pygrib
@@ -9,7 +8,6 @@ import logging
 import os
 import sqlite3
 from tqdm import tqdm
-import geopandas as gpd
 
 log = logging.getLogger('openDWD_cosmo')
 log.setLevel(logging.INFO)
@@ -50,8 +48,10 @@ class OpenDWDCrawler:
                                 "cloud_cover double precision, "\
                                 "PRIMARY KEY (time , nuts));")
 
-            self.engine.execute("SELECT create_hypertable('cosmo', 'time', create_default_indexes => FALSE, " \
-                                "if_not_exists => TRUE, migrate_data => TRUE);")
+        query_create_hypertable = "SELECT create_hypertable('cosmo', 'time', if_not_exists => TRUE, migrate_data => TRUE);"
+        with self.engine.connect() as connection:
+            with connection.begin():
+                connection.execute(query_create_hypertable)
 
         self.weather_file_name = 'dwd.grb'
         self.folder = folder
@@ -93,68 +93,56 @@ class OpenDWDCrawler:
 
         log.info(f'file {file_name} saved')
 
-    def read_data_file(self, hour, counter, typ):
+    def read_data_file(self, date, typ):
         # load dwd file with typ
         file_name = f'{self.folder}/{typ}_{self.weather_file_name}'
         weather_data = pygrib.open(file_name)
         # extract the selector to get the correct parameter
         selector = str(weather_data.readline()).split('1:')[1].split(':')[0]
-
+        # build dataframe and write data for each hour in month
+        hours = pd.date_range(start=pd.to_datetime(date), end=pd.to_datetime(date) + pd.DateOffset(months=1),
+                              freq='h')[:-1]
         # slice the current hour with counter
         size = len(weather_data.select(name=selector))
-        data_ = weather_data.select(name=selector)[counter]
-        df = pd.DataFrame()
-        # build dataframe
-        df[typ] = data_.values[self.nuts_matrix != 'x'].reshape((-1))
-        df['nuts'] = self.nuts_matrix[[self.nuts_matrix != 'x']].reshape((-1))
-        df = pd.DataFrame(df.groupby(['nuts'])[typ].mean())
-        df['nuts'] = df.index
-        df['time'] = hour
+        data_frames = []
+        for k in range(len(hours)):
+            data_ = weather_data.select(name=selector)[k]
+            df = pd.DataFrame()
+            # build dataframe
+            df[typ] = data_.values[self.nuts_matrix != 'x'].reshape((-1))
+            df['nuts'] = self.nuts_matrix[[self.nuts_matrix != 'x']].reshape((-1))
+            df = pd.DataFrame(df.groupby(['nuts'])[typ].mean())
+            df['nuts'] = df.index
+            df['country'] = [nut[:2] for nut in df['nut'].values]
+            df['time'] = hours[k]
 
-        log.info(f'read data for typ: {typ} and hour: {counter} of {size} in month {hour.month}')
+        log.info(f'read data with type: {typ} in month {date.month}')
         weather_data.close()
         log.info('closed weather file')
 
-        return df
+        return pd.concat(data_frames)
 
     def write_weather_in_timescale(self, start='199501', end='199502'):
-        # build date range with the given start and stop points with an monthly frequency
         date_range = pd.date_range(start=pd.to_datetime(start, format='%Y%m'),
                                    end=pd.to_datetime(end, format='%Y%m'),
                                    freq='MS')
-
-       # for each month get the dwd data for all parameters in __init__
         for date in tqdm(date_range):
             try:
+                # download files
                 for key in self.codecs.keys():
-                    month = f'{date.month:02d}'
-                    self.save_data_in_file(year=str(date.year), month=month, typ=key)
-
-                # build dataframe and write data for each hour in month
-                hours = pd.date_range(start=pd.to_datetime(date), end=pd.to_datetime(date) + pd.DateOffset(months=1),
-                                      freq='h')[:-1]
-
-                counter = 0                                                 # month hour counter
-                for hour in hours:
-                    init_df = True                                          # bool for first df
-                    df = pd.DataFrame()                                     # init empty dataframe
-                    for parameter in self.codecs.keys():
-                        if init_df:
-                            df = self.read_data_file(hour, counter, parameter)
-                            init_df = False
-                        else:
-                            df[parameter] = self.read_data_file(hour, counter, parameter)[parameter]
-
+                    self.save_data_in_file(year=str(date.year), month=f'{date.month:02d}', typ=key)
+                df = pd.DataFrame(columns=[key for key in self.codecs.keys()])
+                # create data frame for each parameter
+                for key in self.codecs.keys():
+                    df[key] = self.read_data_file(date, key)[key]
                     log.info('build dataset for import')
 
-                    index = pd.MultiIndex.from_arrays([df['time'], df['nuts']], names=['time', 'nuts'])
-                    df.index = index
-                    del df['time']
-                    del df['nuts']
-                    log.info(f'built data for hour {counter} in {date.month_name()} and start import to postgres')
-                    df.to_sql('cosmo', con=self.engine, if_exists='append')
-                    log.info('import in postgres complete --> start with next hour')
-                    counter += 1
+                index = pd.MultiIndex.from_arrays([df['time'], df['nuts']], names=['time', 'nuts'])
+                df.index = index
+                del df['time'], df['nuts']
+                log.info(f'built data for  {date.month_name()} and start import to postgres')
+                df.to_sql('cosmo_test', con=self.engine, if_exists='append')
+                log.info('import in postgres complete --> start with next hour')
 
             except Exception as e:
                 print(repr(e))
