@@ -82,9 +82,9 @@ def create_dataframe(key, year, month):
         df['time'] = pd.to_datetime(f'{year}{month}', format='%Y%m') + pd.DateOffset(hours=k)
         data_frames.append(df)
 
-    log.info(f'read data with type: {key} in month {month}')
+    log.info(f'read data with type: {key} in month {month} \n')
     weather_data.close()
-    log.info('closed weather file')
+    log.info('closed weather file \n')
 
     return pd.concat(data_frames, ignore_index=True)
 
@@ -98,13 +98,15 @@ def write_data(start, end):
             df = pd.DataFrame(columns=[key for key in to_download.keys()])
             for key in to_download.keys():
                 download_data(key, str(date.year), f'{date.month:02d}')
-                df[key] = create_dataframe(key, str(date.year), f'{date.month:02d}')
+                data = create_dataframe(key, str(date.year), f'{date.month:02d}')
+                df['time'] = data['time']
+                df['nut'] = data['nut']
+                df[key] = data[key]
                 delete_data(str(date.year), f'{date.month:02d}')
-            df['country'] = countries
-            df['nut'] = nuts
+            df['country'] = [nut[:2] for nut in df['nut'].values]
             index = pd.MultiIndex.from_arrays([df['time'], df['nut']], names=['time', 'nut'])
             df.index = index
-            del df['time'], df['nuts']
+            del df['time'], df['nut']
             log.info(f'built data for  {date.month_name()} and start import to postgres')
             df.to_sql('cosmo_test', con=engine, if_exists='append')
             log.info('import in postgres complete --> start with next hour')

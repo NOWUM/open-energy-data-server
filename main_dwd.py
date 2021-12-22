@@ -31,14 +31,13 @@ if __name__ == "__main__":
         np.save('./nuts_matrix', result)
 
     create_table()
+    # download_data('199501', '199502')
 
-    download_data('199501', '199502')
+    processes = []
+    for year in range(1995, 2019):
+        process = mp.Process(target=collect_data, args=([f'{year}01', f'{year}12']))
+        processes.append(process)
+        process.start()
 
-    # processes = []
-    # for year in range(1995, 2019):
-    #     process = mp.Process(target=collect_data, args=([f'{year}01', f'{year}12']))
-    #     processes.append(process)
-    #     process.start()
-    #
-    # for process in processes:
-    #     process.join()
+    for process in processes:
+        process.join()
