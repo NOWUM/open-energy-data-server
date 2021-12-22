@@ -1,11 +1,6 @@
 import numpy as np
-import geopandas as gpd
-import pandas as pd
-
 from crawler.dwd import write_data as download_data, create_table
 import logging
-import os
-from sqlalchemy import create_engine
 import multiprocessing as mp
 from crawler.nut_mapper import create_nuts_map
 
@@ -37,11 +32,13 @@ if __name__ == "__main__":
 
     create_table()
 
-    processes = []
-    for year in range(1995, 2019):
-        process = mp.Process(target=collect_data, args=([f'{year}01', f'{year}12']))
-        processes.append(process)
-        process.start()
+    download_data('199501', '199502')
 
-    for process in processes:
-        process.join()
+    # processes = []
+    # for year in range(1995, 2019):
+    #     process = mp.Process(target=collect_data, args=([f'{year}01', f'{year}12']))
+    #     processes.append(process)
+    #     process.start()
+    #
+    # for process in processes:
+    #     process.join()

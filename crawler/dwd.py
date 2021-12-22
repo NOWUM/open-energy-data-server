@@ -60,9 +60,11 @@ def download_data(key, year, month):
     with open(f'./grb_files/weather{year}{month}', 'wb') as file:
         file.write(weather_data)
 
+
 def delete_data(year, month):
     if os.path.isfile(f'./grb_files/weather{year}{month}'):
         os.remove(f'./grb_files/weather{year}{month}')
+
 
 def create_dataframe(key, year, month):
     weather_data = pygrib.open(f'./grb_files/weather{year}{month}')
@@ -70,12 +72,14 @@ def create_dataframe(key, year, month):
     size = len(weather_data.select(name=selector))
 
     data_frames = []
-    for k in range(size):
+    for k in tqdm(range(size)):
         data_ = weather_data.select(name=selector)[k]
-        df = pd.DataFrame(columns=[key],
+        df = pd.DataFrame(columns=[key, 'nut'],
                           data={key: data_.values[nuts_matrix != 'x'].reshape((-1)),
                                 'nut': nuts_matrix[nuts_matrix != 'x'].reshape((-1))})
         df = pd.DataFrame(df.groupby(['nut'])[key].mean())
+        df['nut'] = df.index
+        df['time'] = pd.to_datetime(f'{year}{month}', format='%Y%m') + pd.DateOffset(hours=k)
         data_frames.append(df)
 
     log.info(f'read data with type: {key} in month {month}')
@@ -96,14 +100,13 @@ def write_data(start, end):
                 download_data(key, str(date.year), f'{date.month:02d}')
                 df[key] = create_dataframe(key, str(date.year), f'{date.month:02d}')
                 delete_data(str(date.year), f'{date.month:02d}')
-            df['time'] = pd.date_range(start=date, periods=len(df), freq='h')
             df['country'] = countries
             df['nut'] = nuts
             index = pd.MultiIndex.from_arrays([df['time'], df['nut']], names=['time', 'nut'])
             df.index = index
             del df['time'], df['nuts']
             log.info(f'built data for  {date.month_name()} and start import to postgres')
-            df.to_sql('cosmo_test', con=self.engine, if_exists='append')
+            df.to_sql('cosmo_test', con=engine, if_exists='append')
             log.info('import in postgres complete --> start with next hour')
         except Exception as e:
             print(repr(e))
