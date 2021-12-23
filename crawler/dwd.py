@@ -17,8 +17,6 @@ nuts = np.unique(nuts_matrix[[nuts_matrix != 'x']].reshape((-1)))
 countries = np.asarray([nut[:2] for nut in nuts])
 values = np.zeros_like(nuts)
 
-# own database
-engine = create_engine(f'postgresql://opendata:opendata@10.13.10.41:5432/weather')
 # open dwd data
 base_url = 'https://opendata.dwd.de/climate_environment/REA/COSMO_REA6/hourly/2D/'
 to_download = dict(temp_air='T_2M/T_2M.2D.',
@@ -32,6 +30,7 @@ to_download = dict(temp_air='T_2M/T_2M.2D.',
                    cloud_cover='CLCT/CLCT.2D.')
 
 def create_table():
+    engine = create_engine(f'postgresql://opendata:opendata@10.13.10.41:5432/weather')
     engine.execute("CREATE TABLE IF NOT EXISTS public.cosmo( "
                     "time timestamp without time zone NOT NULL, "
                     "nut text, "
@@ -90,6 +89,7 @@ def create_dataframe(key, year, month):
 
 
 def write_data(start, end):
+    engine = create_engine(f'postgresql://opendata:opendata@10.13.10.41:5432/weather')
     date_range = pd.date_range(start=pd.to_datetime(start, format='%Y%m'),
                                end=pd.to_datetime(end, format='%Y%m'),
                                freq='MS')
@@ -108,7 +108,7 @@ def write_data(start, end):
             df.index = index
             del df['time'], df['nut']
             log.info(f'built data for  {date.month_name()} and start import to postgres')
-            df.to_sql('cosmo_test', con=engine, if_exists='append')
+            df.to_sql('cosmo', con=engine, if_exists='append')
             log.info('import in postgres complete --> start with next hour')
         except Exception as e:
             print(repr(e))
