@@ -34,6 +34,7 @@ def create_table():
     engine.execute("CREATE TABLE IF NOT EXISTS public.cosmo( "
                     "time timestamp without time zone NOT NULL, "
                     "nut text, "
+                    "country text, "
                     "temp_air double precision, "
                     "ghi double precision, "
                     "dni double precision, "
