@@ -14,7 +14,7 @@ log.setLevel(logging.INFO)
 
 nuts_matrix = np.load(r'./nuts_matrix.npy', allow_pickle=True)
 nuts = np.unique(nuts_matrix[[nuts_matrix != 'x']].reshape((-1)))
-countries = np.asarray([nut[:2] for nut in nuts])
+countries = np.asarray([area[:2] for area in nuts])
 values = np.zeros_like(nuts)
 
 # open dwd data
@@ -31,9 +31,9 @@ to_download = dict(temp_air='T_2M/T_2M.2D.',
 
 def create_table():
     engine = create_engine(f'postgresql://opendata:opendata@10.13.10.41:5432/weather')
-    engine.execute("CREATE TABLE IF NOT EXISTS public.cosmo( "
+    engine.execute("CREATE TABLE IF NOT EXISTS cosmo( "
                     "time timestamp without time zone NOT NULL, "
-                    "nut text, "
+                    "nuts text, "
                     "country text, "
                     "temp_air double precision, "
                     "ghi double precision, "
@@ -74,11 +74,11 @@ def create_dataframe(key, year, month):
     data_frames = []
     for k in tqdm(range(size)):
         data_ = weather_data.select(name=selector)[k]
-        df = pd.DataFrame(columns=[key, 'nut'],
+        df = pd.DataFrame(columns=[key, 'nuts'],
                           data={key: data_.values[nuts_matrix != 'x'].reshape((-1)),
-                                'nut': nuts_matrix[nuts_matrix != 'x'].reshape((-1))})
-        df = pd.DataFrame(df.groupby(['nut'])[key].mean())
-        df['nut'] = df.index
+                                'nuts': nuts_matrix[nuts_matrix != 'x'].reshape((-1))})
+        df = pd.DataFrame(df.groupby(['nuts'])[key].mean())
+        df['nuts'] = df.index
         df['time'] = pd.to_datetime(f'{year}{month}', format='%Y%m') + pd.DateOffset(hours=k)
         data_frames.append(df)
 
@@ -101,13 +101,13 @@ def write_data(start, end):
                 download_data(key, str(date.year), f'{date.month:02d}')
                 data = create_dataframe(key, str(date.year), f'{date.month:02d}')
                 df['time'] = data['time']
-                df['nut'] = data['nut']
+                df['nuts'] = data['nuts']
                 df[key] = data[key]
                 delete_data(str(date.year), f'{date.month:02d}')
-            df['country'] = [nut[:2] for nut in df['nut'].values]
-            index = pd.MultiIndex.from_arrays([df['time'], df['nut']], names=['time', 'nut'])
+            df['country'] = [area[:2] for area in df['nuts'].values]
+            index = pd.MultiIndex.from_arrays([df['time'], df['nuts']], names=['time', 'nuts'])
             df.index = index
-            del df['time'], df['nut']
+            del df['time'], df['nuts']
             log.info(f'built data for  {date.month_name()} and start import to postgres')
             df.to_sql('cosmo', con=engine, if_exists='append')
             log.info('import in postgres complete --> start with next hour')

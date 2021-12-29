@@ -2,7 +2,7 @@ import numpy as np
 from crawler.dwd import write_data as download_data, create_table
 import logging
 import multiprocessing as mp
-from crawler.nut_mapper import create_nuts_map
+from crawler.nuts_mapper import create_nuts_map
 
 logging.basicConfig()
 
@@ -17,9 +17,9 @@ def collect_data(start, end):
 
 if __name__ == "__main__":
 
-    create_nut_matrix = False
+    create_nuts_matrix = False
 
-    if create_nut_matrix:
+    if create_nuts_matrix:
         max_processes = mp.cpu_count() - 1
         dwd_latitude_range = np.load(r'./crawler/data/lat_coordinates.npy')
         dwd_longitude_range = np.load(r'./crawler/data/lon_coordinates.npy')

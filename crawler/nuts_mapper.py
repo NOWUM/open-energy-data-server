@@ -5,10 +5,10 @@ import pandas as pd
 
 geo_information = gpd.read_file('./shapes/NUTS_EU.shp')
 geo_information = geo_information.to_crs(4326)
-nut_levels = {'DE': 3, 'NL': 1, 'BE': 1, 'LU': 1, 'PO': 1, 'DK': 1, 'FR': 1, 'CZ': 1, 'AT': 1, 'CH': 1}
+nuts_levels = {'DE': 3, 'NL': 1, 'BE': 1, 'LU': 1, 'PO': 1, 'DK': 1, 'FR': 1, 'CZ': 1, 'AT': 1, 'CH': 1}
 
 data_frames = []
-for key, value in nut_levels.items():
+for key, value in nuts_levels.items():
     df = geo_information[(geo_information['CNTR_CODE'] == key) &
                          (geo_information['LEVL_CODE'] == value)]
     data_frames.append(df)
