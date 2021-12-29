@@ -44,7 +44,7 @@ def create_table():
                     "rain_con double precision,"
                     "rain_gsp double precision, "
                     "cloud_cover double precision, "
-                    "PRIMARY KEY (time , nut));")
+                    "PRIMARY KEY (time , nuts));")
 
     query_create_hypertable = "SELECT create_hypertable('cosmo', 'time', if_not_exists => TRUE, migrate_data => TRUE);"
     with engine.connect() as connection:
