@@ -2,3 +2,6 @@
 .spyproject
 .vscode
 __pycache__
+ninja_*
+*.grb
+/axxteq
