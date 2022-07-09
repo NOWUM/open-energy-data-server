@@ -22,6 +22,8 @@ from contextlib import contextmanager
 
 import logging
 
+from base_crawler import BasicDbCrawler
+
 logging.basicConfig()
 log = logging.getLogger('entsog')
 log.setLevel(logging.INFO)
@@ -82,20 +84,7 @@ def getDataFrame(name, params=['limit=10000'], useJson=False):
     data.columns = [x.lower() for x in data.columns]
     return data
 
-class EntsogCrawler:
-
-    def __init__(self, database):
-        if database.startswith('postgresql'):
-            self.engine = create_engine(database)
-            @contextmanager
-            def access_db():
-                with self.engine.connect() as conn, conn.begin():
-                    yield conn
-
-            self.db_accessor = access_db
-        else:
-            self.db_accessor = lambda: closing(sqlite3.connect(database))
-
+class EntsogCrawler(BasicDbCrawler):
     def pullData(self, names):
         pbar = tqdm(names)
         for name in pbar:

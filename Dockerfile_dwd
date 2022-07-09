@@ -1,8 +1,7 @@
-FROM python:3.9-slim
+FROM python:3.10-slim
 
 COPY ./requirements.txt .
 
-RUN python -m pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 RUN useradd -s /bin/bash admin
 
@@ -13,15 +12,14 @@ RUN mkdir /src/grb_files
 RUN chown -R admin /src
 RUN chown -R admin /src/grb_files
 
-COPY ./crawler/__init__.py /src/crawler/__init__.py
-COPY ./crawler/dwd.py /src/crawler/dwd.py
-COPY ./crawler/data/lat_coordinates.npy /src/crawler/data/lat_coordinates.npy
-COPY ./crawler/data/lon_coordinates.npy /src/crawler/data/lon_coordinates.npy
-COPY ./crawler/data/plz_matrix.npy /src/crawler/data/plz_matrix.npy
-
-COPY ./main_dwd.py /src/main_dwd.py
+COPY ./crawler/__init__.py /src/__init__.py
+COPY ./crawler/dwd.py /src/dwd.py
+COPY ./crawler/nuts_mapper.py /src/nuts_mapper.py
+COPY ./crawler/data/lat_coordinates.npy /src/data/lat_coordinates.npy
+COPY ./crawler/data/lon_coordinates.npy /src/data/lon_coordinates.npy
+COPY ./crawler/data/plz_matrix.npy /src/data/plz_matrix.npy
 
 USER admin
 WORKDIR /src
 
-CMD ["python", "-u", "./main_dwd.py"]
+CMD ["python", "-u", "./dwd.py"]

@@ -1,6 +1,11 @@
+'''
+reads data from xlsx files from axxteq parking provider
+export from axxteq must be in folder ./axxteq
+writes to database axxteq in a timescaleDB
+'''
 import numpy as np
 import pandas as pd
-from glob import glob as gb
+from glob import glob
 from sqlalchemy import create_engine
 import os
 
@@ -76,9 +81,9 @@ def read(file):
 
 def read_files(excel: bool = False, convert_utc: bool = False):
     if excel:
-        files = gb(r'./axxteq/xlsx/*.xlsx')
+        files = glob(r'./axxteq/xlsx/*.xlsx')
     else:
-        files = gb(r'./axxteq/csv/*.csv')
+        files = glob(r'./axxteq/csv/*.csv')
     dataframe = []
     for file in files:
         data = read(file)

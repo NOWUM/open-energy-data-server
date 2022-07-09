@@ -1,0 +1,32 @@
+'''
+helper functions for crawling open access data into a database
+'''
+
+from contextlib import contextmanager
+from sqlalchemy import create_engine
+
+class BasicDbCrawler:
+    """
+    class to allow easier crawling of oopen data
+    abstracts the data base accessor creation
+
+    Parameters
+    ----------
+    database: str
+        database connection string or path to sqlite db
+    """
+
+    def __init__(self, database):
+        # choice between pg and sqlite
+        if database.startswith('postgresql'):
+
+            self.engine = create_engine(database)
+            @contextmanager
+            def access_db():
+                """contextmanager to handle opening of db, similar to closing for sqlite3"""
+                with self.engine.connect() as conn, conn.begin():
+                    yield conn
+
+            self.db_accessor = access_db
+        else:
+            self.db_accessor = lambda: closing(sqlite3.connect(database))

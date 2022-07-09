@@ -14,8 +14,8 @@ for key, value in nuts_levels.items():
     data_frames.append(df)
 
 geo_information = gpd.GeoDataFrame(pd.concat(data_frames))
-dwd_latitude = np.load(r'./crawler/data/lat_coordinates.npy')
-dwd_longitude = np.load(r'./crawler/data/lon_coordinates.npy')
+dwd_latitude = np.load(r'./data/lat_coordinates.npy')
+dwd_longitude = np.load(r'./data/lon_coordinates.npy')
 
 
 def create_nuts_map(coords):

@@ -35,7 +35,7 @@ if __name__ == "__main__":
     links = gpd.GeoDataFrame(links)
     # links.plot()
 
-    eu_nuts = gpd.read_file(r'../shapes/NUTS_EU.shp')
+    eu_nuts = gpd.read_file(r'./shapes/NUTS_EU.shp')
     eu_nuts = eu_nuts[eu_nuts['LEVL_CODE'] == 3]
     eu_nuts = eu_nuts.to_crs(4326)
 

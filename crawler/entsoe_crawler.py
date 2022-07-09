@@ -21,6 +21,8 @@ from requests.exceptions import HTTPError
 
 import logging
 
+from base_crawler import BasicDbCrawler
+
 logging.basicConfig()
 log = logging.getLogger('entsoe')
 log.setLevel(logging.INFO)
@@ -97,31 +99,10 @@ def calculate_nett_generation(df):
         del dat[c]
     return dat
 
-
-class EntsoeCrawler:
+class EntsoeCrawler(BasicDbCrawler):
     """
     class to allow easier crawling of ENTSO-E timeseries data
-
-    Parameters
-    ----------
-    database: str
-        database connection string or path to sqlite db
     """
-
-    def __init__(self, database):
-        # choice between pg and sqlite
-        if database.startswith('postgresql'):
-
-            self.engine = create_engine(database)
-            @contextmanager
-            def access_db():
-                """contextmanager to handle opening of db, similar to closing for sqlite3"""
-                with self.engine.connect() as conn, conn.begin():
-                    yield conn
-
-            self.db_accessor = access_db
-        else:
-            self.db_accessor = lambda: closing(sqlite3.connect(database))
 
     def init_base_sql(self):
         """
