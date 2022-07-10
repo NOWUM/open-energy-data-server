@@ -1,171 +1,31 @@
 version: "3"
 services:
+  open-data-14:
+    image: timescale/timescaledb-ha:pg14-oss-latest
+    container_name: open-data-14
+    restart: always
+    shm_size: 32g
+    command: postgres -c 'max_connections=2000' -c 'timescaledb.max_background_workers=32 -c 'timescaledb.telemetry_level=off'
+    environment:
+      - POSTGRES_USER=opendata
+      - POSTGRES_PASSWORD=opendata
+      - POSTGRES_DB=postgres  
+    volumes:
+      - ./data/open-data-ha:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql 
+    ports:
+      - "5432:5432"
 
-  dwd1:
-    container_name: dwd1
-    image: registry.git.fh-aachen.de/nowum-energy/projects/fh-opendata/dwd_crawler:latest
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin4
+    restart: always
     environment:
-      START_DATE: 199501
-      END_DATE: 199512
-      
-  dwd2:
-    container_name: dwd2
-    image: registry.git.fh-aachen.de/nowum-energy/projects/fh-opendata/dwd_crawler:latest
-    environment:
-      START_DATE: 199601
-      END_DATE: 199612
-      
-  dwd3:
-    container_name: dwd3
-    image: registry.git.fh-aachen.de/nowum-energy/projects/fh-opendata/dwd_crawler:latest
-    environment:
-      START_DATE: 199701
-      END_DATE: 199712
-      
-  dwd4:
-    container_name: dwd4
-    image: registry.git.fh-aachen.de/nowum-energy/projects/fh-opendata/dwd_crawler:latest
-    environment:
-      START_DATE: 199801
-      END_DATE: 199812
-      
-  dwd5:
-    container_name: dwd5
-    image: registry.git.fh-aachen.de/nowum-energy/projects/fh-opendata/dwd_crawler:latest
-    environment:
-      START_DATE: 199901
-      END_DATE: 199912
-      
-  dwd6:
-    container_name: dwd6
-    image: registry.git.fh-aachen.de/nowum-energy/projects/fh-opendata/dwd_crawler:latest
-    environment:
-      START_DATE: 200001
-      END_DATE: 200012
-      
-  dwd7:
-    container_name: dwd7
-    image: registry.git.fh-aachen.de/nowum-energy/projects/fh-opendata/dwd_crawler:latest
-    environment:
-      START_DATE: 200101
-      END_DATE: 200112
-      
-  dwd8:
-    container_name: dwd8
-    image: registry.git.fh-aachen.de/nowum-energy/projects/fh-opendata/dwd_crawler:latest
-    environment:
-      START_DATE: 200201
-      END_DATE: 200212
-      
-  dwd9:
-    container_name: dwd9
-    image: registry.git.fh-aachen.de/nowum-energy/projects/fh-opendata/dwd_crawler:latest
-    environment:
-      START_DATE: 200301
-      END_DATE: 200312
-      
-  dwd10:
-    container_name: dwd10
-    image: registry.git.fh-aachen.de/nowum-energy/projects/fh-opendata/dwd_crawler:latest
-    environment:
-      START_DATE: 200401
-      END_DATE: 200412
-      
-  dwd11:
-    container_name: dwd11
-    image: registry.git.fh-aachen.de/nowum-energy/projects/fh-opendata/dwd_crawler:latest
-    environment:
-      START_DATE: 200501
-      END_DATE: 200512
-      
-  dwd12:
-    container_name: dwd12
-    image: registry.git.fh-aachen.de/nowum-energy/projects/fh-opendata/dwd_crawler:latest
-    environment:
-      START_DATE: 200601
-      END_DATE: 200612
-      
-  dwd13:
-    container_name: dwd13
-    image: registry.git.fh-aachen.de/nowum-energy/projects/fh-opendata/dwd_crawler:latest
-    environment:
-      START_DATE: 200701
-      END_DATE: 200712
-      
-  dwd14:
-    container_name: dwd14
-    image: registry.git.fh-aachen.de/nowum-energy/projects/fh-opendata/dwd_crawler:latest
-    environment:
-      START_DATE: 200801
-      END_DATE: 200812
-      
-  dwd15:
-    container_name: dwd15
-    image: registry.git.fh-aachen.de/nowum-energy/projects/fh-opendata/dwd_crawler:latest
-    environment:
-      START_DATE: 200901
-      END_DATE: 200912
-      
-  dwd16:
-    container_name: dwd16
-    image: registry.git.fh-aachen.de/nowum-energy/projects/fh-opendata/dwd_crawler:latest
-    environment:
-      START_DATE: 201001
-      END_DATE: 201012
-      
-  dwd17:
-    container_name: dwd17
-    image: registry.git.fh-aachen.de/nowum-energy/projects/fh-opendata/dwd_crawler:latest
-    environment:
-      START_DATE: 201101
-      END_DATE: 201112
-      
-  dwd18:
-    container_name: dwd18
-    image: registry.git.fh-aachen.de/nowum-energy/projects/fh-opendata/dwd_crawler:latest
-    environment:
-      START_DATE: 201201
-      END_DATE: 201212
-      
-  dwd19:
-    container_name: dwd19
-    image: registry.git.fh-aachen.de/nowum-energy/projects/fh-opendata/dwd_crawler:latest
-    environment:
-      START_DATE: 201301
-      END_DATE: 201312
-      
-  dwd20:
-    container_name: dwd20
-    image: registry.git.fh-aachen.de/nowum-energy/projects/fh-opendata/dwd_crawler:latest
-    environment:
-      START_DATE: 201401
-      END_DATE: 201412
-      
-  dwd21:
-    container_name: dwd21
-    image: registry.git.fh-aachen.de/nowum-energy/projects/fh-opendata/dwd_crawler:latest
-    environment:
-      START_DATE: 201501
-      END_DATE: 201512
-      
-  dwd22:
-    container_name: dwd22
-    image: registry.git.fh-aachen.de/nowum-energy/projects/fh-opendata/dwd_crawler:latest
-    environment:
-      START_DATE: 201601
-      END_DATE: 201612
-      
-  dwd23:
-    container_name: dwd23
-    image: registry.git.fh-aachen.de/nowum-energy/projects/fh-opendata/dwd_crawler:latest
-    environment:
-      START_DATE: 201701
-      END_DATE: 201712
-      
-  dwd24:
-    container_name: dwd24
-    image: registry.git.fh-aachen.de/nowum-energy/projects/fh-opendata/dwd_crawler:latest
-    environment:
-      START_DATE: 201801
-      END_DATE: 201812
-      
+        PGADMIN_DEFAULT_EMAIL: admin@opendata
+        PGADMIN_DEFAULT_PASSWORD: admin
+        PGADMIN_LISTEN_PORT: 80
+        PGADMIN_CONFIG_UPGRADE_CHECK_ENABLED: "False"
+    volumes:
+        - ./data/pgadmin:/var/lib/pgadmin
+    ports:
+        - "8080:80"

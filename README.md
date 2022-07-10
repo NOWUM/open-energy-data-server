@@ -6,6 +6,19 @@ The main target is to create an institute-wide available database which can be s
 
 Allowing native access through postgreSQL allows any easy integration of different software which can access data from a SQL database.
 
+## Getting started
+
+To set up your institutes new open-data server, you can [install docker](https://docs.docker.com/engine/install/) or podman.
+And start the `docker-compose.yml` with `docker compose up -d`.
+
+Then you have a running TimescaleDB server listening on postgresql default port `5432`.
+
+You can install all python dependencies:
+
+`pip install -r requirements.txt`
+
+An finally run the main crawling script `python crawl_all.py` to download all available sources into the database.
+
 ## TimeScaleDB
 
 The used database technology for the database server ist [TimescaleDB](https://timescale.com/) which is an extension for PostgreSQL (just like PostGIS but for timeseries databases).
@@ -34,8 +47,17 @@ This only works for timeseries tables and is not compatible with non-timeseries 
 Therefore to increase replication of other tables (like the Marktstammdatenregister), one still needs to have manual replication or use something like [Patroni](https://patroni.readthedocs.io/en/latest/).
 
 
-## Installation
+## Contributing
 
-To install the database cluster, you need to setup
-## to-do
-Check: https://github.com/reegis/reegis
+Do you know of other interesting open-access databases which are worth mentioning here?
+
+Maybe some which are to volatile, large or unknown and are therefore not useful to store them in the [OEP](https://openenergy-platform.org/)?
+
+Just send a PR and add a new file in the crawler folder with the main method signature as
+
+```
+def main(db_uri):
+    pass
+```
+
+If your tables should be stored in a new database, you have to add your database to the [init.sql](./init.sql) script too.

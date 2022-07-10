@@ -166,29 +166,33 @@ if __name__ == '__main__':
     if not os.path.isfile(nuts_matrix_path):
         create_nuts_matrix(nuts_matrix_path)
     nuts_matrix = np.load(nuts_matrix_path, allow_pickle=True)
-    db_uri = 'postgresql://opendata:opendata@10.13.10.41:5432/weather'
-    db_uri = 'sqlite://weather.db'
+    
+    db_uri = os.getenv('DATABASE_URI', 'sqlite:///./weather.db')
+    start = os.getenv('START_DATE', '199501')
+    end = os.getenv('END_DATE', '199512')
+
     download_dir = osp.join(osp.dirname(__file__),'grb_files')
 
     crawler = DWDCrawler(nuts_matrix, download_dir, db_uri)
     crawler.create_table()
-    #crawler.write_data('199501', '199502')
+    crawler.write_data(start, date)
 
-    def collect_data(start, end):
-        try:
-            log.info(f'started downloading for {start} to {end}')
-            crawler._download_data(start, end)
-            log.info(f'finished downloading for {start} to {end}')
-        except Exception as e:
-            log.error(repr(e))
-            log.exception(f'Error in worker with interval {start} - {end}')
+    # # old code using multiprocessing:
+    # def collect_data(start, end):
+    #     try:
+    #         log.info(f'started downloading for {start} to {end}')
+    #         crawler._download_data(start, end)
+    #         log.info(f'finished downloading for {start} to {end}')
+    #     except Exception as e:
+    #         log.error(repr(e))
+    #         log.exception(f'Error in worker with interval {start} - {end}')
 
-    processes = []
-    for year in range(1995, 2019):
-        process = mp.Process(target=collect_data, args=([f'{year}01', f'{year}12']))
-        processes.append(process)
-        process.start()
+    # processes = []
+    # for year in range(1995, 2019):
+    #     process = mp.Process(target=collect_data, args=([f'{year}01', f'{year}12']))
+    #     processes.append(process)
+    #     process.start()
 
-    for process in processes:
-        process.join()
+    # for process in processes:
+    #     process.join()
 

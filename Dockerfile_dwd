@@ -9,17 +9,16 @@ ENV TZ="Europe/Berlin"
 
 RUN mkdir /src
 RUN mkdir /src/grb_files
-RUN chown -R admin /src
-RUN chown -R admin /src/grb_files
 
-COPY ./crawler/__init__.py /src/__init__.py
-COPY ./crawler/dwd.py /src/dwd.py
-COPY ./crawler/nuts_mapper.py /src/nuts_mapper.py
-COPY ./crawler/data/lat_coordinates.npy /src/data/lat_coordinates.npy
-COPY ./crawler/data/lon_coordinates.npy /src/data/lon_coordinates.npy
-COPY ./crawler/data/plz_matrix.npy /src/data/plz_matrix.npy
+COPY ./crawler/nuts_mapper.py ./crawler/dwd.py ./crawler/base_crawler.py ./crawler/__init__.py /src/
+COPY ./crawler/data/lat_coordinates.npy /src/data/
+COPY ./crawler/data/lon_coordinates.npy /src/data/
+COPY ./crawler/data/plz_matrix.npy /src/data/
+COPY ./crawler/shapes /src/shapes
+
+RUN chown -R admin /src
 
 USER admin
-WORKDIR /src
+WORKDIR /
 
-CMD ["python", "-u", "./dwd.py"]
+CMD ["python", "-m", "src.dwd"]

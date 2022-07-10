@@ -4,6 +4,7 @@ import zipfile
 import io
 import logging
 import sqlite3
+# import lxml # for reading xml
 
 
 logging.basicConfig()
@@ -104,7 +105,8 @@ def main(db_uri):
     engine = create_engine(db_uri)
     #engine = sqlite3.connect('mastr.db')
 
-    init_database(engine, 'mastr')
+    if not db_uri.startswith('sqlite://'):
+        init_database(engine, 'mastr')
     engine = create_engine(f'{db_uri}/mastr')
     try:
         tables = create_db_from_export(connection=engine)
@@ -112,5 +114,5 @@ def main(db_uri):
         log.exception('error in mastr')
 
 if __name__ == '__main__':
-    db_uri = 'postgresql://opendata:opendata@10.13.10.41:5432/mastr'
+    db_uri = 'sqlite:///./mastr.db'
     main(db_uri)
