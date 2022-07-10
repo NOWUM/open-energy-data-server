@@ -4,12 +4,9 @@ import geopandas as gpd
 import shapefile
 import shapely.wkt
 from shapely.geometry import shape, Point
+import os.path as osp
 
-
-if __name__ == "__main__":
-    from sqlalchemy import create_engine
-    engine = create_engine('postgresql://opendata:opendata@10.13.10.41:5432/scigrid')
-
+def scigrid_links_and_nodes():
     response = requests.get('https://www.power.scigrid.de/releases_archive/scigrid-conference-eu-data-only.zip')
     z = zipfile.ZipFile(io.BytesIO(response.content))
     for file in z.filelist:
@@ -35,7 +32,8 @@ if __name__ == "__main__":
     links = gpd.GeoDataFrame(links)
     # links.plot()
 
-    eu_nuts = gpd.read_file(r'./shapes/NUTS_EU.shp')
+    nuts_path = osp.join(osp.dirname(__file__),'shapes','NUTS_EU.shp')
+    eu_nuts = gpd.read_file(geo_path)
     eu_nuts = eu_nuts[eu_nuts['LEVL_CODE'] == 3]
     eu_nuts = eu_nuts.to_crs(4326)
 
@@ -58,7 +56,6 @@ if __name__ == "__main__":
         areas.append((a1, a2))
     links['areas'] = areas
     links['geometry'] = links['geometry'].to_numpy(str)
-    links.to_sql('edges', engine, if_exists='replace', index=False)
 
     areas = []
     for index, node in nodes.iterrows():
@@ -74,4 +71,14 @@ if __name__ == "__main__":
             areas.append(None)
     nodes['area'] = areas
     nodes['geometry'] = nodes['geometry'].to_numpy(str)
+    
+    return links, nodes
+
+
+if __name__ == "__main__":
+    from sqlalchemy import create_engine
+    engine = create_engine('postgresql://opendata:opendata@10.13.10.41:5432/scigrid')
+
+    links, nodes = scigrid_links_and_nodes()
+    links.to_sql('edges', engine, if_exists='replace', index=False)
     nodes.to_sql('nodes', engine, if_exists='replace', index=False)

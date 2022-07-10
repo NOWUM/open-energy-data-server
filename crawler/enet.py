@@ -64,9 +64,11 @@ def create_db_from_export(connection):
 
 
 if __name__ == '__main__':
+    DB_URI = 'postgresql://opendata:opendata@10.13.10.41:5432'
     from sqlalchemy import create_engine
-    engine = create_engine('postgresql://opendata:opendata@10.13.10.41:5432')
-    # init_database(engine, 'enet')
-    engine = create_engine('postgresql://opendata:opendata@10.13.10.41:5432/enet')
+    engine = create_engine(DB_URI)
+    init_database(engine, 'enet')
+    engine = create_engine(f'{DB_URI}/enet')
+    create_db_from_export(engine)
     
 

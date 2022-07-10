@@ -9,6 +9,8 @@ import os
 from tqdm import tqdm
 from sqlalchemy import create_engine
 
+import multiprocessing as mp
+from nuts_mapper import create_nuts_map
 
 log = logging.getLogger('openDWD_cosmo')
 log.setLevel(logging.INFO)
@@ -122,40 +124,42 @@ class DWDCrawler(BasicDbCrawler):
                     index = pd.MultiIndex.from_arrays([df['time'], df['nuts']], names=['time', 'nuts'])
                     df.index = index
                     del df['time'], df['nuts']
-                    log.info(f'built data for  {date.month_name()} and start import to postgres')
+                    log.info(f'built data for  {date.month_name()} and start import to db')
                     df.to_sql('cosmo', con=connection, if_exists='append')
-                    log.info('import in postgres complete --> start with next hour')
+                    log.info('import in db complete --> start with next hour')
                 except Exception as e:
                     log.error(repr(e))
                     log.exception(f'could not read {date}')
 
+def create_nuts_matrix(nuts_matrix_path):
+    max_processes = mp.cpu_count() - 1
+    log.info('(re)creating nuts matrix')
+
+    with mp.Pool(max_processes) as pool:
+        result = pool.map(create_nuts_map, [(i, j) for i in range(824) for j in range(848)])
+
+    result = np.asarray(result).reshape((824, 848))
+    np.save(nuts_matrix_path, result)
+    log.info(f'created nuts matrix at {nuts_matrix_path')
+
+
 if __name__ == '__main__':
     import numpy as np
-    import multiprocessing as mp
+    
     logging.basicConfig()
-
-    create_nuts_matrix = not os.path.isfile('./nuts_matrix.npy')
-    if create_nuts_matrix:
-        max_processes = mp.cpu_count() - 1
-        #dwd_latitude_range = np.load(r'./crawler/data/lat_coordinates.npy')
-        #dwd_longitude_range = np.load(r'./crawler/data/lon_coordinates.npy')
-        
-        from nuts_mapper import create_nuts_map
-        log.info('(re)creating nuts matrix')
-
-        with mp.Pool(max_processes) as pool:
-            result = pool.map(create_nuts_map, [(i, j) for i in range(824) for j in range(848)])
-
-        result = np.asarray(result).reshape((824, 848))
-        np.save('./nuts_matrix.npy', result)
-        log.info('created nuts matrix')
-
-    nuts_matrix = np.load(r'./nuts_matrix.npy', allow_pickle=True)
+    
+    nuts_matrix_path = osp.join(osp.dirname(__file__),'data','nuts_matrix.npy')
+    
+    if not os.path.isfile(nuts_matrix_path):
+        create_nuts_matrix(nuts_matrix_path)
+    nuts_matrix = np.load(nuts_matrix_path, allow_pickle=True)
     db_uri = 'postgresql://opendata:opendata@10.13.10.41:5432/weather'
     db_uri = 'sqlite://weather.db'
-    download_dir = './grb_files'
+    download_dir = osp.join(osp.dirname(__file__),'grb_files')
 
     crawler = DWDCrawler(nuts_matrix, download_dir, db_uri)
+    crawler.create_table()
+    #crawler.write_data('199501', '199502')
 
     def collect_data(start, end):
         try:
@@ -165,9 +169,6 @@ if __name__ == '__main__':
         except Exception as e:
             log.error(repr(e))
             log.exception(f'Error in worker with interval {start} - {end}')
-
-    crawler.create_table()
-    # download_data('199501', '199502')
 
     processes = []
     for year in range(1995, 2019):

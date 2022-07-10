@@ -6,16 +6,6 @@ writes to database axxteq in a timescaleDB
 import numpy as np
 import pandas as pd
 from glob import glob
-from sqlalchemy import create_engine
-import os
-
-host = os.getenv('HOST', '10.13.10.41')
-port = int(os.getenv('PORT', 5432))
-user = os.getenv('USER', 'opendata')
-password = os.getenv('PASSWORD', 'opendata')
-database = os.getenv('TIMESCALEDB_DATABASE', 'axxteq')
-
-engine = create_engine(f'postgresql://{user}:{password}@{host}:{port}/{database}')
 
 garage_name = {318: 'Stadt_A',
                464: 'Stadt_D',
@@ -46,7 +36,7 @@ ticket_types = {'Seasonparker Card': 'middle_term',
                 'Verlorenes Ticket Stadtpark': 'lost'}
 
 
-def create_table():
+def create_table(engine):
     engine.execute("CREATE TABLE IF NOT EXISTS parking_data( "
                     "time timestamp without time zone NOT NULL, "
                     "ticket_id integer, "
@@ -57,10 +47,13 @@ def create_table():
                     "name text, "
                     "PRIMARY KEY (time , ticket_id));")
 
-    query_create_hypertable = "SELECT create_hypertable('parking_data', 'time', if_not_exists => TRUE, migrate_data => TRUE);"
-    with engine.connect() as connection:
-        with connection.begin():
-            connection.execute(query_create_hypertable)
+    try:
+        query_create_hypertable = "SELECT create_hypertable('parking_data', 'time', if_not_exists => TRUE, migrate_data => TRUE);"
+        with engine.connect() as conn, conn.begin():
+            conn.execute(query_create_hypertable)
+        log.info(f'created hypertable parking_data')
+    except Exception as e:
+        log.error(f'could not create hypertable: {e}')
 
 def read(file):
     if '.csv' in file:
@@ -72,18 +65,19 @@ def read(file):
             data = pd.read_csv(file, encoding='utf-8', sep=';', quotechar="'")
         data.columns = list(map(lambda x: x.replace("'", "").strip(), data.columns))
     else:
-        data = pd.read_excel(r'axxteq/xlsx/Mall_0520.xlsx', skiprows=3, usecols=[0, 3, 5, 7])
+        data = pd.read_excel(file, skiprows=3, usecols=[0, 3, 5, 7])
         data.columns = ['ticket_id', 'card_type', 'entry_time', 'exit_time']
         data = data.dropna(axis=0, how='any')
     # print(data.head(5))
     return data
 
+axxteq_data_path = osp.join(osp.dirname(__file__),'axxteq')
 
-def read_files(excel: bool = False, convert_utc: bool = False):
+def read_files(excel: bool = False, convert_utc: bool = False, base_path=axxteq_data_path):
     if excel:
-        files = glob(r'./axxteq/xlsx/*.xlsx')
+        files = glob(f'{axxteq_data_path}/xlsx/*.xlsx')
     else:
-        files = glob(r'./axxteq/csv/*.csv')
+        files = glob(f'{axxteq_data_path}/csv/*.csv')
     dataframe = []
     for file in files:
         data = read(file)
@@ -111,12 +105,22 @@ def read_files(excel: bool = False, convert_utc: bool = False):
 
 
 if __name__ == "__main__":
+    from sqlalchemy import create_engine
+    import os
 
-    # create_table()
+    host = os.getenv('HOST', '10.13.10.41')
+    port = int(os.getenv('PORT', 5432))
+    user = os.getenv('USER', 'opendata')
+    password = os.getenv('PASSWORD', 'opendata')
+    database = os.getenv('TIMESCALEDB_DATABASE', 'axxteq')
 
-    df_1 = read_files(excel=False, convert_utc=False)
-    df_1.to_sql('parking_data', engine, if_exists='replace')
-    df_2 = read_files(excel=True, convert_utc=False)
-    df_2.to_sql('parking_data', engine, if_exists='replace')
+    engine = create_engine(f'postgresql://{user}:{password}@{host}:{port}/{database}')
+    # create_table(engine)
+
+    df_csv = read_files(excel=False, convert_utc=False)
+    df_xlsx = read_files(excel=True, convert_utc=False)
+
+    df_csv.to_sql('parking_data', engine, if_exists='replace')
+    df_xlsx.to_sql('parking_data', engine, if_exists='replace')
 
 

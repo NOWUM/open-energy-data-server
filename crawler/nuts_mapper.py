@@ -2,8 +2,10 @@ from shapely.geometry import Point
 import numpy as np
 import geopandas as gpd
 import pandas as pd
+import os.path as osp
 
-geo_information = gpd.read_file('./shapes/NUTS_EU.shp')
+geo_path = osp.join(osp.dirname(__file__),'shapes','NUTS_EU.shp')
+geo_information = gpd.read_file(geo_path)
 geo_information = geo_information.to_crs(4326)
 nuts_levels = {'DE': 3, 'NL': 1, 'BE': 1, 'LU': 1, 'PO': 1, 'DK': 1, 'FR': 1, 'CZ': 1, 'AT': 1, 'CH': 1}
 
@@ -14,8 +16,9 @@ for key, value in nuts_levels.items():
     data_frames.append(df)
 
 geo_information = gpd.GeoDataFrame(pd.concat(data_frames))
-dwd_latitude = np.load(r'./data/lat_coordinates.npy')
-dwd_longitude = np.load(r'./data/lon_coordinates.npy')
+data_path = osp.join(osp.dirname(__file__),'data')
+dwd_latitude = np.load(data_path+'/lat_coordinates.npy')
+dwd_longitude = np.load(data_path+'/lon_coordinates.npy')
 
 
 def create_nuts_map(coords):

@@ -61,7 +61,6 @@ def set_index(data_):
 
 def create_db_from_export(connection):
     tables = {}
-    double_pk_EEG977320921073 = False
 
     data_url = get_mastr_url()
     print(data_url)
@@ -74,17 +73,8 @@ def create_db_from_export(connection):
             pk = set_index(df)
 
             try:
-                # remove duplicate in AnlagenEegSolar
-                if table_name == 'AnlagenEegSolar' and ('EEG977320921073' in df.index):
-                    if double_pk_EEG977320921073:
-                        df = df.drop('EEG936420772725')
-                        log.info('dropped')
-                    else:
-                        double_pk_EEG977320921073 = True
-
                 # this will fail if there is a new column
                 df.to_sql(table_name, connection, if_exists='append', index=False)
-
             except Exception as e:
                 log.info(repr(e))
                 data = pd.read_sql(f'SELECT * FROM "{table_name}"', connection)

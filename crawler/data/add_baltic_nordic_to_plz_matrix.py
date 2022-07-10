@@ -5,16 +5,18 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 
 if __name__ == "__main__":
+    # load and write to current folder
+    data_path = osp.join(osp.dirname(__file__))
 
     # load GeoJSON file containing sectors
-    with open('nordic.json') as f:
+    with open(data_path+'/nordic.json') as f:
         nordic = json.load(f)
     # load GeoJSON file containing sectors
-    with open('baltic.json') as f:
+    with open(data_path+'/baltic.json') as f:
         baltic = json.load(f)
 
-    lat_coordinates = np.load(r'lat_coordinates.npy')
-    lon_coordinates = np.load(r'lon_coordinates.npy')
+    lat_coordinates = np.load(data_path+'/lat_coordinates.npy')
+    lon_coordinates = np.load(data_path+'/lon_coordinates.npy')
 
     plz_matrix = np.load(r'plz_matrix.npy')
 

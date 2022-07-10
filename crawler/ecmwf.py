@@ -5,7 +5,6 @@ import numpy as np
 import os
 from pygeotile.tile import Tile
 from itertools import product
-from sqlalchemy import create_engine
 
 # key = '690d1282-fe2c-4a1c-9367-c14f58fff451'
 
@@ -35,21 +34,7 @@ request = dict(format='grib', variable=var_,
                day=[f'{i:02d}' for i in range(1, 32)],
                time=[f'{i:02d}:00' for i in range(24)])
 
-# --> x coords for tiles
-x_min = int(os.getenv('X_MIN', 66))
-x_max = int(os.getenv('X_MAX', 69))
-x_range = np.arange(x_min, x_max + 1)
-# --> y coords for tiles
-y_min = int(os.getenv('Y_MIN', 40))
-y_max = int(os.getenv('Y_MAX', 44))
-y_range = np.arange(y_min, y_max + 1)
-# --> zoom level
-zoom = int(os.getenv('ZOOM', 7))
-
-engine = create_engine(f'postgresql://opendata:opendata@10.13.10.41:5432/weather')
-
-
-def create_table():
+def create_table(engine):
     engine.execute("CREATE TABLE IF NOT EXISTS ecmwf( "
                     "time timestamp without time zone NOT NULL, "
                     "temp_air double precision, "
@@ -64,10 +49,14 @@ def create_table():
                     "y integer, "
                     "PRIMARY KEY (time , east, west, north, south));")
 
-    query_create_hypertable = "SELECT create_hypertable('ecmwf', 'time', if_not_exists => TRUE, migrate_data => TRUE);"
-    with engine.connect() as connection:
-        with connection.begin():
-            connection.execute(query_create_hypertable)
+    try:
+        query_create_hypertable = "SELECT create_hypertable('ecmwf', 'time', if_not_exists => TRUE, migrate_data => TRUE);"
+        with engine.connect() as conn, conn.begin():
+            conn.execute(query_create_hypertable)
+        log.info(f'created hypertable ecmwf')
+    except Exception as e:
+        log.error(f'could not create hypertable: {e}')
+
 
 
 def get_position(x_pos, y_pos, z):
@@ -86,7 +75,7 @@ def save_data(x_pos, y_pos, z):
     c.retrieve('reanalysis-era5-land', request, fr'./{year}_{x_pos}_{y_pos}ecmwf.grb')
 
 
-def build_dataframe(x_pos, y_pos, z):
+def build_dataframe(engine, x_pos, y_pos, z):
     north, west, south, east = get_position(x_pos, y_pos, z)
     weather_data = pygrib.open(fr'./{year}_{x_pos}_{y_pos}ecmwf.grb')
     data_set, len_ = dict(), 0
@@ -109,8 +98,20 @@ def build_dataframe(x_pos, y_pos, z):
 
 
 if __name__ == '__main__':
+    from sqlalchemy import create_engine
+    engine = create_engine(f'postgresql://opendata:opendata@10.13.10.41:5432/weather')
+    create_table(engine)
 
-    create_table()
+    # --> x coords for tiles
+    x_min = int(os.getenv('X_MIN', 66))
+    x_max = int(os.getenv('X_MAX', 69))
+    x_range = np.arange(x_min, x_max + 1)
+    # --> y coords for tiles
+    y_min = int(os.getenv('Y_MIN', 40))
+    y_max = int(os.getenv('Y_MAX', 44))
+    y_range = np.arange(y_min, y_max + 1)
+    # --> zoom level
+    zoom = int(os.getenv('ZOOM', 7))
 
     for x, y in product(x_range, y_range):
         print(x, y)

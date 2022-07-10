@@ -1,3 +1,4 @@
+import os.path as osp
 from shapely.geometry import shape, Point
 import shapefile
 import numpy as np
@@ -18,11 +19,13 @@ def get_pos_nums(num):
 
 
 def generate_plz_matrix():
-    shape5_germany = shapefile.Reader(r'./shapes/plz-5stellig.shp')
+    shape5_path = osp.join(osp.dirname(__file__),'shapes','plz-5stellig.shp')
+    shape5_germany = shapefile.Reader(shape5_path)
     plz_areas_5 = {feature.record['plz']: shape(feature.shape.__geo_interface__)
                    for feature in shape5_germany.shapeRecords()}
-    lat_coordinates = np.load(r'data/lat_coordinates.npy')
-    lon_coordinates = np.load(r'data/lon_coordinates.npy')
+    data_path = osp.join(osp.dirname(__file__))
+    lat_coordinates = np.load(data_path+'/lat_coordinates.npy')
+    lon_coordinates = np.load(data_path+'/lon_coordinates.npy')
     plz5_matrix = np.zeros(lon_coordinates.shape)
     rows, cols = plz5_matrix.shape
     for i in tqdm(range(rows)):
@@ -31,7 +34,7 @@ def generate_plz_matrix():
                 if area.contains(Point((lon_coordinates[i][j], lat_coordinates[i][j]))):
                     plz5_matrix[i][j] = int(key)
                     break
-    np.save(r'./plz5_matrix', plz5_matrix, allow_pickle=True)
+    np.save(data_path+'/plz5_matrix.npy', plz5_matrix, allow_pickle=True)
 
 
 def generate_plz3_matrix(plz5_matrix):
@@ -41,7 +44,8 @@ def generate_plz3_matrix(plz5_matrix):
         for j in range(cols):
             if plz5_matrix[i][j] > 0:
                 plz3_matrix[i][j] = int(get_pos_nums(plz5_matrix[i][j]))
-    np.save(r'./plz3_matrix', plz5_matrix, allow_pickle=True)
+    data_path = osp.join(osp.dirname(__file__))
+    np.save(data_path+'/plz3_matrix.npy', plz5_matrix, allow_pickle=True)
 
 if __name__=="__main__":
     generate_plz3_matrix(np.load('plz_matrix.npy'))
