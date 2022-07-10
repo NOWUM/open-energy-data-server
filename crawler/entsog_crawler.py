@@ -27,7 +27,6 @@ import logging
 
 from .base_crawler import BasicDbCrawler
 
-logging.basicConfig()
 log = logging.getLogger('entsog')
 log.setLevel(logging.INFO)
 
@@ -228,6 +227,7 @@ def main(db_uri):
     crawler.pullOperationalData(indicators)
 
 if __name__ == "__main__":
+    logging.basicConfig()
     database = 'data/entsog.db'
     import os
     craw = EntsogCrawler(database)

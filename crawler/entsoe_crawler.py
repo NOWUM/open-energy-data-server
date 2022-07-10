@@ -25,7 +25,6 @@ import logging
 
 from .base_crawler import BasicDbCrawler
 
-logging.basicConfig()
 log = logging.getLogger('entsoe')
 log.setLevel(logging.INFO)
 
@@ -556,6 +555,7 @@ def main(db_uri):
 
 
 if __name__ == "__main__":
+    logging.basicConfig()
     log.info('ENTSOE')
     '''
     First register at ENTSO-E transparency portal by clicking login or this link:

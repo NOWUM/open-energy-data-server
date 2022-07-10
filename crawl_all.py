@@ -3,7 +3,6 @@
 
 import os.path as osp
 from glob import glob
-from sqlalchemy import create_engine
 import logging
 
 log = logging.getLogger('crawler')
