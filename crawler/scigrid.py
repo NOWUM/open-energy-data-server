@@ -71,14 +71,18 @@ def scigrid_links_and_nodes():
             areas.append(None)
     nodes['area'] = areas
     nodes['geometry'] = nodes['geometry'].to_numpy(str)
-    
+
     return links, nodes
 
 
-if __name__ == "__main__":
+def main(db_uri):
     from sqlalchemy import create_engine
-    engine = create_engine('postgresql://opendata:opendata@10.13.10.41:5432/scigrid')
-
+    engine = create_engine(db_uri)
     links, nodes = scigrid_links_and_nodes()
     links.to_sql('edges', engine, if_exists='replace', index=False)
     nodes.to_sql('nodes', engine, if_exists='replace', index=False)
+
+if __name__ == "__main__":
+
+    db_uri = 'postgresql://opendata:opendata@10.13.10.41:5432/scigrid'
+    main(db_uri)

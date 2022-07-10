@@ -10,3 +10,5 @@ tqdm
 bs4
 json5
 geopandas
+openpyxl
+scipy

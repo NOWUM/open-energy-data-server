@@ -19,7 +19,7 @@ def write_solar_capacity_factors(engine):
     data.index = pd.to_datetime(data.index)
     data.columns = [col.lower() for col in data.columns]
     data.to_sql('capacity_solar_merra2', engine, if_exists='replace')
-    
+
     sarah_path = osp.join(osp.dirname(__file__),'data','ninja_pv_europe_v1.1_sarah.csv')
     data = pd.read_csv(sarah_path, index_col=0)
     data.index = pd.to_datetime(data.index)
@@ -27,16 +27,20 @@ def write_solar_capacity_factors(engine):
     data.to_sql('capacity_solar_sarah', engine, if_exists='replace')
 
 
+def main(db_uri):
+    from sqlalchemy import create_engine
+    engine = create_engine(db_uri)
+    write_wind_capacity_factors(engine)
+    write_solar_capacity_factors(engine)
+
+
 if __name__ == "__main__":
     import os
-    from sqlalchemy import create_engine
-
     host = os.getenv('HOST', '10.13.10.41')
     port = int(os.getenv('PORT', 5432))
     user = os.getenv('USER', 'opendata')
     password = os.getenv('PASSWORD', 'opendata')
     database = os.getenv('TIMESCALEDB_DATABASE', 'ninja')
 
-    engine = create_engine(f'postgresql://{user}:{password}@{host}:{port}/{database}')
-    # write_wind_capacity_factors(engine)
-    write_solar_capacity_factors(engine)
+    db_uri = f'postgresql://{user}:{password}@{host}:{port}/{database}'
+    main(db_uri)

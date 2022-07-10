@@ -1,3 +1,14 @@
+'''
+The [ene't](https://download.enet.eu/) is a data provider for energy data.
+If an institut has bought the data, it receives it as XLSX and CSV.
+The latter can be used to create a database from it.
+
+It contains aggregated usage data of so-called Bilanzkreise in the past.
+
+The resulting data is not available under an open-source license and should not be reshared but is available for crawling yourself.
+'''
+
+
 import pandas as pd
 import logging
 import sqlite3
@@ -45,9 +56,10 @@ def init_database(connection, database):
 
     log.info('initialize database')
 
+enet_path = osp.join(osp.dirname(__file__),'enet')
 
-def create_db_from_export(connection):
-    for table in glob.glob(r'../enet_database/*.csv'):
+def create_db_from_export(connection, enet_path):
+    for table in glob.glob(data_path+'/*.csv'):
         df = pd.read_csv(table, sep=';', encoding='cp1252', decimal=',')
         df.columns = [x.lower() for x in df.columns]
         date_fields = ['stand', 'von', 'bis', 'gueltig_seit', 'gueltig_bis', 'datum_erfassung',
@@ -62,13 +74,14 @@ def create_db_from_export(connection):
         print(table_name)
         df.to_sql(table_name.lower(), connection, if_exists='append', index=False)
 
+def main(db_uri):
+    engine = create_engine(db_uri)
+    init_database(engine, 'enet')
+    engine = create_engine(f'{db_uri}/enet')
+    create_db_from_export(engine)
 
 if __name__ == '__main__':
-    DB_URI = 'postgresql://opendata:opendata@10.13.10.41:5432'
-    from sqlalchemy import create_engine
-    engine = create_engine(DB_URI)
-    init_database(engine, 'enet')
-    engine = create_engine(f'{DB_URI}/enet')
-    create_db_from_export(engine)
-    
+    db_uri = 'postgresql://opendata:opendata@10.13.10.41:5432'
+    main(db_uri)
+
 

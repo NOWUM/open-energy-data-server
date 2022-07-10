@@ -4,6 +4,9 @@
 Created on Fri Nov 13 12:04:45 2020
 
 @author: maurer
+
+This crawler downloads all the data of the ENTSO-G transparency platform.
+The resulting data is not available under an open-source license and should not be reshared but is available for crawling yourself.
 """
 
 import requests
@@ -22,7 +25,7 @@ from contextlib import contextmanager
 
 import logging
 
-from base_crawler import BasicDbCrawler
+from .base_crawler import BasicDbCrawler
 
 logging.basicConfig()
 log = logging.getLogger('entsog')
@@ -208,6 +211,21 @@ class EntsogCrawler(BasicDbCrawler):
                 query = (
                     'CREATE INDEX IF NOT EXISTS "idx_ft_pointKey" ON Firm_Technical (pointKey,periodfrom);')
                 conn.execute(query)
+
+def main(db_uri):
+    crawler = EntsogCrawler(db_uri)
+
+    names = ['cmpUnsuccessfulRequests',
+            'connectionpoints',
+            'operators',
+            'balancingzones',
+            'operatorpointdirections',
+            'Interconnections',
+            'aggregateInterconnections']
+    crawler.pullData(names)
+
+    indicators = ['Physical Flow', 'Allocation', 'Firm Technical']
+    crawler.pullOperationalData(indicators)
 
 if __name__ == "__main__":
     database = 'data/entsog.db'

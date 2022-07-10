@@ -7,7 +7,7 @@ import requests
 import io
 import zipfile
 
-from base_crawler import BasicDbCrawler
+from .base_crawler import BasicDbCrawler
 
 def download_extract_zip(url):
     """
@@ -54,6 +54,9 @@ class FrequencyCrawler(BasicDbCrawler):
                     except Exception as e:
                         print(repr(e))
 
+def main(db_uri):
+    fc = FrequencyCrawler(db_uri)
+    fc.crawl_frequency(first=2014)
 
 if __name__ == '__main__':
     if False:

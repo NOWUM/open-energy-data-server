@@ -6,11 +6,12 @@ import pandas as pd
 import numpy as np
 import logging
 import os
+import os.path as osp
 from tqdm import tqdm
 from sqlalchemy import create_engine
 
 import multiprocessing as mp
-from nuts_mapper import create_nuts_map
+from .nuts_mapper import create_nuts_map
 
 log = logging.getLogger('openDWD_cosmo')
 log.setLevel(logging.INFO)
@@ -26,10 +27,10 @@ to_download = dict(temp_air='T_2M/T_2M.2D.',
                    rain_con='RAIN_CON/RAIN_CON.2D.',
                    rain_gsp='RAIN_GSP/RAIN_GSP.2D.',
                    cloud_cover='CLCT/CLCT.2D.')
-from base_crawler import BasicDbCrawler
+from .base_crawler import BasicDbCrawler
 
 class DWDCrawler(BasicDbCrawler):
-    
+
     def __init__(self, nuts_matrix, download_dir, database):
         super().__init__(database)
         self.nuts_matrix = nuts_matrix
@@ -140,16 +141,28 @@ def create_nuts_matrix(nuts_matrix_path):
 
     result = np.asarray(result).reshape((824, 848))
     np.save(nuts_matrix_path, result)
-    log.info(f'created nuts matrix at {nuts_matrix_path')
+    log.info(f'created nuts matrix at {nuts_matrix_path}')
+
+def main(db_uri):
+    nuts_matrix_path = osp.join(osp.dirname(__file__),'data','nuts_matrix.npy')
+    if not os.path.isfile(nuts_matrix_path):
+        create_nuts_matrix(nuts_matrix_path)
+
+    nuts_matrix = np.load(nuts_matrix_path, allow_pickle=True)
+    download_dir = osp.join(osp.dirname(__file__),'grb_files')
+
+    crawler = DWDCrawler(nuts_matrix, download_dir, db_uri)
+    crawler.create_table()
+    crawler.write_data('199501', '199502')
 
 
 if __name__ == '__main__':
     import numpy as np
-    
+
     logging.basicConfig()
-    
+
     nuts_matrix_path = osp.join(osp.dirname(__file__),'data','nuts_matrix.npy')
-    
+
     if not os.path.isfile(nuts_matrix_path):
         create_nuts_matrix(nuts_matrix_path)
     nuts_matrix = np.load(nuts_matrix_path, allow_pickle=True)
@@ -179,4 +192,3 @@ if __name__ == '__main__':
     for process in processes:
         process.join()
 
-    

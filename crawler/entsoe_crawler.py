@@ -4,9 +4,11 @@
 Created on Sun Nov 29 18:53:14 2020
 
 @author: maurer
+
+This crawler downloads all the data of the ENTSO-E transparency platform.
+The resulting data is not available under an open-source license and should not be reshared but is available for crawling yourself.
 """
 from tqdm import tqdm
-from contextlib import closing
 import sqlite3
 import pandas as pd
 from datetime import timedelta
@@ -21,7 +23,7 @@ from requests.exceptions import HTTPError
 
 import logging
 
-from base_crawler import BasicDbCrawler
+from .base_crawler import BasicDbCrawler
 
 logging.basicConfig()
 log = logging.getLogger('entsoe')
@@ -192,7 +194,7 @@ class EntsoeCrawler(BasicDbCrawler):
 
         Parameters
         ----------
-        start : pd.Timestamp 
+        start : pd.Timestamp
         delta : pd.Timedelta
             to check if a delta has already been set
         tablename : str
@@ -207,7 +209,7 @@ class EntsoeCrawler(BasicDbCrawler):
             best start
         delta : pd.Timedelta
             best delta
-        
+
         """
 
         if start and delta:
@@ -244,18 +246,18 @@ class EntsoeCrawler(BasicDbCrawler):
         proc :
             procedure of entsoe-py
         start : pd.Timestamp
-            
+
         delta : pd.Timedelta
-            
+
         times : int
-            
+
 
         Returns
         -------
 
         """
         log.info(f'****** {proc.__name__} *******')
-        
+
         if (times*delta).days < 2:
             log.info('nothing to do')
             return
@@ -308,7 +310,7 @@ class EntsoeCrawler(BasicDbCrawler):
         delta :
             param proc:
         proc :
-            
+
 
         Returns
         -------
@@ -417,7 +419,7 @@ class EntsoeCrawler(BasicDbCrawler):
             start : pd.DateTime
                 param end:
             end :
-                
+
 
             Returns
             -------
@@ -542,11 +544,26 @@ class EntsoeCrawler(BasicDbCrawler):
         self.download_entsoe(countries, client.query_installed_generation_capacity_per_unit,
                             start, delta=delta, times=1)
 
+def main(db_uri):
+    api_key = os.getenv('ENTSOE_API_KEY')
+    client = EntsoePandasClient(api_key=api_key)
+    crawler = EntsoeCrawler(database=db_uri)
+
+    start = pd.Timestamp('20150101', tz='Europe/Berlin')
+    delta = pd.Timestamp.now(tz='Europe/Berlin')-start
+    crawler.create_database(client, start, delta)
+    crawler.update_database(client, start, delta)
+
 
 if __name__ == "__main__":
     log.info('ENTSOE')
-
-    client = EntsoePandasClient(api_key='***REMOVED***')
+    '''
+    First register at ENTSO-E transparency portal by clicking login or this link:
+    https://transparency.entsoe.eu/protected-url
+    Generate Token as documented here:
+    https://iop-transparency.entsoe.eu/content/static_content/download?path=/Static%20content/API-Token-Management.pdf
+    '''
+    client = EntsoePandasClient(api_key='XXX')
 
     start = pd.Timestamp('20150101', tz='Europe/Berlin')
     delta = timedelta(days=30)

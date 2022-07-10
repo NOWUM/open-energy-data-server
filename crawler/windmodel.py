@@ -4,8 +4,22 @@ import requests
 import json5  # parse js-dict to python
 import pandas as pd
 from tqdm import tqdm  # fancy for loop
-from sqlalchemy import create_engine
 import scipy # needed for interpolation
+
+'''
+Downloads the available powercurve data from https://www.wind-turbine-models.com/ to a csv file
+
+The raw measured data from https://www.wind-turbine-models.com/powercurves is used.
+
+Interpolated values would be available from the individual wind turbines page are also available but are harder to crawl:
+
+e.g.: https://www.wind-turbine-models.com/turbines/1502-fuhrlaender-llc-wtu3.0-120
+
+Therefore, interpolation from scipy is used.
+For the given model, this interpolation is not good, as it produces negative values (which are nulled in the script)
+
+The resulting data is not available under an open-source license and should not be reshared but is available for crawling yourself.
+'''
 
 def get_turbines_with_power_curve():
     # create list of turbines with available powercurves
@@ -44,7 +58,7 @@ def download_turbine_curve(turbine_id, start=0, stop=25):
         print(repr(e))
     df.index.name = 'wind_speed'
     return df
-    
+
 
 def download_all_turbines():
     wind_turbines = get_turbines_with_power_curve()
@@ -58,13 +72,19 @@ def download_all_turbines():
     df[df<0] = 0
     return df
 
-if __name__ == "__main__":
-
-    wind_turbines = get_turbines_with_power_curve()
+def main(db_uri):
+    from sqlalchemy import create_engine
+    engine = create_engine(db_uri)
     turbine_data = download_all_turbines()
+    turbine_data.to_sql('turbine_data', engine, if_exists='replace')
+    return turbine_data
+
+
+if __name__ == "__main__":
+    db_uri = 'postgresql://opendata:opendata@10.13.10.41:5432/windmodel'
+    wind_turbines = get_turbines_with_power_curve()
+    turbine_data = main(db_uri)
+
     with open('turbine_data.csv', 'w') as f:
         turbine_data.to_csv(f)
     turbine_data = pd.read_csv('turbine_data.csv', index_col=0)
-    
-    engine = create_engine('postgresql://opendata:opendata@10.13.10.41:5432/windmodel')
-    turbine_data.to_sql('turbine_data', engine, if_exists='replace')

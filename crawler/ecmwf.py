@@ -96,12 +96,10 @@ def build_dataframe(engine, x_pos, y_pos, z):
     df = df.set_index(['time', 'east', 'west', 'north', 'south'])
     df.to_sql('ecmwf', con=engine, if_exists='append')
 
-
-if __name__ == '__main__':
+def main(db_uri):
     from sqlalchemy import create_engine
-    engine = create_engine(f'postgresql://opendata:opendata@10.13.10.41:5432/weather')
+    engine = create_engine(db_uri)
     create_table(engine)
-
     # --> x coords for tiles
     x_min = int(os.getenv('X_MIN', 66))
     x_max = int(os.getenv('X_MAX', 69))
@@ -110,12 +108,12 @@ if __name__ == '__main__':
     y_min = int(os.getenv('Y_MIN', 40))
     y_max = int(os.getenv('Y_MAX', 44))
     y_range = np.arange(y_min, y_max + 1)
-    # --> zoom level
-    zoom = int(os.getenv('ZOOM', 7))
 
+    from crawler.ecmwf import save_data
     for x, y in product(x_range, y_range):
         print(x, y)
         save_data(x, y, 7)
 
-
-
+if __name__ == '__main__':
+    db_uri = f'postgresql://opendata:opendata@10.13.10.41:5432/weather'
+    main(db_uri)

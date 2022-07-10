@@ -30,3 +30,7 @@ def create_nuts_map(coords):
             nut = row['NUTS_ID']
             break
     return nut
+
+
+def main(db_uri):
+    print('nuts_mapper has no main')

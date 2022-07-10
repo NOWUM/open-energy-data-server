@@ -99,12 +99,18 @@ def create_db_from_export(connection):
             log.exception('Error adding pk')
     return tables
 
-if __name__ == '__main__':
+def main(db_uri):
     from sqlalchemy import create_engine
-    engine = create_engine('postgresql://opendata:opendata@10.13.10.41:5432/mastr')
-    init_database(engine, 'mastr')
+    engine = create_engine(db_uri)
     #engine = sqlite3.connect('mastr.db')
+
+    init_database(engine, 'mastr')
+    engine = create_engine(f'{db_uri}/mastr')
     try:
         tables = create_db_from_export(connection=engine)
     except Exception:
         log.exception('error in mastr')
+
+if __name__ == '__main__':
+    db_uri = 'postgresql://opendata:opendata@10.13.10.41:5432/mastr'
+    main(db_uri)

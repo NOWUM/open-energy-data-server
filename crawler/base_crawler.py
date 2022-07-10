@@ -4,6 +4,8 @@ helper functions for crawling open access data into a database
 
 from contextlib import contextmanager
 from sqlalchemy import create_engine
+from contextlib import closing
+import sqlite3
 
 class BasicDbCrawler:
     """

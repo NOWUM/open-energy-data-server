@@ -104,8 +104,18 @@ def read_files(excel: bool = False, convert_utc: bool = False, base_path=axxteq_
     return pd.concat(dataframe).dropna(axis=1, how='any').set_index(['ticket_id', 'entry_time'])
 
 
-if __name__ == "__main__":
+def main(db_uri):
     from sqlalchemy import create_engine
+    engine = create_engine(db_uri)
+    create_table(engine)
+
+    df_csv = read_files(excel=False, convert_utc=False)
+    df_xlsx = read_files(excel=True, convert_utc=False)
+
+    df_csv.to_sql('parking_data', engine, if_exists='replace')
+    df_xlsx.to_sql('parking_data', engine, if_exists='replace')
+
+if __name__ == "__main__":
     import os
 
     host = os.getenv('HOST', '10.13.10.41')
@@ -114,13 +124,7 @@ if __name__ == "__main__":
     password = os.getenv('PASSWORD', 'opendata')
     database = os.getenv('TIMESCALEDB_DATABASE', 'axxteq')
 
-    engine = create_engine(f'postgresql://{user}:{password}@{host}:{port}/{database}')
-    # create_table(engine)
-
-    df_csv = read_files(excel=False, convert_utc=False)
-    df_xlsx = read_files(excel=True, convert_utc=False)
-
-    df_csv.to_sql('parking_data', engine, if_exists='replace')
-    df_xlsx.to_sql('parking_data', engine, if_exists='replace')
+    db_uri = f'postgresql://{user}:{password}@{host}:{port}/{database}'
+    main(db_uri)
 
 

@@ -18,7 +18,7 @@ if __name__ == "__main__":
     lat_coordinates = np.load(data_path+'/lat_coordinates.npy')
     lon_coordinates = np.load(data_path+'/lon_coordinates.npy')
 
-    plz_matrix = np.load(r'plz_matrix.npy')
+    plz_matrix = np.load(data_path+'/plz_matrix.npy')
 
     for row in tqdm(range(lat_coordinates.shape[0])):
         for col in range(lat_coordinates.shape[1]):
