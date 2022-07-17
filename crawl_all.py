@@ -38,7 +38,7 @@ if __name__ == '__main__':
     # database configuration
     import os
 
-    user = os.getenv('USER', 'opendata')
+    user = os.getenv('DB_USER', 'opendata')
     password = os.getenv('PASSWORD', 'opendata')
     host = os.getenv('HOST', 'localhost')
     port = int(os.getenv('PORT', 5432))
