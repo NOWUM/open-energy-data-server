@@ -38,7 +38,7 @@ if __name__ == "__main__":
     import os
     host = os.getenv('HOST', '10.13.10.41')
     port = int(os.getenv('PORT', 5432))
-    user = os.getenv('USER', 'opendata')
+    user = os.getenv('DB_USER', 'opendata')
     password = os.getenv('PASSWORD', 'opendata')
     database = os.getenv('TIMESCALEDB_DATABASE', 'ninja')
 

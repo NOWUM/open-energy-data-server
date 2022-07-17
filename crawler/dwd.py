@@ -80,7 +80,7 @@ class DWDCrawler(BasicDbCrawler):
 
 
     def _delete_data(self, year, month):
-        if os.path.isfile(f'{self.download_dir}/weather{year}{month}'):
+        if osp.isfile(f'{self.download_dir}/weather{year}{month}'):
             os.remove(f'{self.download_dir}/weather{year}{month}')
 
     def _create_dataframe(self, key, year, month):
@@ -145,7 +145,7 @@ def create_nuts_matrix(nuts_matrix_path):
 
 def main(db_uri):
     nuts_matrix_path = osp.join(osp.dirname(__file__),'data','nuts_matrix.npy')
-    if not os.path.isfile(nuts_matrix_path):
+    if not osp.isfile(nuts_matrix_path):
         create_nuts_matrix(nuts_matrix_path)
 
     nuts_matrix = np.load(nuts_matrix_path, allow_pickle=True)
@@ -163,7 +163,7 @@ if __name__ == '__main__':
 
     nuts_matrix_path = osp.join(osp.dirname(__file__),'data','nuts_matrix.npy')
 
-    if not os.path.isfile(nuts_matrix_path):
+    if not osp.isfile(nuts_matrix_path):
         create_nuts_matrix(nuts_matrix_path)
     nuts_matrix = np.load(nuts_matrix_path, allow_pickle=True)
     
