@@ -78,7 +78,6 @@ class EEXCrawler(BasicDbCrawler):
                     if line[2:].startswith('Data type(') :
                         key = line[12:14]
                         header_dict[key]=line[2:].split(';')
-                    pass
 
                 for key in exclude_lists.keys():
                     if not line.startswith(key):

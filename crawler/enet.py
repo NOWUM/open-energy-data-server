@@ -75,7 +75,6 @@ def create_db_from_export(connection, enet_path):
 
 def main(db_uri):
     engine = create_engine(db_uri)
-    init_database(engine, 'enet')
     engine = create_engine(f'{db_uri}/enet')
     create_db_from_export(engine)
 

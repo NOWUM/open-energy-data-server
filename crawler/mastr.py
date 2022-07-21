@@ -105,8 +105,6 @@ def main(db_uri):
     engine = create_engine(db_uri)
     #engine = sqlite3.connect('mastr.db')
 
-    if not db_uri.startswith('sqlite://'):
-        init_database(engine, 'mastr')
     engine = create_engine(f'{db_uri}/mastr')
     try:
         tables = create_db_from_export(connection=engine)
