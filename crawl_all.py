@@ -52,7 +52,8 @@ if __name__ == '__main__':
     for crawler_name in crawlers:
         if crawler_name in available_crawlers:
             log.info(f'executing crawler {crawler_name}')
-            db_uri = f'postgresql://opendata:opendata@localhost:5432/{crawler}'
+            dbname = crawler_name.replace('_crawler', '')
+            db_uri = f'postgresql://opendata:opendata@localhost:5432/{dbname}'
             db_uri = f'sqlite:///./{crawler}.db'
 
             import_and_exec(crawler_name, db_uri)
