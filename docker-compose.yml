@@ -5,7 +5,7 @@ services:
     container_name: open-data-14
     restart: always
     shm_size: 32g
-    command: postgres -c 'max_connections=2000' -c 'timescaledb.max_background_workers=32 -c 'timescaledb.telemetry_level=off'
+    command: postgres -c "max_connections=2000" -c "timescaledb.max_background_workers=32" -c "timescaledb.telemetry_level=off"
     environment:
       - POSTGRES_USER=opendata
       - POSTGRES_PASSWORD=opendata
@@ -21,7 +21,7 @@ services:
     container_name: pgadmin4
     restart: always
     environment:
-        PGADMIN_DEFAULT_EMAIL: admin@opendata
+        PGADMIN_DEFAULT_EMAIL: admin@admin.admin
         PGADMIN_DEFAULT_PASSWORD: admin
         PGADMIN_LISTEN_PORT: 80
         PGADMIN_CONFIG_UPGRADE_CHECK_ENABLED: "False"
