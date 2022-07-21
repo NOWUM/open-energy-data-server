@@ -70,7 +70,7 @@ def create_db_from_export(connection, enet_path):
                 df[field] = pd.to_datetime(df[field], cache=True, errors='coerce')
                 df[field] = df[field].fillna(pd.to_datetime('2100-01-01'))
         table_name = table.split('1252_')[-1][:-4]
-        print(table_name)
+        log.info(table_name)
         df.to_sql(table_name.lower(), connection, if_exists='append', index=False)
 
 def main(db_uri):

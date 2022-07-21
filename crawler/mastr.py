@@ -64,7 +64,6 @@ def create_db_from_export(connection):
     tables = {}
 
     data_url = get_mastr_url()
-    print(data_url)
     log.info(f'get data from MaStR with url {data_url}')
     for file, info in get_data_from_mastr(data_url):
         log.info(f'read file {info.filename}')

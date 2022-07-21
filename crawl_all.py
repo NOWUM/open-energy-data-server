@@ -6,6 +6,7 @@ from glob import glob
 import logging
 
 log = logging.getLogger('crawler')
+log.setLevel(logging.INFO)
 
 def import_and_exec(module, db_uri):
     '''

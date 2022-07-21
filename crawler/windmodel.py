@@ -55,7 +55,7 @@ def download_turbine_curve(turbine_id, start=0, stop=25):
         df = df.interpolate(method='polynomial', order=3)
         df = df.fillna(0)
     except Exception as e:
-        print(repr(e))
+        log.error(f'Error: {e}')
     df.index.name = 'wind_speed'
     return df
 

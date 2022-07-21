@@ -9,6 +9,11 @@ import zipfile
 
 from .base_crawler import BasicDbCrawler
 
+import logging
+
+log = logging.getLogger('frequency')
+log.setLevel(logging.INFO)
+
 def download_extract_zip(url):
     """
     Download a ZIP file and extract its contents in memory
@@ -25,11 +30,11 @@ class FrequencyCrawler(BasicDbCrawler):
     def crawl_frequency(self, first=2011, last=2020):
         for year in range(first, last+1):
             with self.db_accessor() as conn:
-                print(year)
+                log.info(year)
                 url = f'https://www.50hertz.com/Portals/1/Dokumente/Transparenz/Regelenergie/Archiv%20Netzfrequenz/Netzfrequenz%20{year}.zip'
 
                 for name, thefile, count in download_extract_zip(url):
-                    print(name)
+                    log.info(name)
                     if count == 1:  # only 2010
                         df = pd.read_csv(thefile, sep=';', decimal=",", header=None,
                                         names=['date_time', 'frequency'],
@@ -52,9 +57,10 @@ class FrequencyCrawler(BasicDbCrawler):
                     try:
                         df.to_sql('frequency', conn, if_exists='append')
                     except Exception as e:
-                        print(repr(e))
+                        log.error(f'Error: {e}')
 
 def main(db_uri):
+    logging.basicConfig()
     fc = FrequencyCrawler(db_uri)
     fc.crawl_frequency(first=2014)
 
@@ -74,6 +80,6 @@ if __name__ == '__main__':
         plt.plot(df['date_time'], df['frequency'])
 
     conn_uri = 'frequency.db'
-    print('connect to', conn_uri)
+    log.info('connect to', conn_uri)
     fc = FrequencyCrawler(conn_uri)
     fc.crawl_frequency(first=2014)
