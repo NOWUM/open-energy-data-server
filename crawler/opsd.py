@@ -11,7 +11,9 @@ when2heat_path = osp.join(osp.dirname(__file__), 'data/when2heat.db')
 when2heat_url = 'https://data.open-power-system-data.org/when2heat/latest/when2heat.sqlite'
 
 def write_when2_heat(engine, db_path = when2heat_path):
-
+    '''
+    efficiency of heat pumps in different countries for different types of heatpumps
+    '''
     if osp.isfile(db_path):
         log.info(f'{db_path} already exists')
     else:

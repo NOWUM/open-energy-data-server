@@ -216,7 +216,7 @@ class EntsoeCrawler(BasicDbCrawler):
         else:
             try:
                 with self.db_accessor() as conn:
-                    query = f'select max("index") from {proc.__name__}'
+                    query = f'select max("index") from {tablename}'
                     d = conn.execute(query).fetchone()[0]
                 start = pd.to_datetime(d)
                 try:
@@ -226,7 +226,7 @@ class EntsoeCrawler(BasicDbCrawler):
                         pass
             except Exception as e:
                 start = pd.Timestamp('20150101', tz=tz)
-                log.info(f'using default {start} timestamp {e}')
+                log.info(f'using default {start} timestamp ({e})')
 
             end = pd.Timestamp.now(tz=tz)
             delta = end-start
@@ -315,7 +315,7 @@ class EntsoeCrawler(BasicDbCrawler):
         -------
 
         """
-        start, delta = self.get_latest_crawled_timestamp(start, delta, proc)
+        start, delta = self.get_latest_crawled_timestamp(start, delta, proc.__name__)
         log.info(f'****** {proc.__name__} *******')
 
         if (times*delta).days < 2:
@@ -347,12 +347,14 @@ class EntsoeCrawler(BasicDbCrawler):
                     data.to_sql(proc.__name__, conn, if_exists='append')
             except Exception as e:
                 log.error(f'error saving crossboarders {e}')
-                prev = pd.read_sql_query(
-                    f'select * from {proc.__name__}', conn, index_col='index')
+                with self.db_accessor() as conn:
+                    prev = pd.read_sql_query(
+                        f'select * from {proc.__name__}', conn, index_col='index')
 
-                ges = pd.concat([prev, data])
-                ges.index = ges.index.astype('datetime64[ns]')
-                ges.to_sql(proc.__name__, conn, if_exists='replace')
+                    ges = pd.concat([prev, data])
+                    ges.index = ges.index.astype('datetime64[ns]')
+                    ges.to_sql(proc.__name__, conn, if_exists='replace')
+                log.info(f'fixed error by adding new columns to crossborders')
 
             try:
                 with self.db_accessor() as conn:
@@ -430,7 +432,7 @@ class EntsoeCrawler(BasicDbCrawler):
             pp = ppp.melt(var_name=['name', 'type'],
                           value_name='value', ignore_index=False)
             return pp
-
+        log.info(f'****** {query_per_plant.__name__} *******')
         start_, delta_ = self.get_latest_crawled_timestamp(start, delta, query_per_plant.__name__)
         self.download_entsoe(countries, query_per_plant, start_, delta=delta_, times=times)
 
@@ -466,6 +468,7 @@ class EntsoeCrawler(BasicDbCrawler):
 
         """
         plant_countries = []
+        log.info(f'****** find countries with plant_data *******')
         for country in countries:
             try:
                 _ = client.query_generation_per_plant(
@@ -520,6 +523,8 @@ class EntsoeCrawler(BasicDbCrawler):
         self.download_entsoe_plant_data(
             plant_countries[:], client, start, delta, times=1)
 
+        log.info(f'****** finished updating ENTSO-E *******')
+
     def create_database(self, client, start, delta, countries=[]):
         """
 
@@ -571,7 +576,7 @@ if __name__ == "__main__":
 
     times = 7*12  # bis 2022
     db = 'postgresql://entso:entso@localhost:5432/entsoe'
-    #db = 'data/entsoe.db'
+    #db = 'sqlite:///data/entsoe.db'
 
     crawler = EntsoeCrawler(database=db)
     procs = [client.query_day_ahead_prices,
@@ -596,7 +601,7 @@ if __name__ == "__main__":
     # per plant generation
     crawler.countries_with_plant_data(client, all_countries)
 
-    #db = 'data/entsoe.db'
+    #db = 'sqlite:///data/entsoe.db'
     crawler = EntsoeCrawler(database=db)
 
     # 2017-12-16 bis 2018-03-15 runterladen

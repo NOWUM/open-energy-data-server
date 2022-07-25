@@ -19,9 +19,9 @@ class BasicDbCrawler:
     """
 
     def __init__(self, database):
-        # choice between pg and sqlite
-        if database.startswith('postgresql'):
-
+        # try sqlalchemy connection first
+        # fall back to using sqlite3
+        try:
             self.engine = create_engine(database)
             @contextmanager
             def access_db():
@@ -30,5 +30,5 @@ class BasicDbCrawler:
                     yield conn
 
             self.db_accessor = access_db
-        else:
+        except Exception as es:
             self.db_accessor = lambda: closing(sqlite3.connect(database))

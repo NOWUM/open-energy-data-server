@@ -104,7 +104,6 @@ def main(db_uri):
     engine = create_engine(db_uri)
     #engine = sqlite3.connect('mastr.db')
 
-    engine = create_engine(f'{db_uri}/mastr')
     try:
         tables = create_db_from_export(connection=engine)
     except Exception:

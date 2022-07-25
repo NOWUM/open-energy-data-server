@@ -5,6 +5,7 @@ import json5  # parse js-dict to python
 import pandas as pd
 from tqdm import tqdm  # fancy for loop
 import scipy # needed for interpolation
+import logging
 
 '''
 Downloads the available powercurve data from https://www.wind-turbine-models.com/ to a csv file
@@ -20,6 +21,9 @@ For the given model, this interpolation is not good, as it produces negative val
 
 The resulting data is not available under an open-source license and should not be reshared but is available for crawling yourself.
 '''
+
+log = logging.getLogger('windmodel')
+log.setLevel(logging.INFO)
 
 def get_turbines_with_power_curve():
     # create list of turbines with available powercurves
@@ -81,6 +85,7 @@ def main(db_uri):
 
 
 if __name__ == "__main__":
+    logging.basicConfig()
     db_uri = 'postgresql://opendata:opendata@10.13.10.41:5432/windmodel'
     wind_turbines = get_turbines_with_power_curve()
     turbine_data = main(db_uri)

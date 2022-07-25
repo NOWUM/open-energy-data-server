@@ -8,13 +8,15 @@ import os.path as osp
 
 def scigrid_links_and_nodes():
     response = requests.get('https://www.power.scigrid.de/releases_archive/scigrid-conference-eu-data-only.zip')
-    z = zipfile.ZipFile(io.BytesIO(response.content))
-    for file in z.filelist:
-        name = file.filename
-        if 'links_eu_power_160718.csvdata.xlsx' in name:
-            links = pd.read_excel(z.open(name))
-        if 'vertices_eu_power_160718.csvdata.xlsx' in name:
-            nodes = pd.read_excel(z.open(name))
+    with zipfile.ZipFile(io.BytesIO(response.content)) as z:
+        for file in z.filelist:
+            name = file.filename
+            if 'links_eu_power_160718.csvdata.xlsx' in name:
+                with z.open(name) as f:
+                    links = pd.read_excel(f)
+            if 'vertices_eu_power_160718.csvdata.xlsx' in name:
+                with z.open(name) as f:
+                    nodes = pd.read_excel(f)
 
     new_columns = list(nodes.columns[:-1])
     new_columns.append('geometry')

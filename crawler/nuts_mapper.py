@@ -4,6 +4,9 @@ import geopandas as gpd
 import pandas as pd
 import os.path as osp
 
+
+# Download shp zip for EU NUTS here:
+# https://ec.europa.eu/eurostat/web/gisco/geodata/reference-data/administrative-units-statistical-units/nuts
 geo_path = osp.join(osp.dirname(__file__),'shapes','NUTS_EU.shp')
 geo_information = gpd.read_file(geo_path)
 geo_information = geo_information.to_crs(4326)

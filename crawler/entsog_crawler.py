@@ -228,7 +228,7 @@ def main(db_uri):
 
 if __name__ == "__main__":
     logging.basicConfig()
-    database = 'data/entsog.db'
+    database = 'sqlite:///data/entsog.db'
     import os
     craw = EntsogCrawler(database)
 
