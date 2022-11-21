@@ -61,10 +61,10 @@ class EViewCrawler(BasicDbCrawler):
 
 def main(db_uri):
     ec = EViewCrawler(db_uri)
-    ec.crawl_solarplants(first=2014)
     solar_plants = ec.get_solar_units()
 
     for plant in solar_plants:
+        begin_date = ec.select_latest(plant)
         ec.crawl_unit(plant,begin_date)
 
 if __name__ == '__main__':
@@ -73,12 +73,10 @@ if __name__ == '__main__':
     db_uri = 'sqlite:///./data/eview.db'
     log.info(f'connect to {db_uri}')
     ec = EViewCrawler(db_uri)
-    
-    unit='FI'
-    fetch_date = date(2022,10,19)
-    ec.crawl_unit_date('FI', fetch_date)
 
-    latest = ec.select_latest('FI')
-
-    
-    ec.crawl_unit('FI', latest)
+#    unit='FI'
+#    fetch_date = date(2022,10,19)
+#    ec.crawl_unit_date('FI', fetch_date)
+#    latest = ec.select_latest('FI')
+#    ec.crawl_unit('FI', latest)
+    #main(db_uri)
