@@ -59,13 +59,27 @@ class EViewCrawler(BasicDbCrawler):
                 log.error(e)
                 return default_start_date
 
+    def create_hypertable(self):
+        try:
+            query_create_hypertable = "SELECT create_hypertable('eview', 'datetime', if_not_exists => TRUE, migrate_data => TRUE);"
+            with self.db_accessor() as conn:
+                conn.execute(query_create_hypertable)
+            log.info(f'created hypertable eview')
+        except Exception as e:
+            log.error(f'could not create hypertable: {e}')
+
 def main(db_uri):
     ec = EViewCrawler(db_uri)
     solar_plants = ec.get_solar_units()
 
     for plant in solar_plants:
-        begin_date = ec.select_latest(plant)
-        ec.crawl_unit(plant,begin_date)
+        try:
+            begin_date = ec.select_latest(plant)
+            ec.crawl_unit(plant,begin_date)
+        except Exception as e:
+            log.exception(f'Error with {plant}')
+
+    ec.create_hypertable()
 
 if __name__ == '__main__':
     logging.basicConfig()
@@ -77,6 +91,7 @@ if __name__ == '__main__':
 #    unit='FI'
 #    fetch_date = date(2022,10,19)
 #    ec.crawl_unit_date('FI', fetch_date)
-#    latest = ec.select_latest('FI')
-#    ec.crawl_unit('FI', latest)
+    latest = ec.select_latest('FI')
+    latest = date(2022,11,20)
+    ec.crawl_unit('FI', latest)
     #main(db_uri)
