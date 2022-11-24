@@ -46,8 +46,9 @@ class EViewCrawler(BasicDbCrawler):
             ddf.to_sql('eview', con=connection, if_exists='append')
 
     def crawl_unit(self, unit, begin_date):
-        for fetch_date in pd.date_range(begin_date+timedelta(days=1),
-                                        date.today()-timedelta(days=1)):
+        first_date = pd.to_datetime(begin_date)+timedelta(days=1)
+        last_date = date.today()-timedelta(days=1)
+        for fetch_date in pd.date_range(first_date, last_date):
             self.crawl_unit_date(unit, fetch_date)
 
     def select_latest(self,unit):
@@ -88,10 +89,4 @@ if __name__ == '__main__':
     log.info(f'connect to {db_uri}')
     ec = EViewCrawler(db_uri)
 
-#    unit='FI'
-#    fetch_date = date(2022,10,19)
-#    ec.crawl_unit_date('FI', fetch_date)
-    latest = ec.select_latest('FI')
-    latest = date(2022,11,20)
-    ec.crawl_unit('FI', latest)
     #main(db_uri)
