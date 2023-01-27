@@ -30,9 +30,8 @@ class EViewCrawler(BasicDbCrawler):
 
             day = datetime.strftime(fetch_date,'%d.%m.%Y')
             url = f"http://www.eview.de/solarstromdaten/export.php?p=;{unit};z;dg1;f0;t{day}/1;km250"
-            data = requests.get(url)
             try:
-                df = pd.read_csv(url, decimal=',', index_col=0, encoding='iso-8859-1', skiprows=4, parse_dates=True)
+                df = pd.read_csv(url, decimal=',', index_col=0, encoding='iso-8859-1', skiprows=4, parse_dates=True, dayfirst=True)
                 log.info(f'num records {df.size}')
             except Exception:
                 log.info('not data')
@@ -94,10 +93,12 @@ if __name__ == '__main__':
     logging.basicConfig()
 
     db_uri = 'sqlite:///./data/eview.db'
+    db_uri = f'postgresql://opendata:opendata@10.13.10.41:5432/eview'
     log.info(f'connect to {db_uri}')
     ec = EViewCrawler(db_uri)
     plant = 'FI'
     begin_date = ec.select_latest(plant)
+    begin_date = default_start_date
     ec.crawl_unit(plant, begin_date)
 
 #    main(db_uri)
