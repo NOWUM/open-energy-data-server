@@ -31,7 +31,7 @@ class E2WatchCrawler(BasicDbCrawler):
                 beschreibung.append(x.find('a')['data-original-title'])
 
         df = pd.DataFrame([])
-        df['id'] = building_id
+        df['building_id'] = building_id
         df['lat'] = lat
         df['lon'] = lon
         df['beschreibung'] = beschreibung
@@ -42,7 +42,9 @@ class E2WatchCrawler(BasicDbCrawler):
         df['strasse'] = plz[0]
         df['plz'] = plz[1]
         df['stadt'] = plz[2]
-        df = df.set_index(['id'])
+        df['lat'] = df['lat'].astype(float)
+        df['lon'] = df['lon'].astype(float)
+        df = df.set_index(['building_id'])
         return df
 
     def get_data_per_building(self, buildings: pd.DataFrame, start_date:str):
@@ -78,7 +80,7 @@ class E2WatchCrawler(BasicDbCrawler):
             log.info(df_last)
 
             if not df_last.empty:
-                df_last.insert(0, 'id', building_id)
+                df_last.insert(0, 'building_id', building_id)
             yield df_last
 
     def select_latest(self):
