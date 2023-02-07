@@ -59,6 +59,7 @@ class E2WatchCrawler(BasicDbCrawler):
             bid.append(list_buildings[0].find('a')['bid'])
 
         df['bilanzkreis_id'] = bid
+        df['building_id'] = df.index
         df = df.set_index(['bilanzkreis_id'])
         return df
 
@@ -66,22 +67,22 @@ class E2WatchCrawler(BasicDbCrawler):
         energy = ['strom', 'wasser', 'waerme']
         end_date = date.today().strftime('%d.%m.%Y')
 
-        for building_id in buildings.index.values:
+        for bilanzkreis_id in buildings.index.values:
             df_last = pd.DataFrame([])
             for measurement in energy:
-                url = f'https://stadt-aachen.e2watch.de/gebaeude/getMainChartData/{building_id}?medium={measurement}&from={start_date}&to={end_date}&type=stundenverbrauch'
+                url = f'https://stadt-aachen.e2watch.de/gebaeude/getMainChartData/{bilanzkreis_id}?medium={measurement}&from={start_date}&to={end_date}&type=stundenverbrauch'
                 log.info(url)
                 response = requests.get(url)
                 data = json.loads(response.text)
                 timeseries = pd.DataFrame.from_dict(data['result']['series'][0]['data'])
                 if timeseries.empty:
-                    log.info(f'Received empty data for building: {building_id}')
+                    log.info(f'Received empty data for building: {bilanzkreis_id}')
                     continue
                 timeseries[0] = pd.to_datetime(timeseries[0], unit='ms')
                 timeseries.columns = ['timestamp', measurement + '_kWh' if (measurement == 'strom' or measurement == 'waerme') else measurement + '_m3']
                 temperature = pd.DataFrame.from_dict(data['result']['series'][1]['data'])
                 if temperature.empty:
-                    log.info(f'Received empty temperature for building: {building_id}')
+                    log.info(f'Received empty temperature for building: {bilanzkreis_id}')
                     continue
                 temperature[0] = pd.to_datetime(temperature[0], unit='ms')
                 temperature.columns = ['timestamp', 'temperatur']
@@ -95,7 +96,7 @@ class E2WatchCrawler(BasicDbCrawler):
             log.info(df_last)
 
             if not df_last.empty:
-                df_last.insert(0, 'building_id', building_id)
+                df_last.insert(0, 'bilanzkreis_id', bilanzkreis_id)
             yield df_last
 
     def select_latest(self):
