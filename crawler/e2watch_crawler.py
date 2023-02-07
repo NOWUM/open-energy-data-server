@@ -44,6 +44,7 @@ class E2WatchCrawler(BasicDbCrawler):
         df['stadt'] = plz[2]
         df['lat'] = df['lat'].astype(float)
         df['lon'] = df['lon'].astype(float)
+        df = df.set_index(['building_id'])
 
         bid = []
 
