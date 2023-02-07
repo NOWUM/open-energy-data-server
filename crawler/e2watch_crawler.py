@@ -44,7 +44,21 @@ class E2WatchCrawler(BasicDbCrawler):
         df['stadt'] = plz[2]
         df['lat'] = df['lat'].astype(float)
         df['lon'] = df['lon'].astype(float)
-        df = df.set_index(['building_id'])
+
+        bid = []
+
+        for building_id in df.index.values:
+            print(f'Doing building {building_id}')
+            response = requests.get(f'https://stadt-aachen.e2watch.de/details/objekt/{building_id}')
+            html = response.content
+            data = BeautifulSoup(html, 'html.parser')
+            all_buildings = data.findAll("div", {"class": "container main-chart"})
+            list_buildings = all_buildings[0].findAll('li')
+            # print(list_buildings)
+            bid.append(list_buildings[0].find('a')['bid'])
+
+        df['bilanzkreis_id'] = bid
+        df = df.set_index(['bilanzkreis_id'])
         return df
 
     def get_data_per_building(self, buildings: pd.DataFrame, start_date:str):
