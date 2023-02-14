@@ -19,7 +19,7 @@ log = logging.getLogger('eex')
 log.setLevel(logging.INFO)
 
 eex_data_path = str(pathlib.Path.home())+'/eex'
-eex_data_path = '/mnt/eex'
+#eex_data_path = '/mnt/eex'
 # limit files per type which are read
 FIRST_X = int(1e9)
 
@@ -112,9 +112,12 @@ class EEXCrawler(BasicDbCrawler):
         for file in glob(year_path+'/*/*.csv', recursive=True)[:FIRST_X]: #XXX limit here for debugging 
             if 'trade_data/power/' in file and '/spot/csv/' in file:
                 if 'intraday_transactions' in file:
-                    df = self.read_eex_trade_spot_file(file)
-                    with self.db_accessor() as conn:
-                        df.to_sql(name, conn, if_exists='append')
+                    try:
+                        df = self.read_eex_trade_spot_file(file)
+                        with self.db_accessor() as conn:
+                            df.to_sql(name, conn, if_exists='append')
+                    except Exception as e:
+                        log.error(f"error writing {file} to db")
                 else:
                     log.error(f'file does not contain intraday_transactions: {file}')
 
