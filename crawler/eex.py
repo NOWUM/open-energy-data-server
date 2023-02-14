@@ -13,13 +13,15 @@ import os.path as osp
 from glob import glob
 import pandas as pd
 import logging
+import pathlib
 
 log = logging.getLogger('eex')
 log.setLevel(logging.INFO)
-eex_data_path = '/mnt/eex/'
 
+eex_data_path = str(pathlib.Path.home())+'/eex'
+eex_data_path = '/mnt/eex'
 # limit files per type which are read
-FIRST_X = 2 # 1e6
+FIRST_X = int(1e9)
 
 from base_crawler import BasicDbCrawler
 
@@ -51,7 +53,7 @@ No further parsing is needed else.
 
 class EEXCrawler(BasicDbCrawler):
     def read_eex_trade_spot_file(self, filename):
-        df = pd.read_csv(path_xx, skiprows=1, index_col='Trade ID')
+        df = pd.read_csv(filename, skiprows=1, index_col='Trade ID')
         df['Time Stamp'] = pd.to_datetime(df['Time Stamp'], infer_datetime_format=True)
         df['Date'] = pd.to_datetime(df['Date'], infer_datetime_format=True)
         if 'Quantity (MW)' in df.columns:
@@ -91,6 +93,12 @@ class EEXCrawler(BasicDbCrawler):
                     df = pd.read_csv(filename, skiprows=exclude_list, sep=';', decimal=',', header=None) #, index_col='Trade ID')
                     df.columns = header_dict[key]
 
+                    if key in ['OT', 'PR']:
+                        needed_columns = ['Strike', 'Underlying', 'Type']
+                        for col in needed_columns:
+                            if col not in df.columns:
+                                df[col] = None
+
                     with self.db_accessor() as conn:
                         df.to_sql(f'{name}_{key}', conn, if_exists='append')
                     log.debug(osp.basename(filename)[:-4])
@@ -103,9 +111,12 @@ class EEXCrawler(BasicDbCrawler):
         # as noted above - the name of the file is often crucial for the market area, or definition of content of the file
         for file in glob(year_path+'/*/*.csv', recursive=True)[:FIRST_X]: #XXX limit here for debugging 
             if 'trade_data/power/' in file and '/spot/csv/' in file:
-                df = self.read_eex_trade_spot_file(file)
-                with self.db_accessor() as conn:
-                    df.to_sql(name, conn, if_exists='append')
+                if 'intraday_transactions' in file:
+                    df = self.read_eex_trade_spot_file(file)
+                    with self.db_accessor() as conn:
+                        df.to_sql(name, conn, if_exists='append')
+                else:
+                    log.error(f'file does not contain intraday_transactions: {file}')
 
             else:    
                 self.read_eex_market_file(file, name)
@@ -154,21 +165,22 @@ market_data/power/at/spot
 
 def main(db_uri):
     crawler = EEXCrawler(db_uri)
-    crawler.download_without_country(eex_data_path + 'market_data/environmental')
-    crawler.download_with_country(eex_data_path + 'market_data/power')
-    crawler.download_with_country(eex_data_path + 'market_data/natgas')
-    crawler.download_with_country(eex_data_path + 'trade_data/power')
+    crawler.download_with_country(eex_data_path + '/trade_data/power')
+    crawler.download_without_country(eex_data_path + '/market_data/environmental')
+    crawler.download_with_country(eex_data_path + '/market_data/power')
+    crawler.download_with_country(eex_data_path + '/market_data/natgas')
+    
     
 
 if __name__ == '__main__':
     logging.basicConfig()
-    db_uri = './data/eex.db'
+    #db_uri = './data/eex.db'
+    db_uri = f'postgresql://opendata:opendata@10.13.10.41:5432/eex-pricit'
     main(db_uri)
-    import matplotlib.pyplot as plt
-
-    path_xx = '/mnt/eex/trade_data/power/de/spot/csv/2021/20210909/intraday_transactions_germany_2021-09-09.csv'
-    df = crawler.read_eex_trade_spot_file(path_xx)
+    #crawler = EEXCrawler(db_uri)
+    #path_xx = '~/eex/trade_data/power/de/spot/csv/2021/20210909/intraday_transactions_germany_2021-09-09.csv'
+    #df = crawler.read_eex_trade_spot_file(path_xx)
     # df['Time Stamp'] = pd.to_datetime(df['Time Stamp'], infer_datetime_format=True)
     # df['Date'] = pd.to_datetime(df['Date'], infer_datetime_format=True)
-
+    # import matplotlib.pyplot as plt
     #plt.plot(df.index, df['Price (EUR)'])    
