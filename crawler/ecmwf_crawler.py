@@ -56,7 +56,12 @@ keys = {'10 metre V wind component': 'wind_meridional',
 
 
 def create_table(engine):
-    engine.execute("CREATE TABLE IF NOT EXISTS ecmwf_neu( "
+
+    try:
+        query_create_hypertable = "SELECT create_hypertable('ecmwf_neu', 'time', if_not_exists => TRUE, migrate_data => TRUE);"
+        query_create_hypertable_eu = "SELECT create_hypertable('ecmwf_neu_eu', 'time', if_not_exists => TRUE, migrate_data => TRUE);"
+        with engine.connect() as conn, conn.begin():
+            conn.execute("CREATE TABLE IF NOT EXISTS ecmwf_neu( "
                    "time timestamp without time zone NOT NULL, "
                    "temp_air double precision, "
                    "ghi double precision, "
@@ -65,8 +70,10 @@ def create_table(engine):
                    "latitude double precision, "
                    "longitude double precision, "
                    "PRIMARY KEY (time , latitude, longitude));")
+            conn.execute(query_create_hypertable)
 
-    engine.execute("CREATE TABLE IF NOT EXISTS ecmwf_neu_eu( "
+        with engine.connect() as conn, conn.begin():
+            conn.execute("CREATE TABLE IF NOT EXISTS ecmwf_neu_eu( "
                    "time timestamp without time zone NOT NULL, "
                    "temp_air double precision, "
                    "ghi double precision, "
@@ -76,12 +83,6 @@ def create_table(engine):
                    "longitude double precision, "
                    "nuts_id text, "
                    "PRIMARY KEY (time , latitude, longitude));")
-
-    try:
-        query_create_hypertable = "SELECT create_hypertable('ecmwf_neu', 'time', if_not_exists => TRUE, migrate_data => TRUE);"
-        query_create_hypertable_eu = "SELECT create_hypertable('ecmwf_neu_eu', 'time', if_not_exists => TRUE, migrate_data => TRUE);"
-        with engine.connect() as conn, conn.begin():
-            conn.execute(query_create_hypertable)
             conn.execute(query_create_hypertable_eu)
         log.info(f'created hypertable ecmwf')
     except Exception as e:
