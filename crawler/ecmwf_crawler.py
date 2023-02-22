@@ -27,58 +27,47 @@ default_start_date = datetime(2020, 1, 1, 0, 0, 0)
 db_uri = f'postgresql://opendata:opendata@10.13.10.41:5432/weather'
 
 # path of nuts file
-nuts_path = os.path.realpath(os.path.join(os.path.dirname(__file__), 'shapes', 'NUTS_EU.shp'))
+nuts_path = os.path.realpath(os.path.join(os.path.dirname(__file__), 'shapes', 'NUTS_RG_01M_2021_4326.shp'))
+
+# coords for europe according to:
+# https://cds.climate.copernicus.eu/toolbox/doc/how-to/1_how_to_retrieve_data/1_how_to_retrieve_data.html#retrieve-a-geographical-subset-and-change-the-default-resolution
+coords = [75, -15, 30, 42.5]
 
 # requested weather variable
 var_ = ['10m_u_component_of_wind',
         '10m_v_component_of_wind',
         '2m_temperature',
+        'total_precipitation ',
         'surface_net_solar_radiation']
-
-# names in response
-names = ['10 metre V wind component',
-         '10 metre U wind component',
-         '2 metre temperature',
-         'Surface net short-wave (solar) radiation']
-#        'Surface net solar radiation']
-
-keys = {'10 metre V wind component': 'wind_meridional',
-        '10 metre U wind component': 'wind_zonal',
-        '2 metre temperature': 'temp_air',
-        'Surface net short-wave (solar) radiation': 'ghi'}
-
-
-#       'Surface net solar radiation': 'ghi'}
 
 
 def create_table(engine):
-
     try:
         query_create_hypertable = "SELECT create_hypertable('ecmwf_neu', 'time', if_not_exists => TRUE, migrate_data => TRUE);"
         query_create_hypertable_eu = "SELECT create_hypertable('ecmwf_neu_eu', 'time', if_not_exists => TRUE, migrate_data => TRUE);"
         with engine.connect() as conn, conn.begin():
             conn.execute("CREATE TABLE IF NOT EXISTS ecmwf_neu( "
-                   "time timestamp without time zone NOT NULL, "
-                   "temp_air double precision, "
-                   "ghi double precision, "
-                   "wind_meridional double precision, "
-                   "wind_zonal double precision, "
-                   "latitude double precision, "
-                   "longitude double precision, "
-                   "PRIMARY KEY (time , latitude, longitude));")
+                         "time timestamp without time zone NOT NULL, "
+                         "temp_air double precision, "
+                         "ghi double precision, "
+                         "wind_meridional double precision, "
+                         "wind_zonal double precision, "
+                         "latitude double precision, "
+                         "longitude double precision, "
+                         "PRIMARY KEY (time , latitude, longitude));")
             conn.execute(query_create_hypertable)
 
         with engine.connect() as conn, conn.begin():
             conn.execute("CREATE TABLE IF NOT EXISTS ecmwf_neu_eu( "
-                   "time timestamp without time zone NOT NULL, "
-                   "temp_air double precision, "
-                   "ghi double precision, "
-                   "wind_meridional double precision, "
-                   "wind_zonal double precision, "
-                   "latitude double precision, "
-                   "longitude double precision, "
-                   "nuts_id text, "
-                   "PRIMARY KEY (time , latitude, longitude));")
+                         "time timestamp without time zone NOT NULL, "
+                         "temp_air double precision, "
+                         "ghi double precision, "
+                         "wind_meridional double precision, "
+                         "wind_zonal double precision, "
+                         "latitude double precision, "
+                         "longitude double precision, "
+                         "nuts_id text, "
+                         "PRIMARY KEY (time , latitude, longitude));")
             conn.execute(query_create_hypertable_eu)
         log.info(f'created hypertable ecmwf')
     except Exception as e:
@@ -86,14 +75,20 @@ def create_table(engine):
 
 
 def save_data(request):
-    request['area'] = [75, -15, 30, 42.5]
+    request['area'] = coords
     # path for downloaded files from copernicus
-    save_downloaded_files_path = os.path.realpath(os.path.join(os.path.dirname(__file__), f'{request.get("year")}_{request.get("month")}_{request.get("day")[0]}-{request.get("month")}_{request.get("day")[len(request.get("day")) - 1]}_ecmwf.grb'))
+    save_downloaded_files_path = os.path.realpath(os.path.join(os.path.dirname(__file__),
+                                                               f'{request.get("year")}_{request.get("month")}_{request.get("day")[0]}-{request.get("month")}_{request.get("day")[len(request.get("day")) - 1]}_ecmwf.grb'))
     c.retrieve('reanalysis-era5-land', request, save_downloaded_files_path)
 
 
+def get_wind_speed(row):
+    return (row.wind_meridional ** 2) + (row.wind_zonal ** 2) ** 0.5
+
+
 def build_dataframe(engine, request):
-    file_path = os.path.realpath(os.path.join(os.path.dirname(__file__), f'{request.get("year")}_{request.get("month")}_{request.get("day")[0]}-{request.get("month")}_{request.get("day")[len(request.get("day")) - 1]}_ecmwf.grb'))
+    file_path = os.path.realpath(os.path.join(os.path.dirname(__file__),
+                                              f'{request.get("year")}_{request.get("month")}_{request.get("day")[0]}-{request.get("month")}_{request.get("day")[len(request.get("day")) - 1]}_ecmwf.grb'))
     weather_data = xr.open_dataset(file_path, engine="cfgrib")
     log.info(f'successfully read file {file_path}')
     weather_data = weather_data.to_dataframe()
@@ -101,18 +96,20 @@ def build_dataframe(engine, request):
     weather_data = weather_data.reset_index()
     weather_data = weather_data.drop(['time', 'step', 'number', 'surface'], axis='columns')
     weather_data = weather_data.rename(
-        columns={'valid_time': 'time', 'u10': 'wind_zonal', 'v10': 'wind_meridional', 't2m': 'temp_air', 'ssr': 'ghi'})
+        columns={'valid_time': 'time', 'u10': 'wind_zonal', 'v10': 'wind_meridional', 't2m': 'temp_air', 'ssr': 'ghi',
+                 'tp': 'precipitation'})
+    weather_data["wind_speed"] = weather_data.apply(get_wind_speed, axis=1)
     weather_data = weather_data.round({'latitude': 2, 'longitude': 2})
     nuts3 = gpd.GeoDataFrame.from_file(nuts_path)
     nuts_weather_data = weather_data
-    nuts_weather_data['coords'] = list(zip(nuts_weather_data['latitude'], nuts_weather_data['longitude']))
+    nuts_weather_data['coords'] = list(zip(nuts_weather_data['longitude'], nuts_weather_data['latitude']))
     nuts_weather_data['coords'] = nuts_weather_data['coords'].apply(Point)
     nuts_weather_data = gpd.GeoDataFrame(nuts_weather_data, geometry='coords', crs=nuts3.crs)
-    nuts_weather_data = gpd.tools.sjoin(nuts_weather_data, nuts3, predicate="within", how='left')
+    nuts_weather_data = gpd.sjoin(nuts_weather_data, nuts3, predicate="within", how='left')
     nuts_weather_data = pd.DataFrame(nuts_weather_data)
     nuts_weather_data = nuts_weather_data.loc[:,
-                        ['time', 'latitude', 'longitude', 'wind_meridional', 'wind_zonal', 'temp_air', 'ghi',
-                         'NUTS_ID']]
+                        ['time', 'latitude', 'longitude', 'wind_meridional', 'wind_zonal', 'wind_speed', 'temp_air', 'ghi',
+                         'precipitation', 'NUTS_ID']]
     log.info('preparing to write nuts dataframe into ecmwf_eu database')
     nuts_weather_data = nuts_weather_data.rename(columns={'NUTS_ID': 'nuts_id'})
     nuts_weather_data = nuts_weather_data.set_index(['time', 'latitude', 'longitude'])
@@ -156,7 +153,7 @@ def request_builder(dates):
         days = []
         for i in range(month.index.start, month.index.stop):
             days.append(f'{month["Date"].dt.day[i]:02d}')
-        day_chunks = divide_month_in_chunks(days, 10)
+        day_chunks = divide_month_in_chunks(days, 8)
         for chunk in day_chunks:
             request = dict(format='grib', variable=var_,
                            year=f'{month["Date"].dt.year[month.index.start]}',
@@ -184,6 +181,7 @@ def main():
     for request in request_builder(dates):
         print(request)
         save_data(request)
+        break
         build_dataframe(engine, request)
 
 
