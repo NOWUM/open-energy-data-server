@@ -185,7 +185,6 @@ def main():
     for request in request_builder(dates):
         print(request)
         save_data(request)
-        break
         build_dataframe(engine, request)
 
 
