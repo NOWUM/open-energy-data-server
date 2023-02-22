@@ -52,6 +52,8 @@ def create_table(engine):
                          "ghi double precision, "
                          "wind_meridional double precision, "
                          "wind_zonal double precision, "
+                         "wind_speed double precision, "
+                         "precipitation double precision, "
                          "latitude double precision, "
                          "longitude double precision, "
                          "PRIMARY KEY (time , latitude, longitude));")
@@ -64,6 +66,8 @@ def create_table(engine):
                          "ghi double precision, "
                          "wind_meridional double precision, "
                          "wind_zonal double precision, "
+                         "wind_speed double precision, "
+                         "precipitation double precision, "
                          "latitude double precision, "
                          "longitude double precision, "
                          "nuts_id text, "
