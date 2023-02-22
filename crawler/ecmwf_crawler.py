@@ -20,8 +20,8 @@ from shapely.geometry import Point
     Also "Surface net solar radiation" got renamed to "Surface net short-wave (solar) radiation"
 """
 
+logging.basicConfig(filename='ecmwf.log', encoding='utf-8', level=logging.DEBUG)
 log = logging.getLogger('ecmwf')
-log.setLevel(logging.INFO)
 
 c = cdsapi.Client()  # --> client for ECMWF-Service
 
@@ -91,12 +91,13 @@ def create_table(engine):
 
 def save_data(request):
     request['area'] = [75, -15, 30, 42.5]
-    c.retrieve('reanalysis-era5-land', request,
-               fr'./{request.get("year")}_{request.get("month")}_{request.get("day")[0]}-{request.get("month")}_{request.get("day")[len(request.get("day")) - 1]}_ecmwf.grb')
+    # path for downloaded files from copernicus
+    save_downloaded_files_path = os.path.realpath(os.path.join(os.path.dirname(__file__), f'{request.get("year")}_{request.get("month")}_{request.get("day")[0]}-{request.get("month")}_{request.get("day")[len(request.get("day")) - 1]}_ecmwf.grb'))
+    c.retrieve('reanalysis-era5-land', request, save_downloaded_files_path)
 
 
 def build_dataframe(engine, request):
-    file_path = fr'./{request.get("year")}_{request.get("month")}_{request.get("day")[0]}-{request.get("month")}_{request.get("day")[len(request.get("day")) - 1]}_ecmwf.grb'
+    file_path = os.path.realpath(os.path.join(os.path.dirname(__file__), f'{request.get("year")}_{request.get("month")}_{request.get("day")[0]}-{request.get("month")}_{request.get("day")[len(request.get("day")) - 1]}_ecmwf.grb'))
     weather_data = xr.open_dataset(file_path, engine="cfgrib")
     log.info(f'successfully read file {file_path}')
     weather_data = weather_data.to_dataframe()
