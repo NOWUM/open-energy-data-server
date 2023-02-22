@@ -33,21 +33,18 @@ nuts_path = os.path.realpath(os.path.join(os.path.dirname(__file__), 'shapes', '
 var_ = ['10m_u_component_of_wind',
         '10m_v_component_of_wind',
         '2m_temperature',
-        'total_precipitation',
         'surface_net_solar_radiation']
 
 # names in response
 names = ['10 metre V wind component',
          '10 metre U wind component',
          '2 metre temperature',
-         'Total precipitation',
          'Surface net short-wave (solar) radiation']
 #        'Surface net solar radiation']
 
 keys = {'10 metre V wind component': 'wind_meridional',
         '10 metre U wind component': 'wind_zonal',
         '2 metre temperature': 'temp_air',
-        'Total precipitation': 'total_precipitation',
         'Surface net short-wave (solar) radiation': 'ghi'}
 
 
