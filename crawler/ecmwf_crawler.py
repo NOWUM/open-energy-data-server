@@ -70,7 +70,7 @@ def create_table(engine):
                          "precipitation double precision, "
                          "latitude double precision, "
                          "longitude double precision, "
-                         "nuts_id varchar, "
+                         "nuts_id text, "
                          "PRIMARY KEY (time , latitude, longitude));")
             conn.execute(query_create_hypertable_eu)
         log.info(f'created hypertable ecmwf')
@@ -114,9 +114,11 @@ def build_dataframe(engine, request):
     nuts_weather_data = nuts_weather_data.loc[:,
                         ['time', 'latitude', 'longitude', 'wind_meridional', 'wind_zonal', 'wind_speed', 'temp_air', 'ghi',
                          'precipitation', 'NUTS_ID']]
-    log.info('preparing to write nuts dataframe into ecmwf_eu database')
     nuts_weather_data = nuts_weather_data.rename(columns={'NUTS_ID': 'nuts_id'})
+    nuts_weather_data = nuts_weather_data.dropna(axis=0)
+    nuts_weather_data = nuts_weather_data.groupby(['time', 'nuts_id']).mean()
     nuts_weather_data = nuts_weather_data.set_index(['time', 'latitude', 'longitude'])
+    log.info('preparing to write nuts dataframe into ecmwf_eu database')
     nuts_weather_data.to_sql('ecmwf_neu_eu', con=engine, if_exists='append', chunksize=1000, method='multi')
 
     weather_data = weather_data.set_index(['time', 'latitude', 'longitude'])
