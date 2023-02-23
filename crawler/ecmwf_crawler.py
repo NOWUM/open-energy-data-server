@@ -117,6 +117,7 @@ def build_dataframe(engine, request):
     nuts_weather_data = nuts_weather_data.rename(columns={'NUTS_ID': 'nuts_id'})
     nuts_weather_data = nuts_weather_data.dropna(axis=0)
     nuts_weather_data = nuts_weather_data.groupby(['time', 'nuts_id']).mean()
+    nuts_weather_data = nuts_weather_data.reset_index()
     nuts_weather_data = nuts_weather_data.set_index(['time', 'latitude', 'longitude'])
     log.info('preparing to write nuts dataframe into ecmwf_eu database')
     nuts_weather_data.to_sql('ecmwf_neu_eu', con=engine, if_exists='append', chunksize=1000, method='multi')
