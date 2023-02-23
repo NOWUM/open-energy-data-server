@@ -70,7 +70,7 @@ def create_table(engine):
                          "precipitation double precision, "
                          "latitude double precision, "
                          "longitude double precision, "
-                         "nuts_id text, "
+                         "nuts_id varchar, "
                          "PRIMARY KEY (time , latitude, longitude));")
             conn.execute(query_create_hypertable_eu)
         log.info(f'created hypertable ecmwf')
