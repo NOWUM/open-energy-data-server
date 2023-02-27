@@ -104,27 +104,27 @@ def build_dataframe(engine, request):
                  'tp': 'precipitation'})
     weather_data["wind_speed"] = weather_data.apply(get_wind_speed, axis=1)
     weather_data = weather_data.round({'latitude': 2, 'longitude': 2})
-    nuts3 = gpd.GeoDataFrame.from_file(nuts_path)
-    nuts_weather_data = weather_data
-    nuts_weather_data['coords'] = list(zip(nuts_weather_data['longitude'], nuts_weather_data['latitude']))
-    nuts_weather_data['coords'] = nuts_weather_data['coords'].apply(Point)
-    nuts_weather_data = gpd.GeoDataFrame(nuts_weather_data, geometry='coords', crs=nuts3.crs)
-    nuts_weather_data = gpd.sjoin(nuts_weather_data, nuts3, predicate="within", how='left')
-    nuts_weather_data = pd.DataFrame(nuts_weather_data)
-    nuts_weather_data = nuts_weather_data.loc[:,
-                        ['time', 'latitude', 'longitude', 'wind_meridional', 'wind_zonal', 'wind_speed', 'temp_air', 'ghi',
-                         'precipitation', 'NUTS_ID']]
-    nuts_weather_data = nuts_weather_data.rename(columns={'NUTS_ID': 'nuts_id'})
-    nuts_weather_data = nuts_weather_data.dropna(axis=0)
-    nuts_weather_data = nuts_weather_data.groupby(['time', 'nuts_id']).mean()
-    nuts_weather_data = nuts_weather_data.reset_index()
-    nuts_weather_data = nuts_weather_data.set_index(['time', 'latitude', 'longitude', 'nuts_id'])
-    log.info('preparing to write nuts dataframe into ecmwf_eu database')
-    nuts_weather_data.to_sql('ecmwf_neu_eu', con=engine, if_exists='append', chunksize=1000, method='multi')
-
     weather_data = weather_data.set_index(['time', 'latitude', 'longitude'])
     log.info('preparing to write dataframe into ecmwf database')
     weather_data.to_sql('ecmwf_neu', con=engine, if_exists='append', chunksize=1000, method='multi')
+
+    nuts3 = gpd.GeoDataFrame.from_file(nuts_path)
+    weather_data = weather_data.reset_index()
+    weather_data['coords'] = list(zip(weather_data['longitude'], weather_data['latitude']))
+    weather_data['coords'] = weather_data['coords'].apply(Point)
+    weather_data = gpd.GeoDataFrame(weather_data, geometry='coords', crs=nuts3.crs)
+    weather_data = gpd.sjoin(weather_data, nuts3, predicate="within", how='left')
+    weather_data = pd.DataFrame(weather_data)
+    weather_data = weather_data.loc[:,
+                        ['time', 'latitude', 'longitude', 'wind_meridional', 'wind_zonal', 'wind_speed', 'temp_air', 'ghi',
+                         'precipitation', 'NUTS_ID']]
+    weather_data = weather_data.rename(columns={'NUTS_ID': 'nuts_id'})
+    weather_data = weather_data.dropna(axis=0)
+    weather_data = weather_data.groupby(['time', 'nuts_id']).mean()
+    weather_data = weather_data.reset_index()
+    weather_data = weather_data.set_index(['time', 'latitude', 'longitude', 'nuts_id'])
+    log.info('preparing to write nuts dataframe into ecmwf_eu database')
+    weather_data.to_sql('ecmwf_neu_eu', con=engine, if_exists='append', chunksize=1000, method='multi')
 
     # Delete file locally to save space
     try:
