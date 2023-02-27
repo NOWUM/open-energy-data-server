@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from datetime import date, datetime, timedelta
 import cdsapi
 import pandas as pd
@@ -158,10 +158,10 @@ def build_dataframe(engine, request):
 def get_latest_date_in_database(engine):
     day = default_start_date
     today = datetime.combine(date.today(), datetime.min.time())
-    sql = f"select time from ecmwf_neu where time > '{day}' and time < '{today}' order by time desc limit 1"
+    sql = text(f"select time from ecmwf_neu where time > '{day}' and time < '{today}' order by time desc limit 1")
     try:
         with engine.connect() as conn, conn.begin():
-            last_date = pd.read_sql_query(sql, con=conn, parse_dates=['time']).values[0][0]
+            last_date = pd.read_sql(sql, con=conn, parse_dates=['time']).values[0][0]
         last_date = pd.to_datetime(str(last_date))
         last_date = pd.to_datetime(last_date.strftime('%Y-%m-%d %H:%M:%S'))
         log.info(f'Last date in database is: {last_date}')
