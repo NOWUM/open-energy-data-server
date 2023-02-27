@@ -46,32 +46,32 @@ def create_table(engine):
         query_create_hypertable = "SELECT create_hypertable('ecmwf_neu', 'time', if_not_exists => TRUE, migrate_data => TRUE);"
         query_create_hypertable_eu = "SELECT create_hypertable('ecmwf_neu_eu', 'time', if_not_exists => TRUE, migrate_data => TRUE);"
         with engine.connect() as conn, conn.begin():
-            conn.execute("CREATE TABLE IF NOT EXISTS ecmwf_neu( "
-                         "time timestamp without time zone NOT NULL, "
-                         "temp_air double precision, "
-                         "ghi double precision, "
-                         "wind_meridional double precision, "
-                         "wind_zonal double precision, "
-                         "wind_speed double precision, "
-                         "precipitation double precision, "
-                         "latitude double precision, "
-                         "longitude double precision, "
-                         "PRIMARY KEY (time , latitude, longitude));")
+            conn.exec_driver_sql("CREATE TABLE IF NOT EXISTS ecmwf_neu( "
+                                 "time timestamp without time zone NOT NULL, "
+                                 "temp_air double precision, "
+                                 "ghi double precision, "
+                                 "wind_meridional double precision, "
+                                 "wind_zonal double precision, "
+                                 "wind_speed double precision, "
+                                 "precipitation double precision, "
+                                 "latitude double precision, "
+                                 "longitude double precision, "
+                                 "PRIMARY KEY (time , latitude, longitude));")
             conn.execute(query_create_hypertable)
 
         with engine.connect() as conn, conn.begin():
-            conn.execute("CREATE TABLE IF NOT EXISTS ecmwf_neu_eu( "
-                         "time timestamp without time zone NOT NULL, "
-                         "temp_air double precision, "
-                         "ghi double precision, "
-                         "wind_meridional double precision, "
-                         "wind_zonal double precision, "
-                         "wind_speed double precision, "
-                         "precipitation double precision, "
-                         "latitude double precision, "
-                         "longitude double precision, "
-                         "nuts_id text, "
-                         "PRIMARY KEY (time , latitude, longitude));")
+            conn.exec_driver_sql("CREATE TABLE IF NOT EXISTS ecmwf_neu_eu( "
+                                 "time timestamp without time zone NOT NULL, "
+                                 "temp_air double precision, "
+                                 "ghi double precision, "
+                                 "wind_meridional double precision, "
+                                 "wind_zonal double precision, "
+                                 "wind_speed double precision, "
+                                 "precipitation double precision, "
+                                 "latitude double precision, "
+                                 "longitude double precision, "
+                                 "nuts_id text, "
+                                 "PRIMARY KEY (time , latitude, longitude));")
             conn.execute(query_create_hypertable_eu)
         log.info(f'created hypertable ecmwf')
     except Exception as e:
@@ -118,7 +118,7 @@ def build_dataframe(engine, request):
     nuts_weather_data = nuts_weather_data.dropna(axis=0)
     nuts_weather_data = nuts_weather_data.groupby(['time', 'nuts_id']).mean()
     nuts_weather_data = nuts_weather_data.reset_index()
-    nuts_weather_data = nuts_weather_data.set_index(['time', 'latitude', 'longitude'])
+    nuts_weather_data = nuts_weather_data.set_index(['time', 'latitude', 'longitude', 'nuts_id'])
     log.info('preparing to write nuts dataframe into ecmwf_eu database')
     nuts_weather_data.to_sql('ecmwf_neu_eu', con=engine, if_exists='append', chunksize=1000, method='multi')
 
