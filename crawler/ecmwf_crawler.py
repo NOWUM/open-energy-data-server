@@ -57,7 +57,7 @@ def create_table(engine):
                                  "latitude double precision, "
                                  "longitude double precision, "
                                  "PRIMARY KEY (time , latitude, longitude));")
-            conn.execute(query_create_hypertable)
+            conn.exec_driver_sql(query_create_hypertable)
 
         with engine.connect() as conn, conn.begin():
             conn.exec_driver_sql("CREATE TABLE IF NOT EXISTS ecmwf_neu_eu( "
@@ -72,7 +72,7 @@ def create_table(engine):
                                  "longitude double precision, "
                                  "nuts_id text, "
                                  "PRIMARY KEY (time , latitude, longitude));")
-            conn.execute(query_create_hypertable_eu)
+            conn.exec_driver_sql(query_create_hypertable_eu)
         log.info(f'created hypertable ecmwf')
     except Exception as e:
         log.error(f'could not create hypertable: {e}')
