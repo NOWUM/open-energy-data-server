@@ -165,7 +165,8 @@ def get_latest_date_in_database(engine):
         last_date = pd.to_datetime(str(last_date))
         last_date = pd.to_datetime(last_date.strftime('%Y-%m-%d %H:%M:%S'))
         log.info(f'Last date in database is: {last_date}')
-        return last_date
+        log.info(f'Next date to crawl: {last_date + timedelta(hours=1)}')
+        return last_date + timedelta(hours=1)
     except Exception as e:
         log.error(e)
         return default_start_date
