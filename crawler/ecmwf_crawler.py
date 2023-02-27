@@ -179,7 +179,7 @@ def divide_month_in_chunks(li, n):
 
 
 def main():
-    engine = create_engine(db_uri)
+    engine = create_engine(db_uri, fast_executemany=True)
     create_table(engine)
     last_date = get_latest_date_in_database(engine)
     dates = []
