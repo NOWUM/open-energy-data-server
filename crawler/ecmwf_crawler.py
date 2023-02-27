@@ -161,7 +161,7 @@ def get_latest_date_in_database(engine):
     sql = f"select time from ecmwf_neu where time > '{day}' and time < '{today}' order by time desc limit 1"
     try:
         with engine.connect() as conn, conn.begin():
-            last_date = pd.read_sql(sql, con=engine, parse_dates=['time']).values[0][0]
+            last_date = pd.read_sql(sql, con=conn, parse_dates=['time']).values[0][0]
         last_date = pd.to_datetime(str(last_date))
         last_date = pd.to_datetime(last_date.strftime('%Y-%m-%d %H:%M:%S'))
         log.info(f'Last date in database is: {last_date}')
