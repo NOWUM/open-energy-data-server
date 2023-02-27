@@ -7,6 +7,8 @@ import logging
 import xarray as xr
 import geopandas as gpd
 from shapely.geometry import Point
+import csv
+from io import StringIO
 
 """
     Note that only rquests with no more that 1000 items at a time are valid.
@@ -90,6 +92,26 @@ def get_wind_speed(row):
     return (row.wind_meridional ** 2) + (row.wind_zonal ** 2) ** 0.5
 
 
+def psql_insert_copy(table, conn, keys, data_iter):
+    # gets a DBAPI connection that can provide a cursor
+    dbapi_conn = conn.connection
+    with dbapi_conn.cursor() as cur:
+        s_buf = StringIO()
+        writer = csv.writer(s_buf)
+        writer.writerows(data_iter)
+        s_buf.seek(0)
+
+        columns = ', '.join('"{}"'.format(k) for k in keys)
+        if table.schema:
+            table_name = '{}.{}'.format(table.schema, table.name)
+        else:
+            table_name = table.name
+
+        sql = 'COPY {} ({}) FROM STDIN WITH CSV'.format(
+            table_name, columns)
+        cur.copy_expert(sql=sql, file=s_buf)
+
+
 def build_dataframe(engine, request):
     file_path = os.path.realpath(os.path.join(os.path.dirname(__file__),
                                               f'{request.get("year")}_{request.get("month")}_{request.get("day")[0]}-{request.get("month")}_{request.get("day")[len(request.get("day")) - 1]}_ecmwf.grb'))
@@ -106,7 +128,7 @@ def build_dataframe(engine, request):
     weather_data = weather_data.round({'latitude': 2, 'longitude': 2})
     weather_data = weather_data.set_index(['time', 'latitude', 'longitude'])
     log.info('preparing to write dataframe into ecmwf database')
-    weather_data.to_sql('ecmwf_neu', con=engine, if_exists='append', chunksize=1000, method='multi')
+    weather_data.to_sql('ecmwf_neu', con=engine, if_exists='append', chunksize=10000, method=psql_insert_copy)
 
     nuts3 = gpd.GeoDataFrame.from_file(nuts_path)
     weather_data = weather_data.reset_index()
@@ -116,15 +138,15 @@ def build_dataframe(engine, request):
     weather_data = gpd.sjoin(weather_data, nuts3, predicate="within", how='left')
     weather_data = pd.DataFrame(weather_data)
     weather_data = weather_data.loc[:,
-                        ['time', 'latitude', 'longitude', 'wind_meridional', 'wind_zonal', 'wind_speed', 'temp_air', 'ghi',
-                         'precipitation', 'NUTS_ID']]
+                   ['time', 'latitude', 'longitude', 'wind_meridional', 'wind_zonal', 'wind_speed', 'temp_air', 'ghi',
+                    'precipitation', 'NUTS_ID']]
     weather_data = weather_data.rename(columns={'NUTS_ID': 'nuts_id'})
     weather_data = weather_data.dropna(axis=0)
     weather_data = weather_data.groupby(['time', 'nuts_id']).mean()
     weather_data = weather_data.reset_index()
     weather_data = weather_data.set_index(['time', 'latitude', 'longitude', 'nuts_id'])
     log.info('preparing to write nuts dataframe into ecmwf_eu database')
-    weather_data.to_sql('ecmwf_neu_eu', con=engine, if_exists='append', chunksize=1000, method='multi')
+    weather_data.to_sql('ecmwf_neu_eu', con=engine, if_exists='append', chunksize=10000, method=psql_insert_copy)
 
     # Delete file locally to save space
     try:
@@ -179,7 +201,7 @@ def divide_month_in_chunks(li, n):
 
 
 def main():
-    engine = create_engine(db_uri, fast_executemany=True)
+    engine = create_engine(db_uri)
     create_table(engine)
     last_date = get_latest_date_in_database(engine)
     dates = []
