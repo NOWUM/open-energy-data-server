@@ -71,7 +71,7 @@ def create_table(engine):
                                  "latitude double precision, "
                                  "longitude double precision, "
                                  "nuts_id text, "
-                                 "PRIMARY KEY (time , latitude, longitude));")
+                                 "PRIMARY KEY (time , latitude, longitude, nuts_id));")
             conn.exec_driver_sql(query_create_hypertable_eu)
         log.info(f'created hypertable ecmwf')
     except Exception as e:
