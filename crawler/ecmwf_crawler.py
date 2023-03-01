@@ -11,24 +11,21 @@ import csv
 from io import StringIO
 
 """
-    Note that only rquests with no more that 1000 items at a time are valid.
+    Note that only requests with no more that 1000 items at a time are valid.
     See the following link for further information:
     https://confluence.ecmwf.int/pages/viewpage.action?pageId=308052947
 
     Also "Surface net solar radiation" got renamed to "Surface net short-wave (solar) radiation"
 """
 
-logging.basicConfig(filename='ecmwf.log', encoding='utf-8', level=logging.DEBUG)
 log = logging.getLogger('ecmwf')
 
-c = cdsapi.Client()  # --> client for ECMWF-Service
-
 # fallback date if a new crawl is started
-default_start_date = datetime(2020, 1, 1, 0, 0, 0)
-
-db_uri = f'postgresql://opendata:opendata@10.13.10.41:5432/weather'
+default_start_date = datetime(1990, 1, 1, 0, 0, 0)
 
 # path of nuts file
+# downloaded from
+# https://ec.europa.eu/eurostat/de/web/gisco/geodata/reference-data/administrative-units-statistical-units/nuts#nuts21
 nuts_path = os.path.realpath(os.path.join(os.path.dirname(__file__), 'shapes', 'NUTS_RG_01M_2021_4326.shp'))
 
 # coords for europe according to:
@@ -45,10 +42,10 @@ var_ = ['10m_u_component_of_wind',
 
 def create_table(engine):
     try:
-        query_create_hypertable = "SELECT create_hypertable('ecmwf_neu', 'time', if_not_exists => TRUE, migrate_data => TRUE);"
-        query_create_hypertable_eu = "SELECT create_hypertable('ecmwf_neu_eu', 'time', if_not_exists => TRUE, migrate_data => TRUE);"
+        query_create_hypertable = "SELECT create_hypertable('ecmwf', 'time', if_not_exists => TRUE, migrate_data => TRUE);"
+        query_create_hypertable_eu = "SELECT create_hypertable('ecmwf_eu', 'time', if_not_exists => TRUE, migrate_data => TRUE);"
         with engine.connect() as conn, conn.begin():
-            conn.exec_driver_sql("CREATE TABLE IF NOT EXISTS ecmwf_neu( "
+            conn.exec_driver_sql("CREATE TABLE IF NOT EXISTS ecmwf( "
                                  "time timestamp without time zone NOT NULL, "
                                  "temp_air double precision, "
                                  "ghi double precision, "
@@ -60,9 +57,13 @@ def create_table(engine):
                                  "longitude double precision, "
                                  "PRIMARY KEY (time , latitude, longitude));")
             conn.exec_driver_sql(query_create_hypertable)
+        log.info(f'created hypertable ecmwf')
+    except Exception as e:
+        log.error(f'could not create hypertable: {e}')
 
+    try:
         with engine.connect() as conn, conn.begin():
-            conn.exec_driver_sql("CREATE TABLE IF NOT EXISTS ecmwf_neu_eu( "
+            conn.exec_driver_sql("CREATE TABLE IF NOT EXISTS ecmwf_eu( "
                                  "time timestamp without time zone NOT NULL, "
                                  "temp_air double precision, "
                                  "ghi double precision, "
@@ -75,17 +76,17 @@ def create_table(engine):
                                  "nuts_id text, "
                                  "PRIMARY KEY (time , latitude, longitude, nuts_id));")
             conn.exec_driver_sql(query_create_hypertable_eu)
-        log.info(f'created hypertable ecmwf')
+        log.info(f'created hypertable ecmwf_eu')
     except Exception as e:
         log.error(f'could not create hypertable: {e}')
 
 
-def save_data(request):
+def save_data(request, ecmwf_client):
     request['area'] = coords
     # path for downloaded files from copernicus
     save_downloaded_files_path = os.path.realpath(os.path.join(os.path.dirname(__file__),
                                                                f'{request.get("year")}_{request.get("month")}_{request.get("day")[0]}-{request.get("month")}_{request.get("day")[len(request.get("day")) - 1]}_ecmwf.grb'))
-    c.retrieve('reanalysis-era5-land', request, save_downloaded_files_path)
+    ecmwf_client.retrieve('reanalysis-era5-land', request, save_downloaded_files_path)
 
 
 def get_wind_speed(row):
@@ -94,8 +95,7 @@ def get_wind_speed(row):
 
 def psql_insert_copy(table, conn, keys, data_iter):
     # gets a DBAPI connection that can provide a cursor
-    dbapi_conn = conn.connection
-    with dbapi_conn.cursor() as cur:
+    with conn.connection.cursor() as cur:
         s_buf = StringIO()
         writer = csv.writer(s_buf)
         writer.writerows(data_iter)
@@ -124,29 +124,42 @@ def build_dataframe(engine, request):
     weather_data = weather_data.rename(
         columns={'valid_time': 'time', 'u10': 'wind_zonal', 'v10': 'wind_meridional', 't2m': 'temp_air', 'ssr': 'ghi',
                  'tp': 'precipitation'})
+    # calculate wind speed from zonal and meridional wind
     weather_data["wind_speed"] = weather_data.apply(get_wind_speed, axis=1)
     weather_data = weather_data.round({'latitude': 2, 'longitude': 2})
     weather_data = weather_data.set_index(['time', 'latitude', 'longitude'])
     log.info('preparing to write dataframe into ecmwf database')
-    weather_data.to_sql('ecmwf_neu', con=engine, if_exists='append', chunksize=10000, method=psql_insert_copy)
+    # write to database
+    try:
+        weather_data.to_sql('ecmwf', con=engine, if_exists='append', chunksize=10000, method=psql_insert_copy)
+    except Exception:
+        log.error('no postgresql? - could not write using psql_insert_copy - using multi method')
+        weather_data.to_sql('ecmwf', con=engine, if_exists='append', chunksize=10000)
 
     nuts3 = gpd.GeoDataFrame.from_file(nuts_path)
+    # use only nuts_id and coordinates from nuts file so fewer columns have to be joined
+    nuts3 = nuts3.loc[:, ['NUTS_ID', 'geometry']]
     weather_data = weather_data.reset_index()
     weather_data['coords'] = list(zip(weather_data['longitude'], weather_data['latitude']))
     weather_data['coords'] = weather_data['coords'].apply(Point)
     weather_data = gpd.GeoDataFrame(weather_data, geometry='coords', crs=nuts3.crs)
+    # join weather data to nuts areas
     weather_data = gpd.sjoin(weather_data, nuts3, predicate="within", how='left')
     weather_data = pd.DataFrame(weather_data)
-    weather_data = weather_data.loc[:,
-                   ['time', 'latitude', 'longitude', 'wind_meridional', 'wind_zonal', 'wind_speed', 'temp_air', 'ghi',
-                    'precipitation', 'NUTS_ID']]
-    weather_data = weather_data.rename(columns={'NUTS_ID': 'nuts_id'})
+    # coords columns only necessary for the join
+    weather_data = weather_data.drop(columns='coords')
+    weather_data = weather_data.rename(columns={'index_right': 'nuts_id'})
     weather_data = weather_data.dropna(axis=0)
+    # calculate average for all locations inside the current nuts area
     weather_data = weather_data.groupby(['time', 'nuts_id']).mean()
     weather_data = weather_data.reset_index()
     weather_data = weather_data.set_index(['time', 'latitude', 'longitude', 'nuts_id'])
     log.info('preparing to write nuts dataframe into ecmwf_eu database')
-    weather_data.to_sql('ecmwf_neu_eu', con=engine, if_exists='append', chunksize=10000, method=psql_insert_copy)
+    try:
+        weather_data.to_sql('ecmwf_eu', con=engine, if_exists='append', chunksize=10000, method=psql_insert_copy)
+    except Exception:
+        log.error('no postgresql? - could not write using psql_insert_copy - using multi method')
+        weather_data.to_sql('ecmwf_eu', con=engine, if_exists='append', chunksize=10000)
 
     # Delete file locally to save space
     try:
@@ -158,15 +171,16 @@ def build_dataframe(engine, request):
 def get_latest_date_in_database(engine):
     day = default_start_date
     today = datetime.combine(date.today(), datetime.min.time())
-    sql = text(f"select time from ecmwf_neu where time > '{day}' and time < '{today}' order by time desc limit 1")
+    sql = text(f"select time from ecmwf where time > '{day}' and time < '{today}' order by time desc limit 1")
     try:
         with engine.connect() as conn, conn.begin():
             last_date = pd.read_sql(sql, con=conn, parse_dates=['time']).values[0][0]
         last_date = pd.to_datetime(str(last_date))
         last_date = pd.to_datetime(last_date.strftime('%Y-%m-%d %H:%M:%S'))
         log.info(f'Last date in database is: {last_date}')
-        log.info(f'Next date to crawl: {last_date + timedelta(hours=1)}')
-        return last_date + timedelta(hours=1)
+        next_date = last_date + timedelta(hours=1)
+        log.info(f'Next date to crawl: {next_date}')
+        return next_date
     except Exception as e:
         log.error(e)
         return default_start_date
@@ -203,28 +217,24 @@ def divide_month_in_chunks(li, n):
     return ch
 
 
-def main():
+def main(db_uri):
     engine = create_engine(db_uri)
     create_table(engine)
     last_date = get_latest_date_in_database(engine)
     dates = []
     for single_date in daterange(last_date):
         dates.append(single_date)
+
+    # initializing the client for ecmwf service
+    ecmwf_client = cdsapi.Client()
     for request in request_builder(dates):
-        print(request)
-        save_data(request)
+        log.info(f'The current request running: {request}')
+        save_data(request, ecmwf_client)
         build_dataframe(engine, request)
 
 
 if __name__ == '__main__':
-    # db_uri = 'sqlite:///./data/weather.db'
-    main()
-    # engine = create_engine(db_uri)
-    # build_dataframe(engine)
-    # last_date = get_latest_date_in_database(engine)
-    # dates = []
-    # for single_date in daterange(last_date):
-    #     dates.append(single_date)
-    #
-    # for request in request_builder(dates):
-    #     print(request)
+    logging.basicConfig(filename='ecmwf.log', encoding='utf-8', level=logging.INFO)
+    db_uri = 'sqlite:///./data/weather.db'
+    # db_uri = f'postgresql://opendata:opendata@10.13.10.41:5432/weather'
+    main(db_uri)
