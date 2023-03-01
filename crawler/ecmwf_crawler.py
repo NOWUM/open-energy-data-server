@@ -9,6 +9,7 @@ import geopandas as gpd
 from shapely.geometry import Point
 import csv
 from io import StringIO
+import glob
 
 """
     Note that only requests with no more that 1000 items at a time are valid.
@@ -161,11 +162,14 @@ def build_dataframe(engine, request):
         log.error('no postgresql? - could not write using psql_insert_copy - using multi method')
         weather_data.to_sql('ecmwf_eu', con=engine, if_exists='append', chunksize=10000)
 
-    # Delete file locally to save space
-    try:
-        os.remove(file_path)
-    except OSError as e:
-        log.info(f'Error: {e.filename} - {e.strerror}')
+    # Delete files locally to save space
+    file_list = glob.glob(file_path + '*', recursive=True)
+    for file in file_list:
+        try:
+            os.remove(file)
+            log.info(f'removed file {file}')
+        except OSError as e:
+            log.info(f'Error: {e.filename} - {e.strerror}')
 
 
 def get_latest_date_in_database(engine):
@@ -235,6 +239,6 @@ def main(db_uri):
 
 if __name__ == '__main__':
     logging.basicConfig(filename='ecmwf.log', encoding='utf-8', level=logging.INFO)
-    db_uri = 'sqlite:///./data/weather.db'
-    # db_uri = f'postgresql://opendata:opendata@10.13.10.41:5432/weather'
+    # db_uri = 'sqlite:///./data/weather.db'
+    db_uri = f'postgresql://opendata:opendata@10.13.10.41:5432/weather'
     main(db_uri)
