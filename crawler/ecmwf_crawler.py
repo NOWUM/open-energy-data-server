@@ -152,7 +152,7 @@ def build_dataframe(engine, request):
     weather_data = weather_data.rename(columns={'index_right': 'nuts_id'})
     weather_data = weather_data.dropna(axis=0)
     # calculate average for all locations inside the current nuts area
-    weather_data = weather_data.groupby(['time', 'nuts_id']).mean()
+    weather_data = weather_data.groupby(['time', 'nuts_id']).mean(numeric_only=True)
     weather_data = weather_data.reset_index()
     weather_data = weather_data.set_index(['time', 'latitude', 'longitude', 'nuts_id'])
     log.info('preparing to write nuts dataframe into ecmwf_eu database')
