@@ -214,6 +214,15 @@ def request_builder(dates):
             yield request
 
 
+def single_day_request(last_date):
+    request = dict(format='grib', variable=var_,
+                   year=f'{last_date.year}',
+                   month=f'{last_date.month:02d}',
+                   day=f'{last_date.day:02d}',
+                   time=[f'{i:02d}:00' for i in range(last_date.hour, 24)])
+    return request
+
+
 def divide_month_in_chunks(li, n):
     ch = []
     for i in range(0, len(li), n):
@@ -222,15 +231,27 @@ def divide_month_in_chunks(li, n):
 
 
 def main(db_uri):
+    # initializing the client for ecmwf service
+    ecmwf_client = cdsapi.Client()
     engine = create_engine(db_uri)
     create_table(engine)
     last_date = get_latest_date_in_database(engine)
+
+    # the requests are build from 00:00 - 23:00 for each day
+    # however, for recent dates the cds API delivers data up until the latest hour of the day it can deliver
+    # that is why a check is necessary to first make sure that the database has dates up until 23:00
+    if last_date.hour != 23:
+        log.info('Creating request for single day')
+        request = single_day_request(last_date)
+        log.info(f'The current request running: {request}')
+        save_data(request, ecmwf_client)
+        build_dataframe(engine, request)
+        last_date = get_latest_date_in_database(engine)
+
     dates = []
     for single_date in daterange(last_date):
         dates.append(single_date)
 
-    # initializing the client for ecmwf service
-    ecmwf_client = cdsapi.Client()
     for request in request_builder(dates):
         log.info(f'The current request running: {request}')
         save_data(request, ecmwf_client)
