@@ -27,6 +27,7 @@ When using Windows, you need to start the Anaconda Prompt to run conda commands 
 - `powershell -ExecutionPolicy ByPass -NoExit -Command "& 'C:\Users\USER\anaconda3\shell\condabin\conda-hook.ps1' ; conda activate 'C:\Users\USER\anaconda3' "`
 - `conda init powershell`
 - `conda config --set auto_activate_base false`
+
 Afterward, start a terminal and navigate to the open-energy-data-server directory to run the command `conda env create -f environment.yml` to install the necessary dependencies.
 Now activate the environment by executing `conda activate open-energy-data-server` in the terminal.
 With the environment activated, you can now run the ECMWF crawler by running `python ./ecmwf_crawler.py` from within the open-energy-data-server directory.
