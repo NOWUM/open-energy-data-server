@@ -17,7 +17,7 @@ You can install all python dependencies:
 
 `pip install -r requirements.txt`
 
-An finally run the main crawling script `python crawl_all.py` to download all available sources into the database.
+And finally run the main crawling script `python crawl_all.py` to download all available sources into the database.
 
 ## Using the ECMWF crawler
 
@@ -29,7 +29,7 @@ When using Windows, you need to start the Anaconda Prompt to run conda commands 
 - `conda config --set auto_activate_base false`
 
 Afterward, start a terminal and navigate to the open-energy-data-server directory to run the command `conda env create -f environment.yml` to install the necessary dependencies.
-Now activate the environment by executing `conda activate open-energy-data-server` in the terminal.
+Now activate the environment by executing `conda activate oeds` in the terminal.
 With the environment activated, you can now run the ECMWF crawler by running `python ./ecmwf_crawler.py` from within the open-energy-data-server directory.
 
 ## TimeScaleDB
