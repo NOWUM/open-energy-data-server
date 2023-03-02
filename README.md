@@ -19,6 +19,18 @@ You can install all python dependencies:
 
 An finally run the main crawling script `python crawl_all.py` to download all available sources into the database.
 
+## Using the ECMWF crawler
+
+If you want to use the ECMWF crawler it is recommended to set up and use a conda environment for installing the necessary dependencies.
+Start by [installing conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html).
+When using Windows, you need to start the Anaconda Prompt to run conda commands or add conda to PowerShell:
+- `powershell -ExecutionPolicy ByPass -NoExit -Command "& 'C:\Users\USER\anaconda3\shell\condabin\conda-hook.ps1' ; conda activate 'C:\Users\USER\anaconda3' "`
+- `conda init powershell`
+- `conda config --set auto_activate_base false`
+Afterward, start a terminal and navigate to the open-energy-data-server directory to run the command `conda env create -f environment.yml` to install the necessary dependencies.
+Now activate the environment by executing `conda activate open-energy-data-server` in the terminal.
+With the environment activated, you can now run the ECMWF crawler by running `python ./ecmwf_crawler.py` from within the open-energy-data-server directory.
+
 ## TimeScaleDB
 
 The used database technology for the database server ist [TimescaleDB](https://timescale.com/) which is an extension for PostgreSQL (just like PostGIS but for timeseries databases).
