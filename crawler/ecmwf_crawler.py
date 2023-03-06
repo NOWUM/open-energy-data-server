@@ -10,6 +10,7 @@ from shapely.geometry import Point
 import csv
 from io import StringIO
 import glob
+import swifter
 
 """
     Note that only requests with no more that 1000 items at a time are valid.
@@ -22,7 +23,7 @@ import glob
 log = logging.getLogger('ecmwf')
 
 # fallback date if a new crawl is started
-default_start_date = datetime(1990, 1, 1, 0, 0, 0)
+default_start_date = datetime(2019, 1, 1, 0, 0, 0)
 
 # path of nuts file
 # downloaded from
@@ -83,7 +84,6 @@ def create_table(engine):
 
 
 def save_data(request, ecmwf_client):
-    request['area'] = coords
     # path for downloaded files from copernicus
     save_downloaded_files_path = os.path.realpath(os.path.join(os.path.dirname(__file__),
                                                                f'{request.get("year")}_{request.get("month")}_{request.get("day")[0]}-{request.get("month")}_{request.get("day")[len(request.get("day")) - 1]}_ecmwf.grb'))
@@ -126,9 +126,20 @@ def build_dataframe(engine, request):
         columns={'valid_time': 'time', 'u10': 'wind_zonal', 'v10': 'wind_meridional', 't2m': 'temp_air', 'ssr': 'ghi',
                  'tp': 'precipitation'})
     # calculate wind speed from zonal and meridional wind
-    weather_data["wind_speed"] = weather_data.apply(get_wind_speed, axis=1)
+    weather_data["wind_speed"] = weather_data.swifter.apply(get_wind_speed, axis=1)
     weather_data = weather_data.round({'latitude': 2, 'longitude': 2})
+    # columns ghi ist accumulated over 24 hours, so use difference to get hourly values
+    # first we need to order by time and location and then calculate the difference
+    weather_data = weather_data.sort_values(by=['latitude', 'longitude', 'time'])
+    weather_data['ghi'] = weather_data['ghi'].diff()
+    # set negatives to 0
+    weather_data['ghi'] = weather_data['ghi'].clip(lower=0)
+    # nan to 0
+    weather_data['ghi'] = weather_data['ghi'].fillna(0)
+    # set ghi at 00:00 to 0
+    weather_data.loc[weather_data['time'].dt.hour == 0, 'ghi'] = 0
     weather_data = weather_data.set_index(['time', 'latitude', 'longitude'])
+
     log.info('preparing to write dataframe into ecmwf database')
     # write to database
     try:
@@ -140,6 +151,7 @@ def build_dataframe(engine, request):
     nuts3 = gpd.GeoDataFrame.from_file(nuts_path)
     # use only nuts_id and coordinates from nuts file so fewer columns have to be joined
     nuts3 = nuts3.loc[:, ['NUTS_ID', 'geometry']]
+    nuts3 = nuts3.set_index('NUTS_ID')
     weather_data = weather_data.reset_index()
     weather_data['coords'] = list(zip(weather_data['longitude'], weather_data['latitude']))
     weather_data['coords'] = weather_data['coords'].apply(Point)
@@ -210,6 +222,7 @@ def request_builder(dates):
                            month=f'{month["Date"].dt.month[month.index.start]:02d}',
                            day=chunk,
                            time=[f'{i:02d}:00' for i in range(24)])
+            request['area'] = coords
 
             yield request
 
@@ -220,6 +233,7 @@ def single_day_request(last_date):
                    month=f'{last_date.month:02d}',
                    day=f'{last_date.day:02d}',
                    time=[f'{i:02d}:00' for i in range(last_date.hour, 24)])
+    request['area'] = coords
     return request
 
 
