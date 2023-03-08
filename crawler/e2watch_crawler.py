@@ -7,13 +7,56 @@ from datetime import date
 from crawler.base_crawler import BasicDbCrawler
 
 log = logging.getLogger('e2watch')
-log.setLevel(logging.INFO)
-default_start_date = '01.01.2019'
+default_start_date = '01.01.2023'
 
 
 class E2WatchCrawler(BasicDbCrawler):
 
+    def create_table(self):
+        try:
+            query_create_hypertable = "SELECT create_hypertable('e2watch', 'timestamp', if_not_exists => TRUE, migrate_data => TRUE);"
+            with self.db_accessor() as conn:
+                conn.execute("CREATE TABLE IF NOT EXISTS e2watch( "
+                             "timestamp timestamp without time zone NOT NULL, "
+                             "bilanzkreis_id text, "
+                             "strom_kwh double precision, "
+                             "wasser_m3 double precision, "
+                             "waerme_kwh double precision, "
+                             "temperatur double precision, "
+                             "PRIMARY KEY (timestamp , bilanzkreis_id));")
+                conn.execute(query_create_hypertable)
+            log.info(f'created hypertable e2watch')
+        except Exception as e:
+            log.error(f'could not create hypertable: {e}')
+
+        try:
+            with self.db_accessor() as conn:
+                conn.execute("CREATE TABLE IF NOT EXISTS buildings( "
+                             "bilanzkreis_id text, "
+                             "building_id text, "
+                             "lat double precision, "
+                             "lon double precision, "
+                             "beschreibung text, "
+                             "strasse text, "
+                             "plz text, "
+                             "stadt text, "
+                             "PRIMARY KEY (bilanzkreis_id));")
+            log.info(f'created table buildings')
+        except Exception as e:
+            log.error(f'could not create table: {e}')
+
     def get_all_buildings(self):
+        sql = f"select * from buildings"
+        with self.db_accessor() as connection:
+            try:
+                building_data = pd.read_sql(sql, connection, parse_dates=['timestamp'])
+                if len(building_data) > 0:
+                    log.info(f'Building data already exists in the database. No need to crawl it again.')
+                    building_data = building_data.set_index(['bilanzkreis_id'])
+                    return building_data
+            except Exception as e:
+                log.error(f'There does not exist a table buildings yet. The buildings will now be crawled. {e}')
+
         response = requests.get('https://stadt-aachen.e2watch.de/')
         html = response.content
         data = BeautifulSoup(html, 'html.parser')
@@ -49,13 +92,12 @@ class E2WatchCrawler(BasicDbCrawler):
         bid = []
 
         for building_id in df.index.values:
-            print(f'Doing building {building_id}')
+            log.info(f'Doing building {building_id}')
             response = requests.get(f'https://stadt-aachen.e2watch.de/details/objekt/{building_id}')
             html = response.content
             data = BeautifulSoup(html, 'html.parser')
             all_buildings = data.findAll("div", {"class": "container main-chart"})
             list_buildings = all_buildings[0].findAll('li')
-            # print(list_buildings)
             bid.append(list_buildings[0].find('a')['bid'])
 
         df['bilanzkreis_id'] = bid
@@ -63,7 +105,7 @@ class E2WatchCrawler(BasicDbCrawler):
         df = df.set_index(['bilanzkreis_id'])
         return df
 
-    def get_data_per_building(self, buildings: pd.DataFrame, start_date:str):
+    def get_data_per_building(self, buildings: pd.DataFrame, start_date: str):
         energy = ['strom', 'wasser', 'waerme']
         end_date = date.today().strftime('%d.%m.%Y')
 
@@ -73,13 +115,19 @@ class E2WatchCrawler(BasicDbCrawler):
                 url = f'https://stadt-aachen.e2watch.de/gebaeude/getMainChartData/{bilanzkreis_id}?medium={measurement}&from={start_date}&to={end_date}&type=stundenverbrauch'
                 log.info(url)
                 response = requests.get(url)
+                try:
+                    response.raise_for_status()
+                except requests.exceptions.HTTPError as e:
+                    log.error(f'Could not get data for building: {bilanzkreis_id} {e}')
+                    continue
                 data = json.loads(response.text)
                 timeseries = pd.DataFrame.from_dict(data['result']['series'][0]['data'])
                 if timeseries.empty:
                     log.info(f'Received empty data for building: {bilanzkreis_id}')
                     continue
                 timeseries[0] = pd.to_datetime(timeseries[0], unit='ms')
-                timeseries.columns = ['timestamp', measurement + '_kWh' if (measurement == 'strom' or measurement == 'waerme') else measurement + '_m3']
+                timeseries.columns = ['timestamp', measurement + '_kwh' if (
+                            measurement == 'strom' or measurement == 'waerme') else measurement + '_m3']
                 temperature = pd.DataFrame.from_dict(data['result']['series'][1]['data'])
                 if temperature.empty:
                     log.info(f'Received empty temperature for building: {bilanzkreis_id}')
@@ -105,22 +153,27 @@ class E2WatchCrawler(BasicDbCrawler):
         sql = f"select timestamp from e2watch where timestamp > '{day}' and timestamp < '{today}' order by timestamp desc limit 1"
         with self.db_accessor() as connection:
             try:
-                return pd.read_sql(sql,connection, parse_dates=['timestamp']).values[0][0]
+                return pd.read_sql(sql, connection, parse_dates=['timestamp']).values[0][0]
             except Exception as e:
-                log.error(e)
+                log.info(f'Using the default start date {e}')
                 return default_start_date
 
-
-    def feed(self, buildings: pd.DataFrame, start_date:str):
+    def feed(self, buildings: pd.DataFrame, start_date: str):
+        sql = f"select * from buildings"
         with self.db_accessor() as connection:
-            buildings.to_sql('buildings', con=connection, if_exists='append')
-            li = []
+            try:
+                building_data = pd.read_sql(sql, connection, parse_dates=['timestamp'])
+                if len(building_data) == 0:
+                    log.info(f'creating new buildings table')
+                    buildings.to_sql('buildings', con=connection, if_exists='append')
+            except Exception as e:
+                log.info(f'Probably no database connection: {e}')
         for data_for_building in self.get_data_per_building(buildings, start_date):
             if data_for_building.empty:
                 continue
             with self.db_accessor() as connection:
+                data_for_building = data_for_building.set_index(['timestamp', 'bilanzkreis_id'])
                 data_for_building.to_sql('e2watch', con=connection, if_exists='append')
-
 
     def create_hypertable(self):
         try:
@@ -131,20 +184,18 @@ class E2WatchCrawler(BasicDbCrawler):
         except Exception as e:
             log.error(f'could not create hypertable: {e}')
 
+
 def main(db_uri):
     ec = E2WatchCrawler(db_uri)
+    ec.create_table()
     begin_date = ec.select_latest()
     buildings = ec.get_all_buildings()
     ec.feed(buildings, begin_date)
-    ec.create_hypertable()
+    # ec.create_hypertable()
+
 
 if __name__ == '__main__':
-    logging.basicConfig()
-    #db_uri = 'sqlite:///./data/eview.db'
+    logging.basicConfig(filename='e2watch.log', encoding='utf-8', level=logging.INFO)
+    # db_uri = 'sqlite:///./data/eview.db'
     db_uri = f'postgresql://opendata:opendata@10.13.10.41:5432/e2watch'
-    log.info(f'connect to {db_uri}')
-    ec = E2WatchCrawler(db_uri)
-    begin_date = default_start_date
-    buildings = ec.get_all_buildings()
-    ec.feed(buildings, begin_date)
-
+    main(db_uri)
