@@ -125,14 +125,14 @@ class E2WatchCrawler(BasicDbCrawler):
                 if timeseries.empty:
                     log.info(f'Received empty data for building: {bilanzkreis_id}')
                     continue
-                timeseries[0] = pd.to_datetime(timeseries[0], unit='ms')
+                timeseries[0] = pd.to_datetime(timeseries[0], unit='ms', utc=True)
                 timeseries.columns = ['timestamp', measurement + '_kwh' if (
                             measurement == 'strom' or measurement == 'waerme') else measurement + '_m3']
                 temperature = pd.DataFrame.from_dict(data['result']['series'][1]['data'])
                 if temperature.empty:
                     log.info(f'Received empty temperature for building: {bilanzkreis_id}')
                     continue
-                temperature[0] = pd.to_datetime(temperature[0], unit='ms')
+                temperature[0] = pd.to_datetime(temperature[0], unit='ms', utc=True)
                 temperature.columns = ['timestamp', 'temperatur']
                 timeseries = pd.merge(timeseries, temperature, on=['timestamp'])
 
@@ -141,7 +141,6 @@ class E2WatchCrawler(BasicDbCrawler):
 
                 else:
                     df_last = timeseries
-            log.info(df_last)
 
             if not df_last.empty:
                 df_last.insert(0, 'bilanzkreis_id', bilanzkreis_id)
@@ -181,6 +180,12 @@ class E2WatchCrawler(BasicDbCrawler):
                 continue
             with self.db_accessor() as connection:
                 data_for_building = data_for_building.set_index(['timestamp', 'bilanzkreis_id'])
+                # check if timestamp < start_date
+                if data_for_building.index.get_level_values('timestamp')[0] < pd.to_datetime(start_date, utc=True):
+                    # drop that row
+                    log.info(f'Dropping row {data_for_building.index.get_level_values("timestamp")[0]}')
+                    data_for_building = data_for_building.drop(data_for_building.index[0])
+                log.info(data_for_building)
                 data_for_building.to_sql('e2watch', con=connection, if_exists='append')
 
 
