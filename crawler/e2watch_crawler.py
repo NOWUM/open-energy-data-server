@@ -3,7 +3,7 @@ import requests
 import logging
 import json
 from bs4 import BeautifulSoup
-from datetime import date
+from datetime import date, timedelta, datetime
 from crawler.base_crawler import BasicDbCrawler
 
 log = logging.getLogger('e2watch')
@@ -148,12 +148,20 @@ class E2WatchCrawler(BasicDbCrawler):
             yield df_last
 
     def select_latest(self):
-        day = default_start_date
-        today = date.today().strftime('%d.%m.%Y')
-        sql = f"select timestamp from e2watch where timestamp > '{day}' and timestamp < '{today}' order by timestamp desc limit 1"
+        # day = default_start_date
+        # today = date.today().strftime('%d.%m.%Y')
+        # sql = f"select timestamp from e2watch where timestamp > '{day}' and timestamp < '{today}' order by timestamp desc limit 1"
+        sql = f"select timestamp from e2watch order by timestamp desc limit 1"
         with self.db_accessor() as connection:
             try:
-                return pd.read_sql(sql, connection, parse_dates=['timestamp']).values[0][0]
+                latest = pd.read_sql(sql, connection, parse_dates=['timestamp']).values[0][0]
+                latest = latest.astype(datetime)
+                latest = pd.to_datetime(latest, unit='ns')
+                log.info(f'The latest date in the database is {latest.strftime("%d.%m.%Y %H:%M:%S")}')
+                latest = latest + timedelta(hours=1)
+                latest = latest.strftime("%d.%m.%Y %H:%M:%S")
+                log.info(f'Next date to crawl is {latest}')
+                return latest
             except Exception as e:
                 log.info(f'Using the default start date {e}')
                 return default_start_date
@@ -175,15 +183,6 @@ class E2WatchCrawler(BasicDbCrawler):
                 data_for_building = data_for_building.set_index(['timestamp', 'bilanzkreis_id'])
                 data_for_building.to_sql('e2watch', con=connection, if_exists='append')
 
-    def create_hypertable(self):
-        try:
-            query_create_hypertable = "SELECT create_hypertable('e2watch', 'timestamp', if_not_exists => TRUE, migrate_data => TRUE);"
-            with self.db_accessor() as conn:
-                conn.execute(query_create_hypertable)
-            log.info(f'created hypertable e2watch')
-        except Exception as e:
-            log.error(f'could not create hypertable: {e}')
-
 
 def main(db_uri):
     ec = E2WatchCrawler(db_uri)
@@ -191,7 +190,6 @@ def main(db_uri):
     begin_date = ec.select_latest()
     buildings = ec.get_all_buildings()
     ec.feed(buildings, begin_date)
-    # ec.create_hypertable()
 
 
 if __name__ == '__main__':
