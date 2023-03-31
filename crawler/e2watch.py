@@ -105,14 +105,16 @@ class E2WatchCrawler(BasicDbCrawler):
         df = df.set_index(['bilanzkreis_id'])
         return df
 
-    def get_data_per_building(self, buildings: pd.DataFrame, start_date: str):
+    def get_data_per_building(self, buildings: pd.DataFrame, start_date: pd.Timestamp):
         energy = ['strom', 'wasser', 'waerme']
         end_date = date.today().strftime('%d.%m.%Y')
+        start_date_tz = start_date.tz_localize('UTC').tz_convert('Europe/Berlin')
+        start_date_str = start_date_tz.strftime("%d.%m.%Y %H:%M:%S")
 
         for bilanzkreis_id in buildings.index.values:
             df_last = pd.DataFrame([])
             for measurement in energy:
-                url = f'https://stadt-aachen.e2watch.de/gebaeude/getMainChartData/{bilanzkreis_id}?medium={measurement}&from={start_date}&to={end_date}&type=stundenverbrauch'
+                url = f'https://stadt-aachen.e2watch.de/gebaeude/getMainChartData/{bilanzkreis_id}?medium={measurement}&from={start_date_str}&to={end_date}&type=stundenverbrauch'
                 log.info(url)
                 response = requests.get(url)
                 try:
@@ -146,7 +148,7 @@ class E2WatchCrawler(BasicDbCrawler):
                 df_last.insert(0, 'bilanzkreis_id', bilanzkreis_id)
             yield df_last
 
-    def select_latest(self):
+    def select_latest(self) -> pd.Timestamp:
         # day = default_start_date
         # today = date.today().strftime('%d.%m.%Y')
         # sql = f"select timestamp from e2watch where timestamp > '{day}' and timestamp < '{today}' order by timestamp desc limit 1"
@@ -154,18 +156,15 @@ class E2WatchCrawler(BasicDbCrawler):
         with self.db_accessor() as connection:
             try:
                 latest = pd.read_sql(sql, connection, parse_dates=['timestamp']).values[0][0]
-                latest = latest.astype(datetime)
+                latest = latest.astype(int)
                 latest = pd.to_datetime(latest, unit='ns')
-                log.info(f'The latest date in the database is {latest.strftime("%d.%m.%Y %H:%M:%S")}')
-                latest = latest + timedelta(hours=1)
-                latest = latest.strftime("%d.%m.%Y %H:%M:%S")
-                log.info(f'Next date to crawl is {latest}')
+                log.info(f'The latest date in the database is {latest}')
                 return latest
             except Exception as e:
                 log.info(f'Using the default start date {e}')
                 return default_start_date
 
-    def feed(self, buildings: pd.DataFrame, start_date: str):
+    def feed(self, buildings: pd.DataFrame, start_date: pd.Timestamp):
         sql = f"select * from buildings"
         with self.db_accessor() as connection:
             try:
@@ -180,11 +179,7 @@ class E2WatchCrawler(BasicDbCrawler):
                 continue
             with self.db_accessor() as connection:
                 data_for_building = data_for_building.set_index(['timestamp', 'bilanzkreis_id'])
-                # check if timestamp < start_date
-                if data_for_building.index.get_level_values('timestamp')[0] < pd.to_datetime(start_date, utc=True):
-                    # drop that row
-                    log.info(f'Dropping row {data_for_building.index.get_level_values("timestamp")[0]}')
-                    data_for_building = data_for_building.drop(data_for_building.index[0])
+                    
                 log.info(data_for_building)
                 data_for_building.to_sql('e2watch', con=connection, if_exists='append')
 
@@ -192,7 +187,7 @@ class E2WatchCrawler(BasicDbCrawler):
 def main(db_uri):
     ec = E2WatchCrawler(db_uri)
     ec.create_table()
-    begin_date = ec.select_latest()
+    begin_date = ec.select_latest() + timedelta(hours=1)
     buildings = ec.get_all_buildings()
     ec.feed(buildings, begin_date)
 
