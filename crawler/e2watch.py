@@ -179,7 +179,10 @@ class E2WatchCrawler(BasicDbCrawler):
                 continue
             with self.db_accessor() as connection:
                 data_for_building = data_for_building.set_index(['timestamp', 'bilanzkreis_id'])
-                    
+                # delete timezone duplicate
+                # https://stackoverflow.com/a/34297689
+                data_for_building = data_for_building[~data_for_building.index.duplicated(keep='first')]
+
                 log.info(data_for_building)
                 data_for_building.to_sql('e2watch', con=connection, if_exists='append')
 
