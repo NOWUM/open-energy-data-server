@@ -7,7 +7,7 @@ from datetime import date, timedelta, datetime
 from crawler.base_crawler import BasicDbCrawler
 
 log = logging.getLogger('e2watch')
-default_start_date = '01.01.2023'
+default_start_date = '2023-01-01 00:00:00'
 
 
 class E2WatchCrawler(BasicDbCrawler):
@@ -162,7 +162,7 @@ class E2WatchCrawler(BasicDbCrawler):
                 return latest
             except Exception as e:
                 log.info(f'Using the default start date {e}')
-                return default_start_date
+                return pd.to_datetime(default_start_date)
 
     def feed(self, buildings: pd.DataFrame, start_date: pd.Timestamp):
         sql = f"select * from buildings"
