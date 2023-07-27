@@ -5,6 +5,7 @@ import json
 from bs4 import BeautifulSoup
 from datetime import date, timedelta, datetime
 from crawler.base_crawler import BasicDbCrawler
+import os
 
 log = logging.getLogger('e2watch')
 default_start_date = '2023-01-01 00:00:00'
@@ -57,51 +58,7 @@ class E2WatchCrawler(BasicDbCrawler):
             except Exception as e:
                 log.error(f'There does not exist a table buildings yet. The buildings will now be crawled. {e}')
 
-        response = requests.get('https://stadt-aachen.e2watch.de/')
-        html = response.content
-        data = BeautifulSoup(html, 'html.parser')
-        all_buildings = data.findAll("div", {"class": "entity-list-container"})
-        building_id = []
-        lat = []
-        lon = []
-        beschreibung = []
-        for i in all_buildings:
-            list_buildings = i.findAll('li')
-            for x in list_buildings:
-                building_id.append(x.find('a')['id'])
-                lat.append(x.find('a')['lat'])
-                lon.append(x.find('a')['lng'])
-                beschreibung.append(x.find('a')['data-original-title'])
-
-        df = pd.DataFrame([])
-        df['building_id'] = building_id
-        df['lat'] = lat
-        df['lon'] = lon
-        df['beschreibung'] = beschreibung
-        tags = df['beschreibung'].str.split('br /> ', expand=True)
-        tags[0] = tags[0].replace('(<b>)|(<\/b>)|<', '', regex=True).astype(str)
-        plz = tags[1].str.split(', ', expand=True)
-        df['beschreibung'] = tags[0]
-        df['strasse'] = plz[0]
-        df['plz'] = plz[1]
-        df['stadt'] = plz[2]
-        df['lat'] = df['lat'].astype(float)
-        df['lon'] = df['lon'].astype(float)
-        df = df.set_index(['building_id'])
-
-        bid = []
-
-        for building_id in df.index.values:
-            log.info(f'Doing building {building_id}')
-            response = requests.get(f'https://stadt-aachen.e2watch.de/details/objekt/{building_id}')
-            html = response.content
-            data = BeautifulSoup(html, 'html.parser')
-            all_buildings = data.findAll("div", {"class": "container main-chart"})
-            list_buildings = all_buildings[0].findAll('li')
-            bid.append(list_buildings[0].find('a')['bid'])
-
-        df['bilanzkreis_id'] = bid
-        df['building_id'] = df.index
+        df = pd.read_csv(os.path.realpath(os.path.join(os.path.dirname(__file__), 'data', 'e2watch_building_data.csv')))
         df = df.set_index(['bilanzkreis_id'])
         return df
 
