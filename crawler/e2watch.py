@@ -4,7 +4,7 @@ import logging
 import json
 from bs4 import BeautifulSoup
 from datetime import date, timedelta, datetime
-from base_crawler import BasicDbCrawler
+from crawler.base_crawler import BasicDbCrawler
 import os
 
 log = logging.getLogger('e2watch')
