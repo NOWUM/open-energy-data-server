@@ -114,8 +114,6 @@ class E2WatchCrawler(BasicDbCrawler):
         with self.db_accessor() as connection:
             try:
                 latest = pd.read_sql(sql, connection, parse_dates=['timestamp']).values[0][0]
-                latest = latest.astype(int)
-                latest = pd.to_datetime(latest, unit='ns')
                 log.info(f'The latest date in the database is {latest}')
                 return latest
             except Exception as e:
