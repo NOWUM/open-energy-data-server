@@ -4,7 +4,7 @@ import logging
 import json
 from bs4 import BeautifulSoup
 from datetime import date, timedelta, datetime
-from crawler.base_crawler import BasicDbCrawler
+from base_crawler import BasicDbCrawler
 import os
 
 log = logging.getLogger('e2watch')
@@ -70,7 +70,10 @@ class E2WatchCrawler(BasicDbCrawler):
             df_last = pd.DataFrame([])
             for measurement in energy:
                 start_date = self.select_latest(bilanzkreis_id) + timedelta(hours=1)
-                start_date_tz = start_date.tz_localize('UTC').tz_convert('Europe/Berlin')
+                if start_date.tzinfo is not None:
+                    start_date_tz = start_date.tz_convert('Europe/Berlin')
+                else:
+                    start_date_tz = start_date.tz_localize('UTC').tz_convert('Europe/Berlin')
                 start_date_str = start_date_tz.strftime("%d.%m.%Y %H:%M:%S")
                 url = f'https://stadt-aachen.e2watch.de/gebaeude/getMainChartData/{bilanzkreis_id}?medium={measurement}&from={start_date_str}&to={end_date}&type=stundenverbrauch'
                 log.info(url)
