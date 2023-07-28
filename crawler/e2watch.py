@@ -8,7 +8,7 @@ from crawler.base_crawler import BasicDbCrawler
 import os
 
 log = logging.getLogger('e2watch')
-default_start_date = '2023-01-01 00:00:00'
+default_start_date = '2023-01-01 06:00:00'
 
 
 class E2WatchCrawler(BasicDbCrawler):
