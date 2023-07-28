@@ -62,15 +62,16 @@ class E2WatchCrawler(BasicDbCrawler):
         df = df.set_index(['bilanzkreis_id'])
         return df
 
-    def get_data_per_building(self, buildings: pd.DataFrame, start_date: pd.Timestamp):
+    def get_data_per_building(self, buildings: pd.DataFrame):
         energy = ['strom', 'wasser', 'waerme']
         end_date = date.today().strftime('%d.%m.%Y')
-        start_date_tz = start_date.tz_localize('UTC').tz_convert('Europe/Berlin')
-        start_date_str = start_date_tz.strftime("%d.%m.%Y %H:%M:%S")
 
         for bilanzkreis_id in buildings.index.values:
             df_last = pd.DataFrame([])
             for measurement in energy:
+                start_date = self.select_latest(bilanzkreis_id) + timedelta(hours=1)
+                start_date_tz = start_date.tz_localize('UTC').tz_convert('Europe/Berlin')
+                start_date_str = start_date_tz.strftime("%d.%m.%Y %H:%M:%S")
                 url = f'https://stadt-aachen.e2watch.de/gebaeude/getMainChartData/{bilanzkreis_id}?medium={measurement}&from={start_date_str}&to={end_date}&type=stundenverbrauch'
                 log.info(url)
                 response = requests.get(url)
@@ -105,11 +106,11 @@ class E2WatchCrawler(BasicDbCrawler):
                 df_last.insert(0, 'bilanzkreis_id', bilanzkreis_id)
             yield df_last
 
-    def select_latest(self) -> pd.Timestamp:
+    def select_latest(self, bilanzkreis_id) -> pd.Timestamp:
         # day = default_start_date
         # today = date.today().strftime('%d.%m.%Y')
         # sql = f"select timestamp from e2watch where timestamp > '{day}' and timestamp < '{today}' order by timestamp desc limit 1"
-        sql = f"select timestamp from e2watch order by timestamp desc limit 1"
+        sql = f"select timestamp from e2watch where bilanzkreis_id='{bilanzkreis_id}' order by timestamp desc limit 1"
         with self.db_accessor() as connection:
             try:
                 latest = pd.read_sql(sql, connection, parse_dates=['timestamp']).values[0][0]
@@ -121,7 +122,7 @@ class E2WatchCrawler(BasicDbCrawler):
                 log.info(f'Using the default start date {e}')
                 return pd.to_datetime(default_start_date)
 
-    def feed(self, buildings: pd.DataFrame, start_date: pd.Timestamp):
+    def feed(self, buildings: pd.DataFrame):
         sql = f"select * from buildings"
         with self.db_accessor() as connection:
             try:
@@ -131,7 +132,7 @@ class E2WatchCrawler(BasicDbCrawler):
                     buildings.to_sql('buildings', con=connection, if_exists='append')
             except Exception as e:
                 log.info(f'Probably no database connection: {e}')
-        for data_for_building in self.get_data_per_building(buildings, start_date):
+        for data_for_building in self.get_data_per_building(buildings):
             if data_for_building.empty:
                 continue
             with self.db_accessor() as connection:
@@ -147,9 +148,8 @@ class E2WatchCrawler(BasicDbCrawler):
 def main(db_uri):
     ec = E2WatchCrawler(db_uri)
     ec.create_table()
-    begin_date = ec.select_latest() + timedelta(hours=1)
     buildings = ec.get_all_buildings()
-    ec.feed(buildings, begin_date)
+    ec.feed(buildings)
 
 
 if __name__ == '__main__':
