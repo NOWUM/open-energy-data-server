@@ -6,6 +6,7 @@ import pandas as pd
 from tqdm import tqdm  # fancy for loop
 import scipy # needed for interpolation
 import logging
+from crawler.config import db_uri
 
 '''
 Downloads the available powercurve data from https://www.wind-turbine-models.com/ to a csv file
@@ -86,9 +87,8 @@ def main(db_uri):
 
 if __name__ == "__main__":
     logging.basicConfig()
-    db_uri = 'postgresql://opendata:opendata@10.13.10.41:5432/windmodel'
     wind_turbines = get_turbines_with_power_curve()
-    turbine_data = main(db_uri)
+    turbine_data = main(db_uri('windmodel'))
 
     with open('turbine_data.csv', 'w') as f:
         turbine_data.to_csv(f)

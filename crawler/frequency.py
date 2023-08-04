@@ -10,6 +10,7 @@ import zipfile
 from crawler.base_crawler import BasicDbCrawler
 
 import logging
+from crawler.config import db_uri
 
 log = logging.getLogger('frequency')
 log.setLevel(logging.INFO)
@@ -84,6 +85,7 @@ if __name__ == '__main__':
         plt.plot(df['date_time'], df['frequency'])
 
     conn_uri = 'sqlite:///frequency.db'
+    # conn_uri = db_uri('frequency')
     log.info(f'connect to {conn_uri}')
     fc = FrequencyCrawler(conn_uri)
     #fc.crawl_frequency(first=2014)

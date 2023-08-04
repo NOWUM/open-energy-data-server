@@ -5,6 +5,7 @@ import shapefile
 import shapely.wkt
 from shapely.geometry import shape, Point
 import os.path as osp
+from crawler.config import db_uri
 
 def scigrid_links_and_nodes():
     response = requests.get('https://www.power.scigrid.de/releases_archive/scigrid-conference-eu-data-only.zip')
@@ -85,6 +86,4 @@ def main(db_uri):
     nodes.to_sql('nodes', engine, if_exists='replace', index=False)
 
 if __name__ == "__main__":
-
-    db_uri = 'postgresql://opendata:opendata@10.13.10.41:5432/scigrid'
-    main(db_uri)
+    main(db_uri('scigrid'))

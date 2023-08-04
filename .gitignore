@@ -5,3 +5,6 @@ __pycache__
 ninja_*
 *.grb
 /axxteq
+*.log
+*.ipynb
+config.py

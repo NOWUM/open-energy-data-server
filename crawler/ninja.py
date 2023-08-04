@@ -1,5 +1,6 @@
 import pandas as pd
 import os.path as osp
+from crawler.config import db_uri
 
 def write_wind_capacity_factors(engine):
     wind_path = osp.join(osp.dirname(__file__),'data','ninja_wind_europe_v1.1_current_on-offshore.csv')
@@ -35,12 +36,4 @@ def main(db_uri):
 
 
 if __name__ == "__main__":
-    import os
-    host = os.getenv('HOST', '10.13.10.41')
-    port = int(os.getenv('PORT', 5432))
-    user = os.getenv('DB_USER', 'opendata')
-    password = os.getenv('PASSWORD', 'opendata')
-    database = os.getenv('TIMESCALEDB_DATABASE', 'ninja')
-
-    db_uri = f'postgresql://{user}:{password}@{host}:{port}/{database}'
-    main(db_uri)
+    main(db_uri('ninja'))

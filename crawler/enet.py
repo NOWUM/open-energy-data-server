@@ -14,6 +14,7 @@ import logging
 import sqlite3
 import glob
 import pickle
+from crawler.config import db_uri
 log = logging.getLogger('MaStR')
 log.setLevel(logging.INFO)
 
@@ -75,12 +76,10 @@ def create_db_from_export(connection, enet_path):
 
 def main(db_uri):
     engine = create_engine(db_uri)
-    engine = create_engine(f'{db_uri}/enet')
     create_db_from_export(engine)
 
 if __name__ == '__main__':
     logging.basicConfig()
-    db_uri = 'postgresql://opendata:opendata@10.13.10.41:5432'
-    main(db_uri)
+    main(db_uri('enet'))
 
 

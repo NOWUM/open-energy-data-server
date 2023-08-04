@@ -14,6 +14,7 @@ from glob import glob
 import pandas as pd
 import logging
 import pathlib
+from crawler.config import db_uri
 
 log = logging.getLogger('eex')
 log.setLevel(logging.INFO)
@@ -178,8 +179,7 @@ def main(db_uri):
 if __name__ == '__main__':
     logging.basicConfig()
     #db_uri = './data/eex.db'
-    db_uri = f'postgresql://opendata:opendata@10.13.10.41:5432/eex-pricit'
-    main(db_uri)
+    main(db_uri('eex-pricit'))
     #crawler = EEXCrawler(db_uri)
     #path_xx = '~/eex/trade_data/power/de/spot/csv/2021/20210909/intraday_transactions_germany_2021-09-09.csv'
     #df = crawler.read_eex_trade_spot_file(path_xx)

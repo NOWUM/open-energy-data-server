@@ -11,6 +11,7 @@ from crawler.base_crawler import BasicDbCrawler
 import logging
 from datetime import datetime, date, timedelta
 import re
+from crawler.config import db_uri
 
 log = logging.getLogger('eview')
 log.setLevel(logging.INFO)
@@ -92,8 +93,8 @@ def main(db_uri):
 if __name__ == '__main__':
     logging.basicConfig()
 
-    db_uri = 'sqlite:///./data/eview.db'
-    db_uri = f'postgresql://opendata:opendata@10.13.10.41:5432/eview'
+    # db_uri = 'sqlite:///./data/eview.db'
+    db_uri = db_uri('eview')
     log.info(f'connect to {db_uri}')
     ec = EViewCrawler(db_uri)
     plant = 'FI'

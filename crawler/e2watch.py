@@ -6,6 +6,7 @@ from bs4 import BeautifulSoup
 from datetime import date, timedelta, datetime
 from crawler.base_crawler import BasicDbCrawler
 import os
+from crawler.config import db_uri
 
 log = logging.getLogger('e2watch')
 default_start_date = '2023-01-01 06:00:00'
@@ -156,6 +157,5 @@ def main(db_uri):
 
 if __name__ == '__main__':
     logging.basicConfig(filename='e2watch.log', encoding='utf-8', level=logging.INFO)
-    # db_uri = 'sqlite:///./data/eview.db'
-    db_uri = f'postgresql://opendata:opendata@10.13.10.41:5432/e2watch'
-    main(db_uri)
+    # db_uri = 'sqlite:///./data/e2watch.db'
+    main(db_uri('e2watch'))

@@ -6,6 +6,9 @@ writes to database axxteq in a timescaleDB
 import numpy as np
 import pandas as pd
 from glob import glob
+from crawler.config import db_uri
+import os.path as osp
+
 
 garage_name = {318: 'Stadt_A',
                464: 'Stadt_D',
@@ -116,15 +119,6 @@ def main(db_uri):
     df_xlsx.to_sql('parking_data', engine, if_exists='replace')
 
 if __name__ == "__main__":
-    import os
-
-    host = os.getenv('HOST', '10.13.10.41')
-    port = int(os.getenv('PORT', 5432))
-    user = os.getenv('DB_USER', 'opendata')
-    password = os.getenv('PASSWORD', 'opendata')
-    database = os.getenv('TIMESCALEDB_DATABASE', 'axxteq')
-
-    db_uri = f'postgresql://{user}:{password}@{host}:{port}/{database}'
-    main(db_uri)
+    main(db_uri('axxteq'))
 
 

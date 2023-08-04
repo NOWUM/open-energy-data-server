@@ -11,6 +11,7 @@ import csv
 from io import StringIO
 import glob
 import swifter
+from crawler.config import db_uri
 
 """
     Note that only requests with no more that 1000 items at a time are valid.
@@ -275,5 +276,4 @@ def main(db_uri):
 if __name__ == '__main__':
     logging.basicConfig(filename='ecmwf.log', encoding='utf-8', level=logging.INFO)
     # db_uri = 'sqlite:///./data/weather.db'
-    db_uri = f'postgresql://opendata:opendata@10.13.10.41:5432/weather'
-    main(db_uri)
+    main(db_uri('weather'))

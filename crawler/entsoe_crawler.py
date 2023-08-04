@@ -24,6 +24,7 @@ from requests.exceptions import HTTPError
 import logging
 
 from .base_crawler import BasicDbCrawler
+from crawler.config import db_uri
 
 log = logging.getLogger('entsoe')
 log.setLevel(logging.INFO)
@@ -575,7 +576,7 @@ if __name__ == "__main__":
     end = start+delta
 
     times = 7*12  # bis 2022
-    db = 'postgresql://entso:entso@localhost:5432/entsoe'
+    db = db_uri('entsoe')
     #db = 'sqlite:///data/entsoe.db'
 
     crawler = EntsoeCrawler(database=db)

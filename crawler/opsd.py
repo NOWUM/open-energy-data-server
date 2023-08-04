@@ -4,6 +4,8 @@ import sqlite3
 import requests
 import logging
 import os.path as osp
+from crawler.config import db_uri
+
 log = logging.getLogger('opsd')
 log.setLevel(logging.INFO)
 
@@ -42,12 +44,4 @@ def main(db_uri):
 
 if __name__ == "__main__":
     logging.basicConfig()
-    import os
-    host = os.getenv('HOST', '10.13.10.41')
-    port = int(os.getenv('PORT', 5432))
-    user = os.getenv('DB_USER', 'opendata')
-    password = os.getenv('PASSWORD', 'opendata')
-    database = os.getenv('TIMESCALEDB_DATABASE', 'opsd')
-
-    db_uri = f'postgresql://{user}:{password}@{host}:{port}/{database}'
-    main(db_uri)
+    main(db_uri('opsd'))

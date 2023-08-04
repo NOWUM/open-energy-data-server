@@ -26,6 +26,7 @@ from contextlib import contextmanager
 import logging
 
 from .base_crawler import BasicDbCrawler
+from crawler.config import db_uri
 
 log = logging.getLogger('entsog')
 log.setLevel(logging.INFO)
@@ -228,7 +229,8 @@ def main(db_uri):
 
 if __name__ == "__main__":
     logging.basicConfig()
-    database = 'sqlite:///data/entsog.db'
+    # database = 'sqlite:///data/entsog.db'
+    database = db_uri('entsog')
     import os
     craw = EntsogCrawler(database)
 

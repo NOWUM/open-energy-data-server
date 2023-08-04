@@ -4,6 +4,7 @@ import zipfile
 import io
 import logging
 import sqlite3
+from crawler.config import db_uri
 # import lxml # for reading xml
 
 
@@ -111,4 +112,5 @@ def main(db_uri):
 
 if __name__ == '__main__':
     db_uri = 'sqlite:///./mastr.db'
+    # db_uri = db_uri('mastr')
     main(db_uri)
