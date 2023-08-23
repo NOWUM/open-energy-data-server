@@ -6,6 +6,7 @@ from contextlib import contextmanager
 from sqlalchemy import create_engine
 from contextlib import closing
 import sqlite3
+import logging
 
 class BasicDbCrawler:
     """
@@ -31,4 +32,5 @@ class BasicDbCrawler:
 
             self.db_accessor = access_db
         except Exception as es:
+            logging.error(f"did not use sqlalchemy connection, using sqlite3 instead {es}")
             self.db_accessor = lambda: closing(sqlite3.connect(database))
