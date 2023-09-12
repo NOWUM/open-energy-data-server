@@ -1,18 +1,18 @@
 import logging
 import pandas as pd
-from base_crawler import BasicDbCrawler
-from config import db_uri
+from .config import db_uri
 import requests
 import zipfile
 import io
-import openpyxl
-import os
 
 log = logging.getLogger("iwu")
 log.setLevel(logging.INFO)
 
 
-class IwuCrawler(BasicDbCrawler):
+class IwuCrawler:
+    def __init__(self, db_uri):
+        self.engine = create_engine(db_uri)
+
     def pullData(self):
         url = "https://www.iwu.de/fileadmin/tools/tabula/TABULA-Analyses_DE-Typology_DataTables.zip"
         response = requests.get(url)
@@ -30,7 +30,8 @@ class IwuCrawler(BasicDbCrawler):
             iwu_data.drop(range(0, 13), inplace=True)
             iwu_data.ffill(inplace=True)
             iwu_data.bfill(inplace=True)
-            self.assign_columns(iwu_data)
+            
+            assign_columns(iwu_data)
 
             iwu_data["Sanierungsstand"] = iwu_data.apply(
                 self.set_sanierungsstand, axis=1
@@ -115,7 +116,7 @@ class IwuCrawler(BasicDbCrawler):
         return identifier
 
     def sendData(self, data):
-        with self.db_accessor() as conn:
+        with self.engine.begin() as conn:
             tbl_name = "IWU_Typgebäude"
             data.to_sql(tbl_name, conn, if_exists="replace")
 

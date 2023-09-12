@@ -4,6 +4,7 @@
 import os.path as osp
 from glob import glob
 import logging
+from crawler.config import db_uri
 
 log = logging.getLogger('crawler')
 log.setLevel(logging.INFO)
@@ -29,31 +30,20 @@ def get_available_crawlers():
     crawlers = []
     for f in glob(crawler_path+'/*.py'):
         crawler = osp.basename(f)[:-3]
-        if crawler not in ['__init__', 'base_crawler', 'nuts_mapper']:
+        if crawler not in ['__init__', 'base_crawler',
+            'config', 'config_example',
+            'nuts_mapper', 'axxteq', 'enet']:
             crawlers.append(crawler)
     crawlers.sort()
     return crawlers
 
 if __name__ == '__main__':
     logging.basicConfig()
-    # database configuration
-    import os
-
-    user = os.getenv('DB_USER', 'opendata')
-    password = os.getenv('PASSWORD', 'opendata')
-    host = os.getenv('HOST', 'localhost')
-    port = int(os.getenv('PORT', 5432))
-    database = os.getenv('TIMESCALEDB_DATABASE', 'postgres')
-    db_uri = f'postgresql://{user}:{password}@{host}:{port}/{database}'
-
     # remove crawlers without publicly available data
     available_crawlers = get_available_crawlers()
-    crawlers = list(set(available_crawlers) - set(['axxteq', 'enet', 'ecmwf']))
+    crawlers = sorted(available_crawlers)
     for crawler_name in crawlers:
         if crawler_name in available_crawlers:
             log.info(f'executing crawler {crawler_name}')
             dbname = crawler_name.replace('_crawler', '')
-            db_uri = f'postgresql://opendata:opendata@localhost:5432/{dbname}'
-            #db_uri = f'sqlite:///./{dbname}.db'
-
-            import_and_exec(crawler_name, db_uri)
+            import_and_exec(crawler_name, db_uri(dbname))

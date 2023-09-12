@@ -1,6 +1,6 @@
 version: "3"
 services:
-  open-data-14:
+  open-data-15:
     image: timescale/timescaledb-ha:pg15-oss-latest
     container_name: open-data-15
     restart: always

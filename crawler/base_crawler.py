@@ -27,7 +27,7 @@ class BasicDbCrawler:
             @contextmanager
             def access_db():
                 """contextmanager to handle opening of db, similar to closing for sqlite3"""
-                with self.engine.connect() as conn, conn.begin():
+                with self.engine.begin() as conn:
                     yield conn
 
             self.db_accessor = access_db

@@ -27,8 +27,8 @@ def write_when2_heat(engine, db_path = when2heat_path):
     conn = sqlite3.connect(when2heat_path)
 
     data = pd.read_sql('select * from when2heat', conn)
-    data.index = pd.to_datetime(data['utc_timestamp'], infer_datetime_format=True)
-    data['cet_cest_timestamp'] = pd.to_datetime(data['cet_cest_timestamp'], infer_datetime_format=True)
+    data.index = pd.to_datetime(data['utc_timestamp'])
+    data['cet_cest_timestamp'] = pd.to_datetime(data['cet_cest_timestamp'])
     del data['utc_timestamp']
     log.info('data read successfully')
     

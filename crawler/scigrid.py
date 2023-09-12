@@ -1,9 +1,8 @@
 import pandas as pd
 import requests, zipfile, io
 import geopandas as gpd
-import shapefile
 import shapely.wkt
-from shapely.geometry import shape, Point
+from shapely.geometry import Point
 import os.path as osp
 from crawler.config import db_uri
 
@@ -36,7 +35,7 @@ def scigrid_links_and_nodes():
     # links.plot()
 
     nuts_path = osp.join(osp.dirname(__file__),'shapes','NUTS_EU.shp')
-    eu_nuts = gpd.read_file(geo_path)
+    eu_nuts = gpd.read_file(nuts_path)
     eu_nuts = eu_nuts[eu_nuts['LEVL_CODE'] == 3]
     eu_nuts = eu_nuts.to_crs(4326)
 

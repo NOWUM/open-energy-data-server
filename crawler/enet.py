@@ -11,9 +11,7 @@ The resulting data is not available under an open-source license and should not 
 
 import pandas as pd
 import logging
-import sqlite3
 import glob
-import pickle
 from crawler.config import db_uri
 log = logging.getLogger('MaStR')
 log.setLevel(logging.INFO)

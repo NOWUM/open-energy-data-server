@@ -8,7 +8,7 @@ import logging
 import os
 import os.path as osp
 from tqdm import tqdm
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 
 import multiprocessing as mp
 from .nuts_mapper import create_nuts_map
@@ -27,12 +27,10 @@ to_download = dict(temp_air='T_2M/T_2M.2D.',
                    rain_con='RAIN_CON/RAIN_CON.2D.',
                    rain_gsp='RAIN_GSP/RAIN_GSP.2D.',
                    cloud_cover='CLCT/CLCT.2D.')
-from .base_crawler import BasicDbCrawler
 
-class DWDCrawler(BasicDbCrawler):
-
-    def __init__(self, nuts_matrix, download_dir, database):
-        super().__init__(database)
+class DWDCrawler:
+    def __init__(self, nuts_matrix, download_dir, database: str):
+        self.engine = create_engine(database)
         self.nuts_matrix = nuts_matrix
         self.download_dir = download_dir
         nuts = np.unique(nuts_matrix[[nuts_matrix != 'x']].reshape((-1)))
@@ -40,8 +38,8 @@ class DWDCrawler(BasicDbCrawler):
         self.values = np.zeros_like(nuts)
 
     def create_table(self):
-        with self.db_accessor() as conn:
-            conn.execute("CREATE TABLE IF NOT EXISTS cosmo( "
+        with self.engine.begin() as conn:
+            conn.execute(text("CREATE TABLE IF NOT EXISTS cosmo( "
                         "time timestamp without time zone NOT NULL, "
                         "nuts text, "
                         "country text, "
@@ -54,11 +52,11 @@ class DWDCrawler(BasicDbCrawler):
                         "rain_con double precision,"
                         "rain_gsp double precision, "
                         "cloud_cover double precision, "
-                        "PRIMARY KEY (time , nuts));")
+                        "PRIMARY KEY (time , nuts));"))
 
         try:
-            query_create_hypertable = "SELECT create_hypertable('cosmo', 'time', if_not_exists => TRUE, migrate_data => TRUE);"
-            with self.db_accessor() as conn:
+            query_create_hypertable = text("SELECT create_hypertable('cosmo', 'time', if_not_exists => TRUE, migrate_data => TRUE);")
+            with self.engine.begin() as conn:
                 conn.execute(query_create_hypertable)
             log.info(f'created hypertable cosmo')
         except Exception as e:
@@ -110,7 +108,7 @@ class DWDCrawler(BasicDbCrawler):
         date_range = pd.date_range(start=pd.to_datetime(start, format='%Y%m'),
                                 end=pd.to_datetime(end, format='%Y%m'),
                                 freq='MS')
-        with self.db_accessor() as connection:
+        with self.engine.begin() as conn:
             for date in tqdm(date_range):
                 try:
                     df = pd.DataFrame(columns=[key for key in to_download.keys()])

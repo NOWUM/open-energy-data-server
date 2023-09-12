@@ -17,16 +17,12 @@ from datetime import date, timedelta
 import pandas as pd
 from tqdm import tqdm
 
-import sqlite3
-from contextlib import closing
-
-from sqlalchemy import create_engine
-from contextlib import contextmanager
-
 import logging
+from sqlalchemy import text
 
 from .base_crawler import BasicDbCrawler
 from crawler.config import db_uri
+from sqlalchemy import text
 
 log = logging.getLogger('entsog')
 log.setLevel(logging.INFO)
@@ -108,14 +104,14 @@ class EntsogCrawler(BasicDbCrawler):
 
         if 'operatorpointdirections' in names:
             with self.db_accessor() as conn:
-                query = (
+                query = text(
                     'CREATE INDEX IF NOT EXISTS "idx_opd" ON operatorpointdirections (operatorKey, pointKey,directionkey);')
                 conn.execute(query)
 
     def findNewBegin(self, table_name):
         try:
             with self.db_accessor() as conn:
-                query = f'select max(periodfrom) from {table_name}'
+                query = text(f'select max(periodfrom) from {table_name}')
                 d = conn.execute(query).fetchone()[0]
             begin = pd.to_datetime(d).date()
         except Exception as e:
@@ -154,8 +150,8 @@ class EntsogCrawler(BasicDbCrawler):
                 # impact of sleeping here is quite small in comparison to 50s query length
                 # rate limiting Gateway Timeouts
                 df = getDataFrame('operationaldata', params)
-                df['periodfrom'] = pd.to_datetime(df['periodfrom'], infer_datetime_format=True)
-                df['periodto'] = pd.to_datetime(df['periodto'], infer_datetime_format=True)
+                df['periodfrom'] = pd.to_datetime(df['periodfrom'])
+                df['periodto'] = pd.to_datetime(df['periodto'])
 
                 try:
                     with self.db_accessor() as conn:
@@ -185,30 +181,30 @@ class EntsogCrawler(BasicDbCrawler):
         # reference https://stackoverflow.com/questions/31031561/sqlite-query-to-get-the-closest-datetime
         if 'Allocation' in indicators:
             with self.db_accessor() as conn:
-                query = (
+                query = text(
                     'CREATE INDEX IF NOT EXISTS "idx_opdata" ON Allocation (operatorKey,periodfrom);')
                 conn.execute(query)
 
-                query = (
+                query = text(
                     'CREATE INDEX IF NOT EXISTS "idx_pointKey" ON Allocation (pointKey,periodfrom);')
                 conn.execute(query)
         if 'Physical Flow' in indicators:
             with self.db_accessor() as conn:
-                query = (
+                query = text(
                     'CREATE INDEX IF NOT EXISTS "idx_phys_operator" ON Physical_Flow (operatorKey,periodfrom);')
                 conn.execute(query)
 
-                query = (
+                query = text(
                     'CREATE INDEX IF NOT EXISTS "idx_phys_point" ON Physical_Flow (pointKey,periodfrom);')
                 conn.execute(query)
 
         if 'Firm Technical' in indicators:
             with self.db_accessor() as conn:
-                query = (
+                query = text(
                     'CREATE INDEX IF NOT EXISTS "idx_ft_opdata" ON Firm_Technical (operatorKey,periodfrom);')
                 conn.execute(query)
 
-                query = (
+                query = text(
                     'CREATE INDEX IF NOT EXISTS "idx_ft_pointKey" ON Firm_Technical (pointKey,periodfrom);')
                 conn.execute(query)
 
@@ -231,10 +227,9 @@ if __name__ == "__main__":
     logging.basicConfig()
     # database = 'sqlite:///data/entsog.db'
     database = db_uri('entsog')
-    import os
     craw = EntsogCrawler(database)
 
-    names = ['cmpUnsuccessfulRequests',
+    names = [# 'cmpUnsuccessfulRequests', # dataset already present
              # 'operationaldata',
              # 'cmpUnavailables',
              # 'cmpAuctions',

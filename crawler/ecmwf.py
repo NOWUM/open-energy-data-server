@@ -10,7 +10,6 @@ from shapely.geometry import Point
 import csv
 from io import StringIO
 import glob
-import swifter
 from crawler.config import db_uri
 
 """
@@ -47,7 +46,7 @@ def create_table(engine):
     try:
         query_create_hypertable = "SELECT create_hypertable('ecmwf', 'time', if_not_exists => TRUE, migrate_data => TRUE);"
         query_create_hypertable_eu = "SELECT create_hypertable('ecmwf_eu', 'time', if_not_exists => TRUE, migrate_data => TRUE);"
-        with engine.connect() as conn, conn.begin():
+        with engine.begin() as conn:
             conn.exec_driver_sql("CREATE TABLE IF NOT EXISTS ecmwf( "
                                  "time timestamp without time zone NOT NULL, "
                                  "temp_air double precision, "
@@ -65,7 +64,7 @@ def create_table(engine):
         log.error(f'could not create hypertable: {e}')
 
     try:
-        with engine.connect() as conn, conn.begin():
+        with engine.begin() as conn:
             conn.exec_driver_sql("CREATE TABLE IF NOT EXISTS ecmwf_eu( "
                                  "time timestamp without time zone NOT NULL, "
                                  "temp_air double precision, "
@@ -190,7 +189,7 @@ def get_latest_date_in_database(engine):
     today = datetime.combine(date.today(), datetime.min.time())
     sql = text(f"select time from ecmwf where time > '{day}' and time < '{today}' order by time desc limit 1")
     try:
-        with engine.connect() as conn, conn.begin():
+        with engine.begin() as conn:
             last_date = pd.read_sql(sql, con=conn, parse_dates=['time']).values[0][0]
         last_date = pd.to_datetime(str(last_date))
         last_date = pd.to_datetime(last_date.strftime('%Y-%m-%d %H:%M:%S'))

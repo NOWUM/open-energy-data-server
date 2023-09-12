@@ -24,7 +24,6 @@ eex_data_path = str(pathlib.Path.home())+'/eex'
 # limit files per type which are read
 FIRST_X = int(1e9)
 
-from base_crawler import BasicDbCrawler
 
 '''
 reading data from EEX export is a real PITA.
@@ -52,11 +51,14 @@ the TSO Area: APG-ELES is only part of the comment - but it should be stored as 
 No further parsing is needed else.
 '''
 
-class EEXCrawler(BasicDbCrawler):
+class EEXCrawler:
+    def __init__(self, db_uri):
+        self.engine = create_engine(db_uri)
+
     def read_eex_trade_spot_file(self, filename):
         df = pd.read_csv(filename, skiprows=1, index_col='Trade ID')
-        df['Time Stamp'] = pd.to_datetime(df['Time Stamp'], infer_datetime_format=True)
-        df['Date'] = pd.to_datetime(df['Date'], infer_datetime_format=True)
+        df['Time Stamp'] = pd.to_datetime(df['Time Stamp'])
+        df['Date'] = pd.to_datetime(df['Date'])
         if 'Quantity (MW)' in df.columns:
             df['Volume (MW)'] = df['Quantity (MW)']
             del df['Quantity (MW)']
@@ -100,7 +102,7 @@ class EEXCrawler(BasicDbCrawler):
                             if col not in df.columns:
                                 df[col] = None
 
-                    with self.db_accessor() as conn:
+                    with self.engine.begin() as conn:
                         df.to_sql(f'{name}_{key}', conn, if_exists='append')
                     log.debug(osp.basename(filename)[:-4])
         except Exception as e:
@@ -115,7 +117,7 @@ class EEXCrawler(BasicDbCrawler):
                 if 'intraday_transactions' in file:
                     try:
                         df = self.read_eex_trade_spot_file(file)
-                        with self.db_accessor() as conn:
+                        with self.engine.begin() as conn:
                             df.to_sql(name, conn, if_exists='append')
                     except Exception as e:
                         log.error(f"error writing {file} to db")
@@ -183,7 +185,7 @@ if __name__ == '__main__':
     #crawler = EEXCrawler(db_uri)
     #path_xx = '~/eex/trade_data/power/de/spot/csv/2021/20210909/intraday_transactions_germany_2021-09-09.csv'
     #df = crawler.read_eex_trade_spot_file(path_xx)
-    # df['Time Stamp'] = pd.to_datetime(df['Time Stamp'], infer_datetime_format=True)
-    # df['Date'] = pd.to_datetime(df['Date'], infer_datetime_format=True)
+    # df['Time Stamp'] = pd.to_datetime(df['Time Stamp'])
+    # df['Date'] = pd.to_datetime(df['Date'])
     # import matplotlib.pyplot as plt
     #plt.plot(df.index, df['Price (EUR)'])    

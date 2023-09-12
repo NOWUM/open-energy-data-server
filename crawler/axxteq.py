@@ -8,6 +8,7 @@ import pandas as pd
 from glob import glob
 from crawler.config import db_uri
 import os.path as osp
+from sqlalchemy import create_engine, text
 
 
 garage_name = {318: 'Stadt_A',
@@ -40,7 +41,7 @@ ticket_types = {'Seasonparker Card': 'middle_term',
 
 
 def create_table(engine):
-    engine.execute("CREATE TABLE IF NOT EXISTS parking_data( "
+    engine.execute(text("CREATE TABLE IF NOT EXISTS parking_data( "
                     "time timestamp without time zone NOT NULL, "
                     "ticket_id integer, "
                     "card_type text, "
@@ -48,11 +49,11 @@ def create_table(engine):
                     "exit_time timestamp without time zone NOT NULL, "
                     "park_duration integer, "
                     "name text, "
-                    "PRIMARY KEY (time , ticket_id));")
+                    "PRIMARY KEY (time , ticket_id));"))
 
     try:
-        query_create_hypertable = "SELECT create_hypertable('parking_data', 'time', if_not_exists => TRUE, migrate_data => TRUE);"
-        with engine.connect() as conn, conn.begin():
+        query_create_hypertable = text("SELECT create_hypertable('parking_data', 'time', if_not_exists => TRUE, migrate_data => TRUE);")
+        with engine.begin() as conn:
             conn.execute(query_create_hypertable)
         log.info(f'created hypertable parking_data')
     except Exception as e:
@@ -108,7 +109,6 @@ def read_files(excel: bool = False, convert_utc: bool = False, base_path=axxteq_
 
 
 def main(db_uri):
-    from sqlalchemy import create_engine
     engine = create_engine(db_uri)
     create_table(engine)
 

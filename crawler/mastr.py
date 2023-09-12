@@ -75,17 +75,20 @@ def create_db_from_export(connection):
 
             try:
                 # this will fail if there is a new column
-                df.to_sql(table_name, connection, if_exists='append', index=False)
+                with connection.begin() as conn:
+                    df.to_sql(table_name, conn, if_exists='append', index=False)
             except Exception as e:
                 log.info(repr(e))
-                data = pd.read_sql(f'SELECT * FROM "{table_name}"', connection)
+                with connection.begin() as conn:
+                    data = pd.read_sql(f'SELECT * FROM "{table_name}"', conn)
                 if 'level_0' in data.columns:
                     del data['level_0']
                 if 'index' in data.columns:
                     del data['index']
                 pk = set_index(data)
                 df2 = pd.concat([data, df])
-                df2.to_sql(name=table_name, con=connection, if_exists='replace', index=False)
+                with connection.begin() as conn:
+                    df2.to_sql(name=table_name, con=connection, if_exists='replace', index=False)
 
             if table_name not in tables.keys():
                 tables[table_name]=pk

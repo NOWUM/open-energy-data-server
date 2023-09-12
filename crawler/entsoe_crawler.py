@@ -9,12 +9,11 @@ This crawler downloads all the data of the ENTSO-E transparency platform.
 The resulting data is not available under an open-source license and should not be reshared but is available for crawling yourself.
 """
 from tqdm import tqdm
-import sqlite3
 import pandas as pd
 from datetime import timedelta
 import time
-from sqlalchemy import create_engine
-from contextlib import contextmanager
+import os
+from sqlalchemy import text
 
 from entsoe import EntsoePandasClient
 from entsoe.mappings import PSRTYPE_MAPPINGS, NEIGHBOURS, Area
@@ -179,13 +178,13 @@ class EntsoeCrawler(BasicDbCrawler):
                         f'select * from {proc.__name__}', conn, index_col='index')
                     dat = pd.concat([prev, data])
                     # convert type as pandas needs it
-                    dat.index = dat.index.astype('datetime64[ns]')
+                    dat.index = pd.to_datetime(dat.index, utc=True)
                     dat.to_sql(proc.__name__, conn, if_exists='replace')
                     log.info(f'replaced table {proc.__name__}')
         except NoMatchingDataError:
             log.error(f'no data found for {proc.__name__}, {country}, {start}, {end}')
         except Exception as e:
-            log.error(f'error downloading {proc.__name__}, {country}, {start}, {end}')
+            log.error(f'error downloading {proc.__name__}, {country}, {start}, {end}: {e}')
 
     def get_latest_crawled_timestamp(self, start, delta, tablename, tz='Europe/Berlin'):
         """
@@ -217,7 +216,7 @@ class EntsoeCrawler(BasicDbCrawler):
         else:
             try:
                 with self.db_accessor() as conn:
-                    query = f'select max("index") from {tablename}'
+                    query = text(f'select max("index") from {tablename}')
                     d = conn.execute(query).fetchone()[0]
                 start = pd.to_datetime(d)
                 try:
@@ -276,10 +275,10 @@ class EntsoeCrawler(BasicDbCrawler):
         try:
             with self.db_accessor() as conn:
                 log.info(f'creating index country_idx_{proc.__name__}')
-                query = (
+                query = text(
                     f'CREATE INDEX IF NOT EXISTS "country_idx_{proc.__name__}" ON "{proc.__name__}" ("country", "index");')
                 conn.execute(query)
-                #query = (f'CREATE INDEX IF NOT EXISTS "country_{proc.__name__}" ON "{proc.__name__}" ("country");')
+                #query = text(f'CREATE INDEX IF NOT EXISTS "country_{proc.__name__}" ON "{proc.__name__}" ("country");')
                 # conn.execute(query)
                 log.info(f'created indexes country_idx_{proc.__name__}')
         except Exception as e:
@@ -288,7 +287,7 @@ class EntsoeCrawler(BasicDbCrawler):
         # falls es eine TimescaleDB ist, erzeuge eine Hypertable
         try:
             with self.db_accessor() as conn:
-                query_create_hypertable = f"SELECT create_hypertable('{proc.__name__}', 'index', if_not_exists => TRUE, migrate_data => TRUE);"
+                query_create_hypertable = text(f"SELECT create_hypertable('{proc.__name__}', 'index', if_not_exists => TRUE, migrate_data => TRUE);")
                 conn.execute(query_create_hypertable)
             log.info(f'created hypertable {proc.__name__}')
         except Exception as e:
@@ -353,13 +352,13 @@ class EntsoeCrawler(BasicDbCrawler):
                         f'select * from {proc.__name__}', conn, index_col='index')
 
                     ges = pd.concat([prev, data])
-                    ges.index = ges.index.astype('datetime64[ns]')
+                    ges.index = pd.to_datetime(ges.index, utc=True)
                     ges.to_sql(proc.__name__, conn, if_exists='replace')
                 log.info(f'fixed error by adding new columns to crossborders')
 
             try:
                 with self.db_accessor() as conn:
-                    query_create_hypertable = f"SELECT create_hypertable('{proc.__name__}', 'index', if_not_exists => TRUE, migrate_data => TRUE);"
+                    query_create_hypertable = text(f"SELECT create_hypertable('{proc.__name__}', 'index', if_not_exists => TRUE, migrate_data => TRUE);")
                     conn.execute(query_create_hypertable)
             except Exception as e:
                 log.error(f'could not create hypertable: {e}')
@@ -439,7 +438,7 @@ class EntsoeCrawler(BasicDbCrawler):
 
         try:
             with self.db_accessor() as conn:
-                query = 'CREATE INDEX IF NOT EXISTS "idx_name_query_per_plant" ON "query_per_plant" ("name", "index", "country");'
+                query = text('CREATE INDEX IF NOT EXISTS "idx_name_query_per_plant" ON "query_per_plant" ("name", "index", "country");')
                 conn.execute(query)
         except Exception as e:
             log.error(f'could not create index: {e}')
@@ -526,7 +525,7 @@ class EntsoeCrawler(BasicDbCrawler):
 
         log.info(f'****** finished updating ENTSO-E *******')
 
-    def create_database(self, client, start, delta, countries=[]):
+    def create_database(self, client, start, delta, countries=all_countries):
         """
 
         Parameters
@@ -536,9 +535,9 @@ class EntsoeCrawler(BasicDbCrawler):
         delta :
             param countries:  (Default value = [])
         start :
-            param countries:  (Default value = [])
+            datetime
         countries :
-             (Default value = [])
+             (Default value = all_countries)
 
         Returns
         -------
@@ -550,7 +549,7 @@ class EntsoeCrawler(BasicDbCrawler):
                             start, delta=delta, times=1)
 
 def main(db_uri):
-    api_key = os.getenv('ENTSOE_API_KEY')
+    api_key = os.getenv('ENTSOE_API_KEY', 'ae2ed060-c25c-4eea-8ae4-007712f95375')
     client = EntsoePandasClient(api_key=api_key)
     crawler = EntsoeCrawler(database=db_uri)
 

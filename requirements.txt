@@ -1,5 +1,5 @@
 requests
-pygrib
+#pygrib
 shapely
 pyshp
 pandas
@@ -13,3 +13,5 @@ json5
 geopandas
 openpyxl
 scipy
+python-dateutil
+entsoe-py
