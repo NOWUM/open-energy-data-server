@@ -1,9 +1,11 @@
-import logging
-import pandas as pd
-from .config import db_uri
-import requests
-import zipfile
 import io
+import logging
+import zipfile
+
+import pandas as pd
+import requests
+
+from .config import db_uri
 
 log = logging.getLogger("iwu")
 log.setLevel(logging.INFO)
@@ -30,7 +32,7 @@ class IwuCrawler:
             iwu_data.drop(range(0, 13), inplace=True)
             iwu_data.ffill(inplace=True)
             iwu_data.bfill(inplace=True)
-            
+
             assign_columns(iwu_data)
 
             iwu_data["Sanierungsstand"] = iwu_data.apply(

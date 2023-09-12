@@ -1,14 +1,16 @@
+import json
+import logging
+import os
+from datetime import date, timedelta
+
 import pandas as pd
 import requests
-import logging
-import json
-from datetime import date, timedelta
-import os
-from crawler.config import db_uri
 from sqlalchemy import create_engine, text
 
-log = logging.getLogger('e2watch')
-default_start_date = '2023-01-01 06:00:00'
+from crawler.config import db_uri
+
+log = logging.getLogger("e2watch")
+default_start_date = "2023-01-01 06:00:00"
 
 
 class E2WatchCrawler:
@@ -19,97 +21,127 @@ class E2WatchCrawler:
         try:
             query_create_hypertable = "SELECT create_hypertable('e2watch', 'timestamp', if_not_exists => TRUE, migrate_data => TRUE);"
             with self.engine.begin() as conn:
-                conn.execute(text("CREATE TABLE IF NOT EXISTS e2watch( "
-                             "timestamp timestamp without time zone NOT NULL, "
-                             "bilanzkreis_id text, "
-                             "strom_kwh double precision, "
-                             "wasser_m3 double precision, "
-                             "waerme_kwh double precision, "
-                             "temperatur double precision, "
-                             "PRIMARY KEY (timestamp , bilanzkreis_id));"))
+                conn.execute(
+                    text(
+                        "CREATE TABLE IF NOT EXISTS e2watch( "
+                        "timestamp timestamp without time zone NOT NULL, "
+                        "bilanzkreis_id text, "
+                        "strom_kwh double precision, "
+                        "wasser_m3 double precision, "
+                        "waerme_kwh double precision, "
+                        "temperatur double precision, "
+                        "PRIMARY KEY (timestamp , bilanzkreis_id));"
+                    )
+                )
                 conn.execute(text(query_create_hypertable))
-            log.info(f'created hypertable e2watch')
+            log.info(f"created hypertable e2watch")
         except Exception as e:
-            log.error(f'could not create hypertable: {e}')
+            log.error(f"could not create hypertable: {e}")
 
         try:
             with self.engine.begin() as conn:
-                conn.execute(text("CREATE TABLE IF NOT EXISTS buildings( "
-                             "bilanzkreis_id text, "
-                             "building_id text, "
-                             "lat double precision, "
-                             "lon double precision, "
-                             "beschreibung text, "
-                             "strasse text, "
-                             "plz text, "
-                             "stadt text, "
-                             "PRIMARY KEY (bilanzkreis_id));"))
-            log.info(f'created table buildings')
+                conn.execute(
+                    text(
+                        "CREATE TABLE IF NOT EXISTS buildings( "
+                        "bilanzkreis_id text, "
+                        "building_id text, "
+                        "lat double precision, "
+                        "lon double precision, "
+                        "beschreibung text, "
+                        "strasse text, "
+                        "plz text, "
+                        "stadt text, "
+                        "PRIMARY KEY (bilanzkreis_id));"
+                    )
+                )
+            log.info(f"created table buildings")
         except Exception as e:
-            log.error(f'could not create table: {e}')
+            log.error(f"could not create table: {e}")
 
     def get_all_buildings(self):
         sql = f"select * from buildings"
-        
+
         try:
             with self.engine.begin() as conn:
-                building_data = pd.read_sql(sql, conn, parse_dates=['timestamp'])
+                building_data = pd.read_sql(sql, conn, parse_dates=["timestamp"])
             if len(building_data) > 0:
-                log.info(f'Building data already exists in the database. No need to crawl it again.')
-                building_data = building_data.set_index(['bilanzkreis_id'])
+                log.info(
+                    f"Building data already exists in the database. No need to crawl it again."
+                )
+                building_data = building_data.set_index(["bilanzkreis_id"])
                 return building_data
         except Exception as e:
-            log.error(f'There does not exist a table buildings yet. The buildings will now be crawled. {e}')
+            log.error(
+                f"There does not exist a table buildings yet. The buildings will now be crawled. {e}"
+            )
 
-        df = pd.read_csv(os.path.realpath(os.path.join(os.path.dirname(__file__), 'data', 'e2watch_building_data.csv')))
-        df = df.set_index(['bilanzkreis_id'])
+        df = pd.read_csv(
+            os.path.realpath(
+                os.path.join(
+                    os.path.dirname(__file__), "data", "e2watch_building_data.csv"
+                )
+            )
+        )
+        df = df.set_index(["bilanzkreis_id"])
         return df
 
     def get_data_per_building(self, buildings: pd.DataFrame):
-        energy = ['strom', 'wasser', 'waerme']
-        end_date = date.today().strftime('%d.%m.%Y')
+        energy = ["strom", "wasser", "waerme"]
+        end_date = date.today().strftime("%d.%m.%Y")
 
         for bilanzkreis_id in buildings.index.values:
             df_last = pd.DataFrame([])
             for measurement in energy:
                 start_date = self.select_latest(bilanzkreis_id) + timedelta(hours=1)
                 if start_date.tzinfo is not None:
-                    start_date_tz = start_date.tz_convert('Europe/Berlin')
+                    start_date_tz = start_date.tz_convert("Europe/Berlin")
                 else:
-                    start_date_tz = start_date.tz_localize('UTC').tz_convert('Europe/Berlin')
+                    start_date_tz = start_date.tz_localize("UTC").tz_convert(
+                        "Europe/Berlin"
+                    )
                 start_date_str = start_date_tz.strftime("%d.%m.%Y %H:%M:%S")
-                url = f'https://stadt-aachen.e2watch.de/gebaeude/getMainChartData/{bilanzkreis_id}?medium={measurement}&from={start_date_str}&to={end_date}&type=stundenverbrauch'
+                url = f"https://stadt-aachen.e2watch.de/gebaeude/getMainChartData/{bilanzkreis_id}?medium={measurement}&from={start_date_str}&to={end_date}&type=stundenverbrauch"
                 log.info(url)
                 response = requests.get(url)
                 try:
                     response.raise_for_status()
                 except requests.exceptions.HTTPError as e:
-                    log.error(f'Could not get data for building: {bilanzkreis_id} {e}')
+                    log.error(f"Could not get data for building: {bilanzkreis_id} {e}")
                     continue
                 data = json.loads(response.text)
-                timeseries = pd.DataFrame.from_dict(data['result']['series'][0]['data'])
+                timeseries = pd.DataFrame.from_dict(data["result"]["series"][0]["data"])
                 if timeseries.empty:
-                    log.info(f'Received empty data for building: {bilanzkreis_id}')
+                    log.info(f"Received empty data for building: {bilanzkreis_id}")
                     continue
-                timeseries[0] = pd.to_datetime(timeseries[0], unit='ms', utc=True)
-                timeseries.columns = ['timestamp', measurement + '_kwh' if (
-                            measurement == 'strom' or measurement == 'waerme') else measurement + '_m3']
-                temperature = pd.DataFrame.from_dict(data['result']['series'][1]['data'])
+                timeseries[0] = pd.to_datetime(timeseries[0], unit="ms", utc=True)
+                timeseries.columns = [
+                    "timestamp",
+                    measurement + "_kwh"
+                    if (measurement == "strom" or measurement == "waerme")
+                    else measurement + "_m3",
+                ]
+                temperature = pd.DataFrame.from_dict(
+                    data["result"]["series"][1]["data"]
+                )
                 if temperature.empty:
-                    log.info(f'Received empty temperature for building: {bilanzkreis_id}')
+                    log.info(
+                        f"Received empty temperature for building: {bilanzkreis_id}"
+                    )
                     continue
-                temperature[0] = pd.to_datetime(temperature[0], unit='ms', utc=True)
-                temperature.columns = ['timestamp', 'temperatur']
-                timeseries = pd.merge(timeseries, temperature, on=['timestamp'])
+                temperature[0] = pd.to_datetime(temperature[0], unit="ms", utc=True)
+                temperature.columns = ["timestamp", "temperatur"]
+                timeseries = pd.merge(timeseries, temperature, on=["timestamp"])
 
                 if not df_last.empty:
-                    df_last = pd.merge(timeseries, df_last, on=['timestamp', 'temperatur'])
+                    df_last = pd.merge(
+                        timeseries, df_last, on=["timestamp", "temperatur"]
+                    )
 
                 else:
                     df_last = timeseries
 
             if not df_last.empty:
-                df_last.insert(0, 'bilanzkreis_id', bilanzkreis_id)
+                df_last.insert(0, "bilanzkreis_id", bilanzkreis_id)
             yield df_last
 
     def select_latest(self, bilanzkreis_id) -> pd.Timestamp:
@@ -119,35 +151,39 @@ class E2WatchCrawler:
         sql = f"select timestamp from e2watch where bilanzkreis_id='{bilanzkreis_id}' order by timestamp desc limit 1"
         try:
             with self.engine.begin() as conn:
-                latest = pd.read_sql(sql, conn, parse_dates=['timestamp']).values[0][0]
-            latest = pd.to_datetime(latest, unit='ns')
-            log.info(f'The latest date in the database is {latest}')
+                latest = pd.read_sql(sql, conn, parse_dates=["timestamp"]).values[0][0]
+            latest = pd.to_datetime(latest, unit="ns")
+            log.info(f"The latest date in the database is {latest}")
             return latest
         except Exception as e:
-            log.info(f'Using the default start date {e}')
+            log.info(f"Using the default start date {e}")
             return pd.to_datetime(default_start_date)
 
     def feed(self, buildings: pd.DataFrame):
         sql = f"select * from buildings"
         try:
             with self.engine.begin() as conn:
-                building_data = pd.read_sql(sql, conn, parse_dates=['timestamp'])
+                building_data = pd.read_sql(sql, conn, parse_dates=["timestamp"])
                 if len(building_data) == 0:
-                    log.info(f'creating new buildings table')
-                    buildings.to_sql('buildings', con=conn, if_exists='append')
+                    log.info(f"creating new buildings table")
+                    buildings.to_sql("buildings", con=conn, if_exists="append")
         except Exception as e:
-            log.info(f'Probably no database connection: {e}')
+            log.info(f"Probably no database connection: {e}")
         for data_for_building in self.get_data_per_building(buildings):
             if data_for_building.empty:
                 continue
-            data_for_building = data_for_building.set_index(['timestamp', 'bilanzkreis_id'])
+            data_for_building = data_for_building.set_index(
+                ["timestamp", "bilanzkreis_id"]
+            )
             # delete timezone duplicate
             # https://stackoverflow.com/a/34297689
-            data_for_building = data_for_building[~data_for_building.index.duplicated(keep='first')]
+            data_for_building = data_for_building[
+                ~data_for_building.index.duplicated(keep="first")
+            ]
 
             log.info(data_for_building)
             with self.engine.begin() as conn:
-                data_for_building.to_sql('e2watch', con=conn, if_exists='append')
+                data_for_building.to_sql("e2watch", con=conn, if_exists="append")
 
 
 def main(db_uri):
@@ -157,7 +193,7 @@ def main(db_uri):
     ec.feed(buildings)
 
 
-if __name__ == '__main__':
-    logging.basicConfig(filename='e2watch.log', encoding='utf-8', level=logging.INFO)
+if __name__ == "__main__":
+    logging.basicConfig(filename="e2watch.log", encoding="utf-8", level=logging.INFO)
     # db_uri = 'sqlite:///./data/e2watch.db'
-    main(db_uri('e2watch'))
+    main(db_uri("e2watch"))
