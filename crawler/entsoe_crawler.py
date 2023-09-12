@@ -15,8 +15,7 @@ from datetime import timedelta
 
 import pandas as pd
 from entsoe import EntsoePandasClient
-from entsoe.exceptions import (InvalidBusinessParameterError,
-                               NoMatchingDataError)
+from entsoe.exceptions import InvalidBusinessParameterError, NoMatchingDataError
 from entsoe.mappings import NEIGHBOURS, PSRTYPE_MAPPINGS, Area
 from requests.exceptions import HTTPError
 from sqlalchemy import text

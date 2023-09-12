@@ -154,7 +154,7 @@ class DWDCrawler:
 
 def create_nuts_matrix(nuts_matrix_path):
     max_processes = mp.cpu_count() - 1
-    log.info("(re)creating nuts matrix")
+    log.info("(re)creating nuts matrix - might take 10 minutes")
 
     with mp.Pool(max_processes) as pool:
         result = pool.map(

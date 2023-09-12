@@ -46,7 +46,7 @@ def scigrid_links_and_nodes():
     links = gpd.GeoDataFrame(links)
     # links.plot()
 
-    nuts_path = osp.join(osp.dirname(__file__), "shapes", "NUTS_EU.shp")
+    nuts_path = osp.join(osp.dirname(__file__), "shapes", "NUTS_RG_01M_2021_4326.shp")
     eu_nuts = gpd.read_file(nuts_path)
     eu_nuts = eu_nuts[eu_nuts["LEVL_CODE"] == 3]
     eu_nuts = eu_nuts.to_crs(4326)
