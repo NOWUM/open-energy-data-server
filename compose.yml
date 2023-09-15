@@ -9,12 +9,12 @@ services:
     environment:
       - POSTGRES_USER=opendata
       - POSTGRES_PASSWORD=opendata
-      - POSTGRES_DB=postgres  
+      - POSTGRES_DB=postgres
     volumes:
       - ./data/open-data-ha:/var/lib/postgresql/data
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql 
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
-      - "5432:5432"
+      - "6432:5432"
 
   pgadmin:
     image: dpage/pgadmin4:latest

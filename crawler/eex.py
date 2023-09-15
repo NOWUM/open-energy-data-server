@@ -15,6 +15,7 @@ import pathlib
 from glob import glob
 
 import pandas as pd
+from sqlalchemy import create_engine
 
 from crawler.config import db_uri
 

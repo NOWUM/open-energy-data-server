@@ -5,6 +5,7 @@ import zipfile
 
 import pandas as pd
 import requests
+from sqlalchemy import create_engine, text
 
 from crawler.config import db_uri
 
@@ -41,10 +42,10 @@ def get_data_from_mastr(data_url):
 
 
 def init_database(connection, database):
-    query = f"DROP DATABASE IF EXISTS {database}"
+    query = text(f"DROP DATABASE IF EXISTS {database}")
     connection.execution_options(isolation_level="AUTOCOMMIT").execute(query)
 
-    query = f"CREATE DATABASE {database}"
+    query = text(f"CREATE DATABASE {database}")
     connection.execution_options(isolation_level="AUTOCOMMIT").execute(query)
 
     log.info("initialize database")
@@ -113,25 +114,19 @@ def create_db_from_export(connection):
                 tables[table_name] = pk
 
     for table_name, pk in tables.items():
+        if connection.url.startswith("sqlite:/"):
+            query = f"CREATE UNIQUE INDEX idx_{table_name}_{pk} ON {table_name}({pk});"
+        else:
+            query = f'ALTER TABLE "{table_name}" ADD PRIMARY KEY ("{pk}");'
         try:
-            if type(connection) == sqlite3.Connection:
-                connection.execute(
-                    f"CREATE UNIQUE INDEX idx_{table_name}_{pk} ON {table_name}({pk});"
-                )
-            else:
-                connection.execute(
-                    f'ALTER TABLE "{table_name}" ADD PRIMARY KEY ("{pk}");'
-                )
+            connection.execute(text(query))
         except Exception:
             log.exception("Error adding pk")
     return tables
 
 
 def main(db_uri):
-    from sqlalchemy import create_engine
-
     engine = create_engine(db_uri)
-    # engine = sqlite3.connect('mastr.db')
 
     try:
         tables = create_db_from_export(connection=engine)
@@ -140,6 +135,4 @@ def main(db_uri):
 
 
 if __name__ == "__main__":
-    db_uri = "sqlite:///./mastr.db"
-    # db_uri = db_uri('mastr')
-    main(db_uri)
+    main(db_uri("mastr"))
