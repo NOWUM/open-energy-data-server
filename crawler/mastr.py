@@ -114,7 +114,7 @@ def create_db_from_export(connection):
                 tables[table_name] = pk
 
     for table_name, pk in tables.items():
-        if connection.url.startswith("sqlite:/"):
+        if str(connection.url).startswith("sqlite:/"):
             query = f"CREATE UNIQUE INDEX idx_{table_name}_{pk} ON {table_name}({pk});"
         else:
             query = f'ALTER TABLE "{table_name}" ADD PRIMARY KEY ("{pk}");'
