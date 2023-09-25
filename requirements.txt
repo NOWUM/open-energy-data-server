@@ -15,3 +15,8 @@ openpyxl
 scipy
 python-dateutil
 entsoe-py
+# ecmwf
+ecdsapi
+xarray
+cfgrib
+swifter
