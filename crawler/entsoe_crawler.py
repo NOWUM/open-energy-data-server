@@ -15,15 +15,15 @@ from datetime import timedelta
 
 import pandas as pd
 from entsoe import EntsoePandasClient
-from entsoe.exceptions import InvalidBusinessParameterError, NoMatchingDataError
+from entsoe.exceptions import (InvalidBusinessParameterError,
+                               NoMatchingDataError)
 from entsoe.mappings import NEIGHBOURS, PSRTYPE_MAPPINGS, Area
 from requests.exceptions import HTTPError
 from sqlalchemy import text
 from tqdm import tqdm
 
-from crawler.config import db_uri
-
-from .base_crawler import BasicDbCrawler
+#from .config import db_uri
+#from .base_crawler import BasicDbCrawler
 
 log = logging.getLogger("entsoe")
 log.setLevel(logging.INFO)
@@ -644,7 +644,7 @@ if __name__ == "__main__":
     # Download load and generation
     for proc in procs:
         # hier könnte man parallelisieren
-        crawler.download_entsoe(countries, proc, start, delta, times)
+        crawler.download_entsoe(all_countries, proc, start, delta, times)
 
     # Capacities
     procs = [
@@ -655,7 +655,7 @@ if __name__ == "__main__":
     # crawler.pull_crossborders(start,delta,1,client.query_crossborder_flows)
 
     # per plant generation
-    crawler.countries_with_plant_data(client, all_countries)
+    plant_countries = crawler.countries_with_plant_data(client, all_countries)
 
     # db = 'sqlite:///data/entsoe.db'
     crawler = EntsoeCrawler(database=db)

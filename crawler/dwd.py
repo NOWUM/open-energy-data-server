@@ -4,14 +4,14 @@ import multiprocessing as mp
 import os
 import os.path as osp
 
+import geopandas as gpd
 import numpy as np
 import pandas as pd
 import pygrib
 import requests
+from shapely.geometry import Point
 from sqlalchemy import create_engine, text
 from tqdm import tqdm
-
-from .nuts_mapper import create_nuts_map
 
 log = logging.getLogger("openDWD_cosmo")
 log.setLevel(logging.INFO)
@@ -29,6 +29,30 @@ to_download = dict(
     rain_gsp="RAIN_GSP/RAIN_GSP.2D.",
     cloud_cover="CLCT/CLCT.2D.",
 )
+
+geo_path = Path(__file__).parent / "shapes" / "NUTS_RG_01M_2021_4326.shp"
+
+geo_information = gpd.read_file(geo_path)
+data_path = osp.join(osp.dirname(__file__), "data")
+dwd_latitude = np.load(data_path + "/lat_coordinates.npy")
+dwd_longitude = np.load(data_path + "/lon_coordinates.npy")
+
+
+def create_nuts_map(coords):
+    i, j = coords
+    nut = "x"
+    point = Point(dwd_longitude[i][j], dwd_latitude[i][j])
+    zipping = [
+        nuts_id
+        for geom, nuts_id in zip(
+            geo_information["geometry"], geo_information["NUTS_ID"]
+        )
+        if geom.contains(point)
+    ]
+    if not zipping:
+        return "x"
+    else:
+        return zipping[0]
 
 
 class DWDCrawler:

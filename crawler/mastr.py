@@ -1,13 +1,10 @@
 import io
 import logging
-import sqlite3
 import zipfile
 
 import pandas as pd
 import requests
 from sqlalchemy import create_engine, text
-
-from crawler.config import db_uri
 
 # import lxml # for reading xml
 
@@ -135,4 +132,5 @@ def main(db_uri):
 
 
 if __name__ == "__main__":
+    from crawler.config import db_uri
     main(db_uri("mastr"))

@@ -37,9 +37,9 @@ def get_available_crawlers():
             "base_crawler",
             "config",
             "config_example",
-            "nuts_mapper",
             "axxteq",
             "enet",
+            "dwd",
         ]:
             crawlers.append(crawler)
     crawlers.sort()

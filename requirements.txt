@@ -20,3 +20,4 @@ ecdsapi
 xarray
 cfgrib
 swifter
+jao-py

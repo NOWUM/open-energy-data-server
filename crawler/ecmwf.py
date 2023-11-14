@@ -5,10 +5,10 @@ import os
 from datetime import date, datetime, timedelta
 from io import StringIO
 
-import swifter
 import cdsapi
 import geopandas as gpd
 import pandas as pd
+import swifter
 import xarray as xr
 from shapely.geometry import Point
 from sqlalchemy import create_engine, text
@@ -124,7 +124,7 @@ def psql_insert_copy(table, conn, keys: list[str], data_iter):
         cur.copy_expert(sql=sql, file=s_buf)
 
 
-def build_dataframe(engine, request: dict, write_lat_lon: bool=False):
+def build_dataframe(engine, request: dict, write_lat_lon: bool = False):
     file_path = os.path.realpath(
         os.path.join(
             os.path.dirname(__file__),
@@ -179,7 +179,9 @@ def build_dataframe(engine, request: dict, write_lat_lon: bool=False):
             log.error(
                 "no postgresql? - could not write using psql_insert_copy - using multi method"
             )
-            weather_data.to_sql("ecmwf", con=engine, if_exists="append", chunksize=10000)
+            weather_data.to_sql(
+                "ecmwf", con=engine, if_exists="append", chunksize=10000
+            )
 
     nuts3 = gpd.GeoDataFrame.from_file(nuts_path)
     # use only nuts_id and coordinates from nuts file so fewer columns have to be joined
@@ -227,7 +229,9 @@ def build_dataframe(engine, request: dict, write_lat_lon: bool=False):
             log.info(f"Error: {e.filename} - {e.strerror}")
 
 
-def get_latest_date_in_database(engine, start_date: datetime, end_date: datetime=None):
+def get_latest_date_in_database(
+    engine, start_date: datetime, end_date: datetime = None
+):
     if not end_date:
         end_date = datetime.combine(date.today(), datetime.min.time())
     sql = text(
@@ -302,11 +306,13 @@ def divide_month_in_chunks(li, n):
 def main(db_uri: str):
     # initializing the client for ecmwf service
     START_DATE = datetime(2018, 12, 1, 0, 0, 0)
-    END_DATE = None # use today as end
+    END_DATE = None  # use today as end
     ecmwf_client = cdsapi.Client()
     engine = create_engine(db_uri)
     create_table(engine)
-    last_date = get_latest_date_in_database(engine, start_date=START_DATE, end_date=END_DATE)
+    last_date = get_latest_date_in_database(
+        engine, start_date=START_DATE, end_date=END_DATE
+    )
 
     # the requests are build from 00:00 - 23:00 for each day
     # however, for recent dates the cds API delivers data up until the latest hour of the day it can deliver
@@ -317,7 +323,9 @@ def main(db_uri: str):
         log.info(f"The current request running: {request}")
         save_data(request, ecmwf_client)
         build_dataframe(engine, request)
-        last_date = get_latest_date_in_database(engine, start_date=START_DATE, end_date=END_DATE)
+        last_date = get_latest_date_in_database(
+            engine, start_date=START_DATE, end_date=END_DATE
+        )
 
     dates = []
     for single_date in daterange(last_date):

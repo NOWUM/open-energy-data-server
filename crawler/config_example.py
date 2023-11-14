@@ -1,9 +1,13 @@
-# place a valid base host with credentials in here
+# place a valid base host with credentials in this function
 # for example
-# db_creds = 'postgresql://username:password@host:5432/'
-
-db_creds = "CHANGE_ME"
 
 
-def db_uri(db_name):
-    return db_creds + db_name
+def db_uri_postgresql(db_name):
+    return "postgresql://username:password@host:5432/" + db_name
+
+
+def db_uri_sqlite(db_name):
+    return "sqlite:///" + db_name + ".db"
+
+
+db_uri = db_uri_postgresql

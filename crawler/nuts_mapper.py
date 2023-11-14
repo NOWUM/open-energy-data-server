@@ -1,57 +1,41 @@
-import os.path as osp
+import io
+import zipfile
+from pathlib import Path
 
 import geopandas as gpd
-import numpy as np
-import pandas as pd
-from shapely.geometry import Point
-
-# Download shp zip for EU NUTS here:
-# https://ec.europa.eu/eurostat/web/gisco/geodata/reference-data/administrative-units-statistical-units/nuts
-geo_path = osp.join(osp.dirname(__file__), "shapes", "NUTS_RG_01M_2021_4326.shp")
-geo_information = gpd.read_file(geo_path)
-geo_information = geo_information.to_crs(4326)
-nuts_levels = {
-    "DE": 3,
-    "NL": 1,
-    "BE": 1,
-    "LU": 1,
-    "PO": 1,
-    "DK": 1,
-    "FR": 1,
-    "CZ": 1,
-    "AT": 1,
-    "CH": 1,
-}
-
-data_frames = []
-for key, value in nuts_levels.items():
-    df = geo_information[
-        (geo_information["CNTR_CODE"] == key) & (geo_information["LEVL_CODE"] == value)
-    ]
-    data_frames.append(df)
-
-geo_information = gpd.GeoDataFrame(pd.concat(data_frames))
-data_path = osp.join(osp.dirname(__file__), "data")
-dwd_latitude = np.load(data_path + "/lat_coordinates.npy")
-dwd_longitude = np.load(data_path + "/lon_coordinates.npy")
-
-
-def create_nuts_map(coords):
-    i, j = coords
-    nut = "x"
-    point = Point(dwd_longitude[i][j], dwd_latitude[i][j])
-    zipping = [
-        nuts_id
-        for geom, nuts_id in zip(
-            geo_information["geometry"], geo_information["NUTS_ID"]
-        )
-        if geom.contains(point)
-    ]
-    if not zipping:
-        return "x"
-    else:
-        return zipping[0]
+import requests
+from sqlalchemy import create_engine, text
+from sqlalchemy.exc import ProgrammingError
 
 
 def main(db_uri):
-    print("nuts_mapper has no main")
+    # Download shp zip for EU NUTS here:
+    # https://ec.europa.eu/eurostat/web/gisco/geodata/reference-data/administrative-units-statistical-units/nuts
+    download_url = "https://gisco-services.ec.europa.eu/distribution/v2/nuts/shp/NUTS_RG_01M_2021_4326.shp.zip"
+    # download file
+    r = requests.get(download_url)
+    z = zipfile.ZipFile(io.BytesIO(r.content))
+    # extract to shapes folder
+    z.extractall("shapes")
+
+    geo_path = Path(__file__).parent / "shapes" / "NUTS_RG_01M_2021_4326.shp"
+
+    geo_information = gpd.read_file(geo_path)
+    geo_information = geo_information.to_crs(4326)
+    connection = create_engine(db_uri)
+
+    query = text("CREATE EXTENSION postgis;")
+    try:
+        with connection.connect() as conn:
+            conn.execute(query)
+    except ProgrammingError:
+        pass
+
+    # columns to lower
+    geo_information.columns = map(str.lower, geo_information.columns)
+    geo_information.to_postgis("nuts", con=connection, if_exists="replace")
+
+
+if __name__ == "__main__":
+    from crawler.config import db_uri
+    main(db_uri("nuts"))
