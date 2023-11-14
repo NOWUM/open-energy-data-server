@@ -1,3 +1,9 @@
+<!--
+SPDX-FileCopyrightText: Florian Maurer, Christian Rieke
+
+SPDX-License-Identifier: AGPL-3.0-or-later
+-->
+
 # Open Energy Data Server
 
 This is a repository that contains python web-crawler scripts to download various available data, which is useful for simulation or analysis of Energy Systems.
@@ -61,7 +67,7 @@ Therefore to increase replication of other tables (like the Marktstammdatenregis
 ## Contributing
 
 Do you know of other interesting open-access databases which are worth mentioning here?
-Maybe some are too volatile, large or unknown and are therefore not useful to store in the [OEP](https://openenergy-platform.org/)?
+Maybe some are too volatile, large or unknown and are therefore not useful to store in the [OEP](https://openenergy-platform.org/).
 
 Just send a PR and add a new file in the crawler folder with the main method signature as
 

@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+# SPDX-FileCopyrightText: Florian Maurer, Christian Rieke
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 """
-generates a docker-compose.yml to crawl the data from dwd.
+generates a compose.yml to crawl the data from dwd.
 
 The data from DWD has a lot of data stored in grb files.
 To extract and aggregate the data efficiently, the load is divided onto multiple containers.
@@ -26,5 +29,5 @@ for year in range(1995, 2019):
       """
     )
 
-with open("dwd_docker-compose.yml", "w") as f:
+with open("dwd_compose.yml", "w") as f:
     f.writelines(output)

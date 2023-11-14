@@ -1,3 +1,7 @@
+-- SPDX-FileCopyrightText: Florian Maurer, Christian Rieke
+--
+-- SPDX-License-Identifier: AGPL-3.0-or-later
+
 CREATE DATABASE axxteq;
 CREATE DATABASE weather;
 CREATE DATABASE eex;

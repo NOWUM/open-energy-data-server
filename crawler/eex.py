@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Florian Maurer
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 """
 mirror all available/bought data from EEX using something like [rclone](https://rclone.org/)
 

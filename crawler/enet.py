@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Florian Maurer, Christian Rieke
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 """
 The [ene't](https://download.enet.eu/) is a data provider for energy data.
 If an institut has bought the data, it receives it as XLSX and CSV.

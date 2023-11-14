@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Florian Maurer, Christian Rieke
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 # place a valid base host with credentials in this function
 # for example
 

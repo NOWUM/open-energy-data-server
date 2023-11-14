@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Florian Maurer, Christian Rieke
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 """
 reads data from xlsx files from axxteq parking provider
 export from axxteq must be in folder ./axxteq

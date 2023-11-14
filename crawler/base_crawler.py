@@ -1,6 +1,6 @@
-"""
-helper functions for crawling open access data into a database
-"""
+# SPDX-FileCopyrightText: Florian Maurer, Christian Rieke
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
 
 import logging
 import sqlite3

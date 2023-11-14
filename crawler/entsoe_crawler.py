@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+# SPDX-FileCopyrightText: Florian Maurer
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 """
-Created on Sun Nov 29 18:53:14 2020
-
-@author: maurer
-
 This crawler downloads all the data of the ENTSO-E transparency platform.
 The resulting data is not available under an open-source license and should not be reshared but is available for crawling yourself.
 """

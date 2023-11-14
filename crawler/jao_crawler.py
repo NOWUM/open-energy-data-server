@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: Simon Hesselmann, Florian Maurer
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 import logging
 from datetime import datetime, timedelta
 
