@@ -128,7 +128,7 @@ def psql_insert_copy(table, conn, keys: list[str], data_iter):
         cur.copy_expert(sql=sql, file=s_buf)
 
 
-def build_dataframe(engine, request: dict, write_lat_lon: bool = False):
+def build_dataframe(engine, request: dict, write_lat_lon: bool = True):
     file_path = os.path.realpath(
         os.path.join(
             os.path.dirname(__file__),
@@ -309,7 +309,7 @@ def divide_month_in_chunks(li, n):
 
 def main(db_uri: str):
     # initializing the client for ecmwf service
-    START_DATE = datetime(2018, 12, 1, 0, 0, 0)
+    START_DATE = datetime(2019, 1, 1)
     END_DATE = None  # use today as end
     ecmwf_client = cdsapi.Client()
     engine = create_engine(db_uri)
