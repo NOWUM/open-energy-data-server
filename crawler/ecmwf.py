@@ -106,10 +106,6 @@ def save_data(request, ecmwf_client: cdsapi.Client):
     ecmwf_client.retrieve("reanalysis-era5-land", request, save_downloaded_files_path)
 
 
-def get_wind_speed(row):
-    return (row.wind_meridional**2) + (row.wind_zonal**2) ** 0.5
-
-
 def psql_insert_copy(table, conn, keys: list[str], data_iter):
     # gets a DBAPI connection that can provide a cursor
     with conn.connection.cursor() as cur:
@@ -154,7 +150,7 @@ def build_dataframe(engine, request: dict, write_lat_lon: bool = True):
         }
     )
     # calculate wind speed from zonal and meridional wind
-    weather_data["wind_speed"] = weather_data.swifter.apply(get_wind_speed, axis=1)
+    weather_data["wind_speed"] = (weather_data["wind_zonal"]**2 + weather_data["wind_meridional"]**2) ** 0.5
     weather_data = weather_data.round({"latitude": 2, "longitude": 2})
     # columns ghi ist accumulated over 24 hours, so use difference to get hourly values
     # first we need to order by time and location and then calculate the difference
