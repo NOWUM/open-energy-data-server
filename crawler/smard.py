@@ -42,7 +42,6 @@ class SmardCrawler:
 
     def get_data_per_commodity(self):
         energy = ["strom", "wasser", "waerme"]
-        end_date = date.today().strftime("%d.%m.%Y")
         keys = {
                     # 411: 'Prognostizierter Stromverbrauch',
                     410: 'Realisierter Stromverbrauch',
@@ -85,16 +84,28 @@ class SmardCrawler:
 
             yield timeseries
 
-    def select_latest(self, commodity_id) -> pd.Timestamp:
+    def select_latest(self, commodity_id, delete=False, prev_latest=None) -> pd.Timestamp:
         # day = default_start_date
         # today = date.today().strftime('%d.%m.%Y')
         # sql = f"select timestamp from smard where timestamp > '{day}' and timestamp < '{today}' order by timestamp desc limit 1"
         sql = f"select timestamp from smard where commodity_id='{commodity_id}' order by timestamp desc limit 1"
         try:
             with self.engine.begin() as conn:
+                if delete:
+                    print(prev_latest)
+                    sql_delete = f"delete from smard where timestamp > '{prev_latest.replace(hour=22, minute=45, second=0)}' AND commodity_id='{commodity_id}'"
+                    conn.execute(text(sql_delete))
+                    log.info(f"Deleted data from {prev_latest} to now")
                 latest = pd.read_sql(sql, conn, parse_dates=["timestamp"]).values[0][0]
             latest = pd.to_datetime(latest, unit="ns")
             log.info(f"The latest date in the database is {latest}")
+            start_date_unix = int((latest + timedelta(minutes=15)).timestamp() * 1000)
+            response = requests.get(f"https://www.smard.de/app/chart_data/{commodity_id}/DE/{commodity_id}_DE_quarterhour_{start_date_unix}.json")
+            try:
+                response.raise_for_status()
+            except requests.exceptions.HTTPError as e:
+                log.error(f"Could not get data for commodity, will retry: {commodity_id} {e}")
+                self.select_latest(commodity_id, delete=True, prev_latest=latest - timedelta(days=1))
             return latest
         except Exception as e:
             log.info(f"Using the default start date {e}")
