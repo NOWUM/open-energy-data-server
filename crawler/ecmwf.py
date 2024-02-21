@@ -13,7 +13,6 @@ import cdsapi
 import geopandas as gpd
 import pandas as pd
 import swifter
-import xarray as xr
 from shapely.geometry import Point
 from sqlalchemy import create_engine, text
 

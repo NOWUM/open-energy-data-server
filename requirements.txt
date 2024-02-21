@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 requests
-#pygrib
+pygrib
 shapely
 pyshp
 pandas
@@ -19,9 +19,8 @@ openpyxl
 scipy
 python-dateutil
 entsoe-py
-# ecmwf
-ecdsapi
-xarray
-cfgrib
 swifter
 jao-py
+cdsapi
+cfgrib
+eccodes

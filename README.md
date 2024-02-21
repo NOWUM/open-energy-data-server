@@ -27,16 +27,7 @@ And finally run the main crawling script `python crawl_all.py` to download all a
 
 ## Using the ECMWF crawler
 
-If you want to use the ECMWF crawler it is recommended to set up and use a conda environment for installing the necessary dependencies.
-Start by [installing conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html).
-When using Windows, you need to start the Anaconda Prompt to run conda commands or add conda to PowerShell:
-- `powershell -ExecutionPolicy ByPass -NoExit -Command "& 'C:\Users\USER\anaconda3\shell\condabin\conda-hook.ps1' ; conda activate 'C:\Users\USER\anaconda3' "`
-- `conda init powershell`
-- `conda config --set auto_activate_base false`
-
-Afterward, start a terminal and navigate to the open-energy-data-server directory to run the command `conda env create -f environment.yml` to install the necessary dependencies.
-Now activate the environment by executing `conda activate oeds` in the terminal.
-With the environment activated, you can now run the ECMWF crawler by running `python ./ecmwf_crawler.py` from within the open-energy-data-server directory.
+If you want to use the ECMWF crawler you need to create an account at [copernicus](https://cds.climate.copernicus.eu) to get an API key which allows you to query the API of copernicus. Follow the [instructions](https://cds.climate.copernicus.eu/api-how-to) of copernicus for that.
 
 ## TimeScaleDB
 
