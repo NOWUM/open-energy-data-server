@@ -19,6 +19,12 @@ log.setLevel(logging.INFO)
 
 
 def get_mastr_url():
+    # taken from https://www.marktstammdatenregister.de/MaStR/Datendownload
+    # Objektmodell:
+    # https://www.marktstammdatenregister.de/MaStRHilfe/files/webdienst/Objektmodell%20-%20Fachliche%20Ansicht%20V1.2.0.pdf
+    # Dokumentation statische Katalogwerte:
+    # https://www.marktstammdatenregister.de/MaStRHilfe/files/webdienst/Funktionen_MaStR_Webdienste_V23.2.112.html
+    # Dynamische Katalogwerte sind in Tabelle "Katalogkategorien" und "Katalogwerte"
     base_url = "https://download.marktstammdatenregister.de/Gesamtdatenexport"
 
     response = requests.get(
@@ -137,4 +143,5 @@ def main(db_uri):
 
 if __name__ == "__main__":
     from crawler.config import db_uri
+
     main(db_uri("mastr"))

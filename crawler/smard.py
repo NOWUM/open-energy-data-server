@@ -2,6 +2,10 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
+"""
+This crawler downloads all the generation data of germany from the smard portal of the Bundesnetzagentur at smard.de.
+It contains mostly data for Germany which is also availble in the ENTSO-E transparency platform but under a CC open license.
+"""
 import json
 import logging
 import os
