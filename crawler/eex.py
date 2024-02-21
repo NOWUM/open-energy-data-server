@@ -80,7 +80,7 @@ class EEXCrawler:
                 "PR": [],
                 "OT": [],
                 "SP": [],
-                "IL": []
+                "IL": [],
                 # 'AL' : [],
             }
 

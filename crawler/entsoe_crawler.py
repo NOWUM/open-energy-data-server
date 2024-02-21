@@ -21,8 +21,8 @@ from requests.exceptions import HTTPError
 from sqlalchemy import text
 from tqdm import tqdm
 
-#from .config import db_uri
-#from .base_crawler import BasicDbCrawler
+# from .config import db_uri
+# from .base_crawler import BasicDbCrawler
 
 log = logging.getLogger("entsoe")
 log.setLevel(logging.INFO)

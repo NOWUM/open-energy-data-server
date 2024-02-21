@@ -120,9 +120,11 @@ class E2WatchCrawler:
                 timeseries[0] = pd.to_datetime(timeseries[0], unit="ms", utc=True)
                 timeseries.columns = [
                     "timestamp",
-                    measurement + "_kwh"
-                    if (measurement == "strom" or measurement == "waerme")
-                    else measurement + "_m3",
+                    (
+                        measurement + "_kwh"
+                        if (measurement == "strom" or measurement == "waerme")
+                        else measurement + "_m3"
+                    ),
                 ]
                 temperature = pd.DataFrame.from_dict(
                     data["result"]["series"][1]["data"]

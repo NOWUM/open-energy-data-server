@@ -6,6 +6,8 @@ SPDX-License-Identifier: AGPL-3.0-or-later
 
 # Open Energy Data Server
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.10607894.svg)](https://doi.org/10.5281/zenodo.10607894)
+
 This is a repository that contains python web-crawler scripts to download various available data, which is useful for simulation or analysis of Energy Systems.
 
 The main target is to create an institute-wide available database that can be set up once and then be used by multiple researchers.
@@ -19,6 +21,8 @@ And start the `compose.yml` with `docker compose up -d`.
 
 Then you have a running TimescaleDB server listening on postgresql default port `5432`.
 
+To execute the scripts, you need a python environment.
+As of February 2024 - this works with Python versions 3.9 up to 3.12
 You can install all python dependencies:
 
 `pip install -r requirements.txt`
@@ -68,3 +72,10 @@ def main(db_uri):
 ```
 
 If your tables should be stored in a new database, you have to add your database to the [init.sql](./init.sql) script too.
+
+
+## Citation
+
+You can cite the `open-energy-data-server` through the Conference proceedings:
+
+> Maurer, F., Sejdija, J., & Sander, V. (2024, February 2). Decentralized energy data storages through an Open Energy Database Server. 1st NFDI4Energy Conference (NFDI4Energy), Hanover, Germany. https://doi.org/10.5281/zenodo.10607895

@@ -18,7 +18,7 @@ from sqlalchemy import create_engine, text
 from crawler.config import db_uri
 
 log = logging.getLogger("smard")
-default_start_date = "2023-01-01 22:45:00" # "2023-11-26 22:45:00"
+default_start_date = "2023-01-01 22:45:00"  # "2023-11-26 22:45:00"
 
 
 class SmardCrawler:
@@ -47,21 +47,21 @@ class SmardCrawler:
     def get_data_per_commodity(self):
         energy = ["strom", "wasser", "waerme"]
         keys = {
-                    # 411: 'Prognostizierter Stromverbrauch',
-                    410: 'Realisierter Stromverbrauch',
-                    4066: 'Biomasse',
-                    1226: 'Wasserkraft',
-                    1225: 'Wind Offshore',
-                    4067: 'Wind Onshore',
-                    4068: 'Photovoltaik',
-                    1228: 'Sonstige Erneuerbare',
-                    1223: 'Braunkohle',
-                    4071: 'Erdgas',
-                    4070: 'Pumpspeicher',
-                    1227: 'Sonstige Konventionelle',
-                    4069: 'Steinkohle'
-                    # 5097: 'Prognostizierte Erzeugung PV und Wind Day-Ahead'
-                }
+            # 411: 'Prognostizierter Stromverbrauch',
+            410: "Realisierter Stromverbrauch",
+            4066: "Biomasse",
+            1226: "Wasserkraft",
+            1225: "Wind Offshore",
+            4067: "Wind Onshore",
+            4068: "Photovoltaik",
+            1228: "Sonstige Erneuerbare",
+            1223: "Braunkohle",
+            4071: "Erdgas",
+            4070: "Pumpspeicher",
+            1227: "Sonstige Konventionelle",
+            4069: "Steinkohle",
+            # 5097: 'Prognostizierte Erzeugung PV und Wind Day-Ahead'
+        }
 
         for commodity_id, commodity_name in keys.items():
             start_date = self.select_latest(commodity_id) + timedelta(minutes=15)
@@ -84,11 +84,13 @@ class SmardCrawler:
             timeseries.columns = ["timestamp", "mwh"]
             timeseries["commodity_id"] = commodity_id
             timeseries["commodity_name"] = commodity_name
-            timeseries = timeseries.dropna(subset='mwh')
+            timeseries = timeseries.dropna(subset="mwh")
 
             yield timeseries
 
-    def select_latest(self, commodity_id, delete=False, prev_latest=None) -> pd.Timestamp:
+    def select_latest(
+        self, commodity_id, delete=False, prev_latest=None
+    ) -> pd.Timestamp:
         # day = default_start_date
         # today = date.today().strftime('%d.%m.%Y')
         # sql = f"select timestamp from smard where timestamp > '{day}' and timestamp < '{today}' order by timestamp desc limit 1"
@@ -104,12 +106,18 @@ class SmardCrawler:
             latest = pd.to_datetime(latest, unit="ns")
             log.info(f"The latest date in the database is {latest}")
             start_date_unix = int((latest + timedelta(minutes=15)).timestamp() * 1000)
-            response = requests.get(f"https://www.smard.de/app/chart_data/{commodity_id}/DE/{commodity_id}_DE_quarterhour_{start_date_unix}.json")
+            response = requests.get(
+                f"https://www.smard.de/app/chart_data/{commodity_id}/DE/{commodity_id}_DE_quarterhour_{start_date_unix}.json"
+            )
             try:
                 response.raise_for_status()
             except requests.exceptions.HTTPError as e:
-                log.error(f"Could not get data for commodity, will retry: {commodity_id} {e}")
-                self.select_latest(commodity_id, delete=True, prev_latest=latest - timedelta(days=1))
+                log.error(
+                    f"Could not get data for commodity, will retry: {commodity_id} {e}"
+                )
+                self.select_latest(
+                    commodity_id, delete=True, prev_latest=latest - timedelta(days=1)
+                )
             return latest
         except Exception as e:
             log.info(f"Using the default start date {e}")
