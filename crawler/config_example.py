@@ -7,7 +7,10 @@
 
 
 def db_uri_postgresql(db_name):
-    return "postgresql://username:password@host:5432/" + db_name
+    return (
+        "postgresql://username:password@host:5432/opendata?options=--search_path="
+        + db_name
+    )
 
 
 def db_uri_sqlite(db_name):
