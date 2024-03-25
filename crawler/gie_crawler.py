@@ -11,7 +11,7 @@ Data usage
     It is mandatory to credit or mention to GIE (Gas Infrastructure Europe), AGSI or ALSI as data source when using or repackaging this data. 
 Contact
     For data inquiries, please contact us via transparency@gie.eu
-    
+
 API and data documentation: https://www.gie.eu/transparency-platform/GIE_API_documentation_v007.pdf
 
 This crawler uses the roiti-gie client: https://github.com/ROITI-Ltd/roiti-gie
@@ -22,11 +22,10 @@ import pandas as pd
 import asyncio
 import os
 import time
-import sqlalchemy
 
 from roiti.gie import GiePandasClient
-from sqlalchemy import create_engine
-from config import db_uri
+from sqlalchemy import create_engine, text
+from crawler.config import db_uri
 from datetime import date, datetime, timedelta
 
 log = logging.getLogger("gie")
@@ -41,6 +40,8 @@ data_hierachy = ["country", "company", "location"]
 async def async_main(db_uri):
     engine = create_engine(db_uri)
     API_KEY = os.getenv("GIE_API_KEY")
+    if not API_KEY:
+        raise Exception("GIE_API_KEY is not defined")
     try:
         pandas_client = GiePandasClient(api_key=API_KEY)
         first_date = select_latest(engine)
@@ -48,7 +49,7 @@ async def async_main(db_uri):
         log.info(f"fetching from {first_date} until {last_date}")
         api_call_count = 0
         for fetch_date in pd.date_range(first_date, last_date):
-            log.info(f"Handling {fetchDate}")
+            log.info(f"Handling {fetch_date}")
             api_call_count += 1
             if api_call_count > 30:
                 # The api limits clients to 60 Requests per second
@@ -60,7 +61,7 @@ async def async_main(db_uri):
             )
         await pandas_client.close_session()
     except Exception as e:
-        logging.error(e)
+        log.error(e)
         await pandas_client.close_session()
 
     create_hypertable(engine)
@@ -78,12 +79,12 @@ async def collect_Date(date, pandas_client: GiePandasClient, engine):
 def select_latest(engine):
     day = datetime.strftime(default_start_date, "%Y-%m-%d")
     today = datetime.strftime(date.today(), "%Y-%m-%d")
-    sql = f"SELECT gie.gasdaystart FROM opendata.gie_agsi_country AS gie ORDER BY gie.gasdaystart DESC LIMIT 1"
+    sql = f"SELECT gie.gasdaystart FROM gie_agsi_country AS gie ORDER BY gie.gasdaystart DESC LIMIT 1"
     try:
         with engine.begin() as conn:
-            return pd.read_sql(sql, conn, parse_dates=["datetime"]).to_numpy[0][0]
+            return pd.read_sql(sql, conn, parse_dates=["datetime"]).values[0][0]
     except Exception as e:
-        log.error(e)
+        log.error(f"Could not read start date - using default: {default_start_date} - {e}")
         return default_start_date
 
 
@@ -125,15 +126,15 @@ def create_hypertable(engine):
                 "gie_alsi_location",
             ]:
                 query_create_hypertable = f"SELECT create_hypertable('{tablename}', 'gasDayStart', if_not_exists => TRUE, migrate_data => TRUE);"
-                conn.execute(query_create_hypertable)
+                conn.execute(text(query_create_hypertable))
         log.info(f"created hypertables for gie")
     except Exception as e:
         log.error(f"could not create hypertable: {e}")
 
 
-def main(db_uri):
-    asyncio.run(async_main(db_uri(db_uri)))
+def main(db_uri_str):
+    asyncio.run(async_main(db_uri(db_uri_str)))
 
 
 if __name__ == "__main__":
-    main("opendata")
+    main("gie")

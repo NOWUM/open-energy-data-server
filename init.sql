@@ -20,3 +20,5 @@ CREATE SCHEMA e2watch;
 CREATE SCHEMA eview;
 CREATE SCHEMA smard;
 CREATE SCHEMA ladesaeulenregister;
+CREATE SCHEMA gie;
+

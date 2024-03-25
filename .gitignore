@@ -12,3 +12,5 @@ ninja_*
 *.log
 *.ipynb
 config.py
+.env
+.venv
