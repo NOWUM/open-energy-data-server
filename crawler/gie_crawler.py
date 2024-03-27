@@ -84,14 +84,18 @@ def select_latest(engine):
         with engine.begin() as conn:
             return pd.read_sql(sql, conn, parse_dates=["datetime"]).values[0][0]
     except Exception as e:
-        log.error(f"Could not read start date - using default: {default_start_date} - {e}")
+        log.error(
+            f"Could not read start date - using default: {default_start_date} - {e}"
+        )
         return default_start_date
 
 
 def extract(df, client: GiePandasClient):
     result = [0] * len(df)
     for i in range(len(df)):
-        result[i] = client._pandas_df_format(df.loc[i, "children"])
+        result[i] = client._pandas_df_format(
+            df.loc[i, "children"], client._FLOATING_COLS, client._DATE_COLS
+        )
         result[i] = result[i].assign(parent=df.loc[i, "name"])
     return result
 
@@ -107,6 +111,7 @@ def recursiveWrite(
             df_child.drop(columns="children", inplace=True)
         # rename columns to lowercase titles
         df_child.rename(mapper=str.lower, axis="columns", inplace=True)
+
         df_child.to_sql(
             f"gie_{data_identifier}_{data_hierachy[level]}",
             conn,

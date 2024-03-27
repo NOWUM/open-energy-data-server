@@ -25,3 +25,4 @@ cdsapi
 cfgrib
 eccodes
 roiti.gie
+git+https://github.com/maurerle/roiti-gie@maurerle
