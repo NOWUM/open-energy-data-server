@@ -8,13 +8,12 @@ from datetime import datetime, timedelta
 import pandas as pd
 import requests
 from jao import JaoAPIClient
+# pip install git+https://github.com/maurerle/jao-py@improve_horizon_support
 from sqlalchemy import MetaData, create_engine, text
 
 from crawler.config import db_uri
 
 log = logging.getLogger("jao")
-client = JaoAPIClient("1ba7533c-e5d1-4fc1-8c28-cf51d77c91f6")
-
 
 def string_to_timestamp(*dates):
     timestamps = []
@@ -99,7 +98,7 @@ class JaoClientWrapper:
     ) -> pd.DataFrame:
         from_date, to_date = string_to_timestamp(from_date, to_date)
         try:
-            return self.client.query_auction_stats_months(
+            return self.client.query_auction_stats(
                 from_date, to_date, corridor, horizon
             )
         except requests.exceptions.HTTPError as e:
@@ -139,14 +138,14 @@ def run_data_crawling(
                     "auctions", connection, if_exists="append", index=False
                 )
 
-            for auction_id, auction_month in auctions_data.loc[
-                :, ["id", "month"]
+            for auction_id, auction_date in auctions_data.loc[
+                :, ["id", "date"]
             ].values:
                 bids_data = jao_client.get_bids(auction_id)
 
                 if not bids_data.empty:
                     bids_data["auctionId"] = auction_id
-                    bids_data["month"] = auction_month
+                    bids_data["date"] = auction_date
                     with db_manager.engine.begin() as connection:
                         bids_data.to_sql(
                             table_name, connection, if_exists="append", index=False
@@ -166,8 +165,8 @@ def main(connection_string, from_date_string="2019-01-01-00:00:00"):
     table_name = "auctions"
 
     if db_manager.table_exists(table_name) and db_manager.get_count(table_name) > 0:
-        first_date = string_to_timestamp(db_manager.get_min(table_name, "month"))
-        last_date = string_to_timestamp(db_manager.get_max(table_name, "month"))
+        first_date = string_to_timestamp(db_manager.get_min(table_name, "date"))
+        last_date = string_to_timestamp(db_manager.get_max(table_name, "date"))
 
         if from_date < first_date:
             run_data_crawling(jao_client, from_date, first_date, db_manager)
