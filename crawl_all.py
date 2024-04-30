@@ -57,4 +57,8 @@ if __name__ == "__main__":
         if crawler_name in available_crawlers:
             log.info(f"executing crawler {crawler_name}")
             dbname = crawler_name.replace("_crawler", "")
+            # the move to schemas does not allow to have multiple gis based databases
+            # all gis based databases now have to write into the public schema
+            if dbname == "nuts_mapper":
+                dbname == "public"
             import_and_exec(crawler_name, db_uri(dbname))
