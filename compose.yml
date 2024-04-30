@@ -13,7 +13,7 @@ services:
     environment:
       - POSTGRES_USER=opendata
       - POSTGRES_PASSWORD=opendata
-      - POSTGRES_DB=postgres
+      - POSTGRES_DB=opendata
     volumes:
       - ./data/open-data-ha:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
