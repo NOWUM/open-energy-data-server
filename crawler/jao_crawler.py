@@ -75,7 +75,7 @@ class DatabaseManager:
     def create_hypertables(self):
         for table_name in self.get_tables():
             try:
-                query_create_hypertable = f"SELECT create_hypertable('{table_name}', 'month', if_not_exists => TRUE, migrate_data => TRUE);"
+                query_create_hypertable = f"SET search_path = jao, public; SELECT create_hypertable('{table_name}', 'date', if_not_exists => TRUE, migrate_data => TRUE);"
                 self.execute(text(query_create_hypertable))
                 log.info(f"created hypertable {table_name}")
             except Exception as e:
@@ -121,17 +121,24 @@ def run_data_crawling(
     to_date: datetime,
     db_manager: DatabaseManager,
 ):
+    log.info(f"starting run_data_crawling from {from_date} to {to_date}")
     for corridor in jao_client.get_corridors():
         for horizon in jao_client.get_horizons():
             table_name = f"bids_{horizon.lower()}"
             table_name = table_name.replace("-", "_").replace(" ", "_")
 
-            auctions_data = jao_client.get_auctions(
-                corridor, from_date, to_date, horizon
-            )
+            try:
+                auctions_data = jao_client.get_auctions(
+                    corridor, from_date, to_date, horizon
+                )
+            except Exception as e:
+                log.error(f"Did not get Auctions for {corridor} - {horizon}: {e}")
+                continue
 
             if auctions_data.empty:
                 continue
+
+            log.info(f"started crawling bids of {corridor} - {horizon} for {len(auctions_data)} auctions")
 
             with db_manager.engine.begin() as connection:
                 auctions_data.to_sql(
@@ -150,9 +157,11 @@ def run_data_crawling(
                         bids_data.to_sql(
                             table_name, connection, if_exists="append", index=False
                         )
+            log.info(f"finished crawling bids of {corridor} - {horizon}")
+    log.info(f"finished run_data_crawling from {from_date} to {to_date}")
 
 
-def main(connection_string, from_date_string="2019-01-01-00:00:00"):
+def main(connection_string, from_date_string="2023-01-01-00:00:00"):
     db_manager = DatabaseManager(connection_string)
     jao_client = JaoClientWrapper("1ba7533c-e5d1-4fc1-8c28-cf51d77c91f6")
 
@@ -173,12 +182,12 @@ def main(connection_string, from_date_string="2019-01-01-00:00:00"):
         if to_date > last_date:
             run_data_crawling(jao_client, last_date, to_date, db_manager)
     else:
-        log.info(f"The table '{table_name}' did not exist or was empty.")
+        log.info(f"The table '{table_name}' did not exist or was empty. Crawling whole interval")
         run_data_crawling(jao_client, from_date, to_date, db_manager)
 
     db_manager.create_hypertables()
 
 
 if __name__ == "__main__":
-    logging.basicConfig()
+    logging.basicConfig(level="INFO")
     main(connection_string=db_uri("jao"), from_date_string="2019-01-01-00:00:00")
