@@ -20,9 +20,9 @@ scipy
 python-dateutil
 entsoe-py
 swifter
-jao-py
 cdsapi
 cfgrib
 eccodes
-roiti.gie
+pyarrow
 git+https://github.com/maurerle/roiti-gie@maurerle
+git+https://github.com/maurerle/jao-py@improve_horizon_support
