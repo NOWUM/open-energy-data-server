@@ -130,7 +130,7 @@ def create_hypertable(engine):
                 "gie_alsi_company",
                 "gie_alsi_location",
             ]:
-                query_create_hypertable = f"SELECT create_hypertable('{tablename}', 'gasDayStart', if_not_exists => TRUE, migrate_data => TRUE);"
+                query_create_hypertable = f"SELECT public.create_hypertable('{tablename}', 'gasDayStart', if_not_exists => TRUE, migrate_data => TRUE);"
                 conn.execute(text(query_create_hypertable))
         log.info(f"created hypertables for gie")
     except Exception as e:

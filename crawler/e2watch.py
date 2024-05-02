@@ -23,7 +23,7 @@ class E2WatchCrawler:
 
     def create_table(self):
         try:
-            query_create_hypertable = "SELECT create_hypertable('e2watch', 'timestamp', if_not_exists => TRUE, migrate_data => TRUE);"
+            query_create_hypertable = "SELECT public.create_hypertable('e2watch', 'timestamp', if_not_exists => TRUE, migrate_data => TRUE);"
             with self.engine.begin() as conn:
                 conn.execute(
                     text(

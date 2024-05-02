@@ -52,8 +52,8 @@ var_ = [
 
 def create_table(engine):
     try:
-        query_create_hypertable = "SELECT create_hypertable('ecmwf', 'time', if_not_exists => TRUE, migrate_data => TRUE);"
-        query_create_hypertable_eu = "SELECT create_hypertable('ecmwf_eu', 'time', if_not_exists => TRUE, migrate_data => TRUE);"
+        query_create_hypertable = "SELECT public.create_hypertable('ecmwf', 'time', if_not_exists => TRUE, migrate_data => TRUE);"
+        query_create_hypertable_eu = "SELECT public.create_hypertable('ecmwf_eu', 'time', if_not_exists => TRUE, migrate_data => TRUE);"
         with engine.begin() as conn:
             conn.exec_driver_sql(
                 "CREATE TABLE IF NOT EXISTS ecmwf( "

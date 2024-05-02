@@ -80,7 +80,7 @@ class EViewCrawler:
 
     def create_hypertable(self):
         try:
-            query_create_hypertable = "SELECT create_hypertable('eview', 'datetime', if_not_exists => TRUE, migrate_data => TRUE);"
+            query_create_hypertable = "SELECT public.create_hypertable('eview', 'datetime', if_not_exists => TRUE, migrate_data => TRUE);"
             with self.engine.begin() as conn:
                 conn.execute(query_create_hypertable)
             log.info(f"created hypertable eview")

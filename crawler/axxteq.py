@@ -66,7 +66,7 @@ def create_table(engine):
 
     try:
         query_create_hypertable = text(
-            "SELECT create_hypertable('parking_data', 'time', if_not_exists => TRUE, migrate_data => TRUE);"
+            "SELECT public.create_hypertable('parking_data', 'time', if_not_exists => TRUE, migrate_data => TRUE);"
         )
         with engine.begin() as conn:
             conn.execute(query_create_hypertable)

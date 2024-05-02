@@ -27,7 +27,7 @@ class SmardCrawler:
 
     def create_table(self):
         try:
-            query_create_hypertable = "SELECT create_hypertable('smard', 'timestamp', if_not_exists => TRUE, migrate_data => TRUE);"
+            query_create_hypertable = "SELECT public.create_hypertable('smard', 'timestamp', if_not_exists => TRUE, migrate_data => TRUE);"
             with self.engine.begin() as conn:
                 conn.execute(
                     text(

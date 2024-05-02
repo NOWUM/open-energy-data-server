@@ -298,7 +298,7 @@ class EntsoeCrawler(BasicDbCrawler):
         try:
             with self.db_accessor() as conn:
                 query_create_hypertable = text(
-                    f"SELECT create_hypertable('{proc.__name__}', 'index', if_not_exists => TRUE, migrate_data => TRUE);"
+                    f"SELECT public.create_hypertable('{proc.__name__}', 'index', if_not_exists => TRUE, migrate_data => TRUE);"
                 )
                 conn.execute(query_create_hypertable)
             log.info(f"created hypertable {proc.__name__}")
@@ -371,7 +371,7 @@ class EntsoeCrawler(BasicDbCrawler):
             try:
                 with self.db_accessor() as conn:
                     query_create_hypertable = text(
-                        f"SELECT create_hypertable('{proc.__name__}', 'index', if_not_exists => TRUE, migrate_data => TRUE);"
+                        f"SELECT public.create_hypertable('{proc.__name__}', 'index', if_not_exists => TRUE, migrate_data => TRUE);"
                     )
                     conn.execute(query_create_hypertable)
             except Exception as e:

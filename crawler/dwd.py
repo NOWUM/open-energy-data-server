@@ -91,7 +91,7 @@ class DWDCrawler:
 
         try:
             query_create_hypertable = text(
-                "SELECT create_hypertable('cosmo', 'time', if_not_exists => TRUE, migrate_data => TRUE);"
+                "SELECT public.create_hypertable('cosmo', 'time', if_not_exists => TRUE, migrate_data => TRUE);"
             )
             with self.engine.begin() as conn:
                 conn.execute(query_create_hypertable)

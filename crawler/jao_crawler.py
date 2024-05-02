@@ -75,7 +75,7 @@ class DatabaseManager:
     def create_hypertables(self):
         for table_name in self.get_tables():
             try:
-                query_create_hypertable = f"SET search_path = jao, public; SELECT create_hypertable('{table_name}', 'date', if_not_exists => TRUE, migrate_data => TRUE);"
+                query_create_hypertable = f"SELECT public.create_hypertable('{table_name}', 'date', if_not_exists => TRUE, migrate_data => TRUE);"
                 self.execute(text(query_create_hypertable))
                 log.info(f"created hypertable {table_name}")
             except Exception as e:
