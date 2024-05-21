@@ -8,12 +8,14 @@ from datetime import datetime, timedelta
 import pandas as pd
 import requests
 from jao import JaoAPIClient
+
 # pip install git+https://github.com/maurerle/jao-py@improve_horizon_support
 from sqlalchemy import MetaData, create_engine, text
 
 from crawler.config import db_uri
 
 log = logging.getLogger("jao")
+
 
 def string_to_timestamp(*dates):
     timestamps = []
@@ -61,7 +63,7 @@ class DatabaseManager:
         return table_name in self.get_tables()
 
     def get_count(self, table_name: str):
-        count_query = text(f"SELECT COUNT(*) FROM {table_name}")
+        count_query = text(f"SELECT date FROM {table_name} limit 1")
         return self.execute(count_query).scalar()
 
     def get_min(self, table_name: str, column_name: str):
@@ -115,6 +117,63 @@ class JaoClientWrapper:
         return self.client.query_auction_corridors()
 
 
+def calculate_min_max(db_manager, corridor, horizon="Yearly"):
+    table_name = "auctions"
+    try:
+        query = text(
+            f"SELECT MIN(date), MAX(date) FROM auctions where corridor='{corridor}' and horizon='{horizon}'"
+        )
+        scalar = db_manager.execute(query).first()
+        min_date = scalar[0]
+        max_date = scalar[1]
+        return string_to_timestamp(min_date), string_to_timestamp(max_date)
+    except Exception as e:
+        log.error(f"error crawling {e}")
+        log.info(
+            f"The table '{table_name}' did not exist or was empty. Crawling whole interval"
+        )
+        return None, None
+
+
+def crawl_single_horizon(
+    jao_client,
+    db_manager,
+    from_date,
+    to_date,
+    corridor,
+    horizon,
+):
+    table_name = f"bids_{horizon.lower()}"
+    table_name = table_name.replace("-", "_").replace(" ", "_")
+
+    try:
+        auctions_data = jao_client.get_auctions(corridor, from_date, to_date, horizon)
+    except Exception as e:
+        log.error(f"Did not get Auctions for {corridor} - {horizon}: {e}")
+        return
+    if auctions_data.empty:
+        return
+
+    log.info(
+        f"started crawling bids of {corridor} - {horizon} for {len(auctions_data)} auctions"
+    )
+
+    with db_manager.engine.begin() as connection:
+        auctions_data["horizon"] = horizon
+        auctions_data.to_sql("auctions", connection, if_exists="append", index=False)
+
+    for auction_id, auction_date in auctions_data.loc[:, ["id", "date"]].values:
+        bids_data = jao_client.get_bids(auction_id)
+
+        if not bids_data.empty:
+            bids_data["auctionId"] = auction_id
+            bids_data["date"] = auction_date
+            with db_manager.engine.begin() as connection:
+                bids_data.to_sql(
+                    table_name, connection, if_exists="append", index=False
+                )
+
+
 def run_data_crawling(
     jao_client: JaoClientWrapper,
     from_date: datetime,
@@ -122,41 +181,25 @@ def run_data_crawling(
     db_manager: DatabaseManager,
 ):
     log.info(f"starting run_data_crawling from {from_date} to {to_date}")
-    for corridor in jao_client.get_corridors():
-        for horizon in jao_client.get_horizons():
-            table_name = f"bids_{horizon.lower()}"
-            table_name = table_name.replace("-", "_").replace(" ", "_")
-
-            try:
-                auctions_data = jao_client.get_auctions(
-                    corridor, from_date, to_date, horizon
-                )
-            except Exception as e:
-                log.error(f"Did not get Auctions for {corridor} - {horizon}: {e}")
+    for horizon in jao_client.get_horizons():
+        for corridor in jao_client.get_corridors():
+            if "intraday" in horizon.lower():
                 continue
 
-            if auctions_data.empty:
-                continue
-
-            log.info(f"started crawling bids of {corridor} - {horizon} for {len(auctions_data)} auctions")
-
-            with db_manager.engine.begin() as connection:
-                auctions_data.to_sql(
-                    "auctions", connection, if_exists="append", index=False
+            first_date, last_date = calculate_min_max(db_manager, corridor, horizon)
+            print(horizon, corridor)
+            if not first_date:
+                first_date = to_date
+            if not last_date:
+                last_date = from_date
+            if from_date < first_date:
+                crawl_single_horizon(
+                    jao_client, db_manager, from_date, first_date, corridor, horizon
                 )
-
-            for auction_id, auction_date in auctions_data.loc[
-                :, ["id", "date"]
-            ].values:
-                bids_data = jao_client.get_bids(auction_id)
-
-                if not bids_data.empty:
-                    bids_data["auctionId"] = auction_id
-                    bids_data["date"] = auction_date
-                    with db_manager.engine.begin() as connection:
-                        bids_data.to_sql(
-                            table_name, connection, if_exists="append", index=False
-                        )
+            if to_date > last_date:
+                crawl_single_horizon(
+                    jao_client, db_manager, last_date, to_date, corridor, horizon
+                )
             log.info(f"finished crawling bids of {corridor} - {horizon}")
     log.info(f"finished run_data_crawling from {from_date} to {to_date}")
 
@@ -171,20 +214,7 @@ def main(connection_string, from_date_string="2023-01-01-00:00:00"):
     # not sure if this is exclusive, so substract a ms to be safe
     to_date = datetime(now.year, now.month, 1) - timedelta(microseconds=1)
 
-    table_name = "auctions"
-
-    if db_manager.table_exists(table_name) and db_manager.get_count(table_name) > 0:
-        first_date = string_to_timestamp(db_manager.get_min(table_name, "date"))
-        last_date = string_to_timestamp(db_manager.get_max(table_name, "date"))
-
-        if from_date < first_date:
-            run_data_crawling(jao_client, from_date, first_date, db_manager)
-        if to_date > last_date:
-            run_data_crawling(jao_client, last_date, to_date, db_manager)
-    else:
-        log.info(f"The table '{table_name}' did not exist or was empty. Crawling whole interval")
-        run_data_crawling(jao_client, from_date, to_date, db_manager)
-
+    run_data_crawling(jao_client, from_date, to_date, db_manager)
     db_manager.create_hypertables()
 
 
