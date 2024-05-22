@@ -15,7 +15,7 @@ from sqlalchemy.exc import ProgrammingError
 
 def main(db_uri):
     # Download shp zip for EU NUTS here:
-    # https://ec.europa.eu/eurostat/web/gisco/geodata/reference-data/administrative-units-statistical-units/nuts
+    # https://ec.europa.eu/eurostat/web/gisco/geodata/statistical-units/territorial-units-statistics
     download_url = "https://gisco-services.ec.europa.eu/distribution/v2/nuts/shp/NUTS_RG_01M_2021_4326.shp.zip"
     # download file
     r = requests.get(download_url)
