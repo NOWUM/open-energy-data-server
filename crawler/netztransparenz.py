@@ -332,7 +332,7 @@ class NetztransparenzCrawler:
                 ]:
                     query_create_hypertable = f"SELECT create_hypertable('{tablename}', 'von', if_not_exists => TRUE, migrate_data => TRUE);"
                     conn.execute(sql.text(query_create_hypertable))
-            log.info(f"created hypertables for gie")
+            log.info(f"created hypertables for netztransparenz")
         except Exception as e:
             log.error(f"could not create hypertable: {e}")
     
