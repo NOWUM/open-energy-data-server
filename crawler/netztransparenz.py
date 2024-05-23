@@ -20,9 +20,9 @@ import io
 import logging
 import pandas as pd
 import datetime as dt
+import sqlalchemy as sql
 
-from config import db_uri
-from sqlalchemy import create_engine, text
+from crawler.config import db_uri
 
 log = logging.getLogger("netztransparenz")
 log.setLevel(logging.INFO)
@@ -32,7 +32,7 @@ csv_date_format = "%Y-%m-%d %H:%M %Z"
 class NetztransparenzCrawler:
 
     def __init__(self, db_uri_str):
-        self.engine = create_engine(db_uri_str)
+        self.engine = sql.create_engine(db_uri_str)
 
         # add your Client-ID and Client-secret from the API Client configuration GUI to
         # your environment variable first
@@ -65,7 +65,7 @@ class NetztransparenzCrawler:
     def forecast_solar(self):
         #Prognose Solar contains historical data, relevant data is only found in the timeframe below
         start_of_data = "2011-03-31T22:00:00"
-        end_of_data = "2022-12-15T00:00:00"
+        end_of_data = "2022-12-14T23:00:00"
         url = f"https://ds.netztransparenz.de/api/v1/data/prognose/Solar/{start_of_data}/{end_of_data}"
         response = requests.get(url, headers = {'Authorization': 'Bearer {}'.format(self.token)})
         df = pd.read_csv(io.StringIO(response.text),
@@ -76,8 +76,8 @@ class NetztransparenzCrawler:
             na_values=["N.A."]
             )
         df.rename(mapper = lambda x: database_friendly(x), axis="columns" , inplace= True)
-        df["von"] = pd.to_datetime(df["datum"] + " " + df["von"] + " " + df["zeitzone_von"], format=csv_date_format, utc=True)
-        df["bis"] = pd.to_datetime(df["datum"] + " " + df["bis"] + " " + df["zeitzone_bis"], format=csv_date_format, utc=True)
+        df["von"] = pd.to_datetime(df["datum"] + " " + df["von"] + " " + df["zeitzone_von"], format=csv_date_format, utc=True).dt.tz_localize(None)
+        df["bis"] = pd.to_datetime(df["datum"] + " " + df["bis"] + " " + df["zeitzone_bis"], format=csv_date_format, utc=True).dt.tz_localize(None)
         df = df.drop(["datum", "zeitzone_von", "zeitzone_bis"], axis=1).set_index("von")
         with self.engine.begin() as conn:
             df.to_sql("prognose_solar", conn, if_exists="replace")
@@ -85,7 +85,7 @@ class NetztransparenzCrawler:
     def forecast_wind(self):
         #Prognose Solar contains historical data, relevant data is only found in the timeframe below
         start_of_data = "2011-03-31T22:00:00"
-        end_of_data = "2022-12-15T00:00:00"
+        end_of_data = "2022-12-14T23:00:00"
         url = f"https://ds.netztransparenz.de/api/v1/data/prognose/Wind/{start_of_data}/{end_of_data}"
         response = requests.get(url, headers = {'Authorization': 'Bearer {}'.format(self.token)})
         df = pd.read_csv(io.StringIO(response.text),
@@ -96,8 +96,8 @@ class NetztransparenzCrawler:
             na_values=["N.A."]
             )
         df.rename(mapper = lambda x: database_friendly(x), axis="columns" , inplace= True)
-        df["von"] = pd.to_datetime(df["datum"] + " " + df["von"] + " " + df["zeitzone_von"], format=csv_date_format, utc=True)
-        df["bis"] = pd.to_datetime(df["datum"] + " " + df["bis"] + " " + df["zeitzone_bis"], format=csv_date_format, utc=True)
+        df["von"] = pd.to_datetime(df["datum"] + " " + df["von"] + " " + df["zeitzone_von"], format=csv_date_format, utc=True).dt.tz_localize(None)
+        df["bis"] = pd.to_datetime(df["datum"] + " " + df["bis"] + " " + df["zeitzone_bis"], format=csv_date_format, utc=True).dt.tz_localize(None)
         df = df.drop(["datum", "zeitzone_von", "zeitzone_bis"], axis=1).set_index("von")
         with self.engine.begin() as conn:
             df.to_sql("prognose_wind", conn, if_exists="replace")
@@ -119,8 +119,8 @@ class NetztransparenzCrawler:
                 na_values=["N.A."]
                 )
             df.rename(mapper = lambda x: database_friendly(x), axis="columns" , inplace= True)
-            df["von"] = pd.to_datetime(df["datum"] + " " + df["von"] + " " + df["zeitzone_von"], format=csv_date_format, utc=True)
-            df["bis"] = pd.to_datetime(df["datum"] + " " + df["bis"] + " " + df["zeitzone_bis"], format=csv_date_format, utc=True)
+            df["von"] = pd.to_datetime(df["datum"] + " " + df["von"] + " " + df["zeitzone_von"], format=csv_date_format, utc=True).dt.tz_localize(None)
+            df["bis"] = pd.to_datetime(df["datum"] + " " + df["bis"] + " " + df["zeitzone_bis"], format=csv_date_format, utc=True).dt.tz_localize(None)
             df = df.drop(["datum", "zeitzone_von", "zeitzone_bis"], axis=1).set_index("von")
             with self.engine.begin() as conn:
                 df.to_sql(tablename, conn, if_exists="append")
@@ -142,8 +142,8 @@ class NetztransparenzCrawler:
                 na_values=["N.A."]
                 )
             df.rename(mapper = lambda x: database_friendly(x), axis="columns" , inplace= True)
-            df["von"] = pd.to_datetime(df["datum"] + " " + df["von"] + " " + df["zeitzone_von"], format=csv_date_format, utc=True)
-            df["bis"] = pd.to_datetime(df["datum"] + " " + df["bis"] + " " + df["zeitzone_bis"], format=csv_date_format, utc=True)
+            df["von"] = pd.to_datetime(df["datum"] + " " + df["von"] + " " + df["zeitzone_von"], format=csv_date_format, utc=True).dt.tz_localize(None)
+            df["bis"] = pd.to_datetime(df["datum"] + " " + df["bis"] + " " + df["zeitzone_bis"], format=csv_date_format, utc=True).dt.tz_localize(None)
             df = df.drop(["datum", "zeitzone_von", "zeitzone_bis"], axis=1).set_index("von")
             with self.engine.begin() as conn:
                 df.to_sql(tablename, conn, if_exists="append")
@@ -165,8 +165,8 @@ class NetztransparenzCrawler:
                 na_values=["N.A."]
                 )
             df.rename(mapper = lambda x: database_friendly(x), axis="columns" , inplace= True)
-            df["von"] = pd.to_datetime(df["datum"] + " " + df["von"] + " " + df["zeitzone_von"], format=csv_date_format, utc=True)
-            df["bis"] = pd.to_datetime(df["datum"] + " " + df["bis"] + " " + df["zeitzone_bis"], format=csv_date_format, utc=True)
+            df["von"] = pd.to_datetime(df["datum"] + " " + df["von"] + " " + df["zeitzone_von"], format=csv_date_format, utc=True).dt.tz_localize(None)
+            df["bis"] = pd.to_datetime(df["datum"] + " " + df["bis"] + " " + df["zeitzone_bis"], format=csv_date_format, utc=True).dt.tz_localize(None)
             df = df.drop(["datum", "zeitzone_von", "zeitzone_bis"], axis=1).set_index("von")
             with self.engine.begin() as conn:
                 df.to_sql(tablename, conn, if_exists="append")
@@ -187,8 +187,8 @@ class NetztransparenzCrawler:
                 na_values=["N.A."]
                 )
             df.rename(mapper=str.lower, axis="columns", inplace=True)
-            df["beginn"] = pd.to_datetime(df["beginn_datum"] + " " + df["beginn_uhrzeit"], format="%d.%m.%Y %H:%M", utc=True)
-            df["ende"] = pd.to_datetime(df["ende_datum"] + " " + df["ende_uhrzeit"], format="%d.%m.%Y %H:%M", utc=True)
+            df["beginn"] = pd.to_datetime(df["beginn_datum"] + " " + df["beginn_uhrzeit"], format="%d.%m.%Y %H:%M", utc=True).dt.tz_localize(None)
+            df["ende"] = pd.to_datetime(df["ende_datum"] + " " + df["ende_uhrzeit"], format="%d.%m.%Y %H:%M", utc=True).dt.tz_localize(None)
             df = df.drop(["beginn_datum", "beginn_uhrzeit", "ende_datum", "ende_uhrzeit", "zeitzone_von", "zeitzone_bis"], axis=1).set_index("beginn")
             with self.engine.begin() as conn:
                 df.to_sql(tablename, conn, if_exists="append")
@@ -210,8 +210,8 @@ class NetztransparenzCrawler:
                 na_values=["N.A."]
                 )
             df.rename(mapper=str.lower, axis="columns", inplace=True)
-            df["von"] = pd.to_datetime(df["datum"] + " " + df["von"] + " " + df["zeitzone"], format="%d.%m.%Y %H:%M %Z", utc=True)
-            df["bis"] = pd.to_datetime(df["datum"] + " " + df["bis"] + " " + df["zeitzone"], format="%d.%m.%Y %H:%M %Z", utc=True)
+            df["von"] = pd.to_datetime(df["datum"] + " " + df["von"] + " " + df["zeitzone"], format="%d.%m.%Y %H:%M %Z", utc=True).dt.tz_localize(None)
+            df["bis"] = pd.to_datetime(df["datum"] + " " + df["bis"] + " " + df["zeitzone"], format="%d.%m.%Y %H:%M %Z", utc=True).dt.tz_localize(None)
             df = df.drop(["datum", "zeitzone"], axis=1).set_index("von")
             with self.engine.begin() as conn:
                 df.to_sql(tablename, conn, if_exists="append")
@@ -233,8 +233,8 @@ class NetztransparenzCrawler:
                 na_values=["N.A."]
                 )
             df.rename(mapper=str.lower, axis="columns", inplace=True)
-            df["von"] = pd.to_datetime(df["datum"] + " " + df["von"] + " " + df["zeitzone"], format="%d.%m.%Y %H:%M %Z", utc=True)
-            df["bis"] = pd.to_datetime(df["datum"] + " " + df["bis"] + " " + df["zeitzone"], format="%d.%m.%Y %H:%M %Z", utc=True)
+            df["von"] = pd.to_datetime(df["datum"] + " " + df["von"] + " " + df["zeitzone"], format="%d.%m.%Y %H:%M %Z", utc=True).dt.tz_localize(None)
+            df["bis"] = pd.to_datetime(df["datum"] + " " + df["bis"] + " " + df["zeitzone"], format="%d.%m.%Y %H:%M %Z", utc=True).dt.tz_localize(None)
             df = df.drop(["datum", "zeitzone"], axis=1).set_index("von")
             with self.engine.begin() as conn:
                 df.to_sql(tablename, conn, if_exists="append")
@@ -255,8 +255,8 @@ class NetztransparenzCrawler:
                 na_values=["N.A."]
                 )
             df.rename(mapper=str.lower, axis="columns", inplace=True)
-            df["von"] = pd.to_datetime(df["datum"] + " " + df["von"] + " " + df["zeitzone"], format="%d.%m.%Y %H:%M %Z", utc=True)
-            df["bis"] = pd.to_datetime(df["datum"] + " " + df["bis"] + " " + df["zeitzone"], format="%d.%m.%Y %H:%M %Z", utc=True)
+            df["von"] = pd.to_datetime(df["datum"] + " " + df["von"] + " " + df["zeitzone"], format="%d.%m.%Y %H:%M %Z", utc=True).dt.tz_localize(None)
+            df["bis"] = pd.to_datetime(df["datum"] + " " + df["bis"] + " " + df["zeitzone"], format="%d.%m.%Y %H:%M %Z", utc=True).dt.tz_localize(None)
             df = df.drop(["datum", "zeitzone"], axis=1).set_index("von")
             with self.engine.begin() as conn:
                 df.to_sql(tablename, conn, if_exists="append")
@@ -277,30 +277,8 @@ class NetztransparenzCrawler:
                 na_values=["N.A."]
                 )
             df.rename(mapper=str.lower, axis="columns", inplace=True)
-            df["von"] = pd.to_datetime(df["datum"] + " " + df["von"] + " " + df["zeitzone"], format="%d.%m.%Y %H:%M %Z", utc=True)
-            df["bis"] = pd.to_datetime(df["datum"] + " " + df["bis"] + " " + df["zeitzone"], format="%d.%m.%Y %H:%M %Z", utc=True)
-            df = df.drop(["datum", "zeitzone"], axis=1).set_index("von")
-            with self.engine.begin() as conn:
-                df.to_sql(tablename, conn, if_exists="append")
-
-    def activated_manual_balancing_capacity(self):
-        tablename = "aktivierte_mrl"
-        start_of_data = "2013-01-01T00:00:00"
-        start_of_data = self.find_latest(tablename, "bis", start_of_data)
-        end_of_data = dt.date.today() - dt.timedelta(days=30)
-        end_of_data = dt.datetime.combine(end_of_data, dt.datetime.min.time()).strftime(api_date_format)
-        if(start_of_data < end_of_data):
-            url = f"https://ds.netztransparenz.de/api/v1/data/nrvsaldo/AktivierteMRL/Qualitaetsgesichert/{start_of_data}/{end_of_data}"
-            response = requests.get(url, headers = {'Authorization': 'Bearer {}'.format(self.token)})
-            df = pd.read_csv(io.StringIO(response.text),
-                sep=";",
-                header=0,
-                decimal=",",
-                na_values=["N.A."]
-                )
-            df.rename(mapper=str.lower, axis="columns", inplace=True)
-            df["von"] = pd.to_datetime(df["datum"] + " " + df["von"] + " " + df["zeitzone"], format="%d.%m.%Y %H:%M %Z", utc=True)
-            df["bis"] = pd.to_datetime(df["datum"] + " " + df["bis"] + " " + df["zeitzone"], format="%d.%m.%Y %H:%M %Z", utc=True)
+            df["von"] = pd.to_datetime(df["datum"] + " " + df["von"] + " " + df["zeitzone"], format="%d.%m.%Y %H:%M %Z", utc=True).dt.tz_localize(None)
+            df["bis"] = pd.to_datetime(df["datum"] + " " + df["bis"] + " " + df["zeitzone"], format="%d.%m.%Y %H:%M %Z", utc=True).dt.tz_localize(None)
             df = df.drop(["datum", "zeitzone"], axis=1).set_index("von")
             with self.engine.begin() as conn:
                 df.to_sql(tablename, conn, if_exists="append")
@@ -321,8 +299,8 @@ class NetztransparenzCrawler:
                 na_values=["N.A."]
                 )
             df.rename(mapper=str.lower, axis="columns", inplace=True)
-            df["von"] = pd.to_datetime(df["datum"] + " " + df["von"] + " " + df["zeitzone"], format="%d.%m.%Y %H:%M %Z", utc=True)
-            df["bis"] = pd.to_datetime(df["datum"] + " " + df["bis"] + " " + df["zeitzone"], format="%d.%m.%Y %H:%M %Z", utc=True)
+            df["von"] = pd.to_datetime(df["datum"] + " " + df["von"] + " " + df["zeitzone"], format="%d.%m.%Y %H:%M %Z", utc=True).dt.tz_localize(None)
+            df["bis"] = pd.to_datetime(df["datum"] + " " + df["bis"] + " " + df["zeitzone"], format="%d.%m.%Y %H:%M %Z", utc=True).dt.tz_localize(None)
             df = df.drop(["datum", "zeitzone"], axis=1).set_index("von")
             with self.engine.begin() as conn:
                 df.to_sql(tablename, conn, if_exists="append")
@@ -330,11 +308,36 @@ class NetztransparenzCrawler:
     def find_latest(self, tablename:str, column_name:str, default):
         try:
             with self.engine.begin() as conn:
-                query = text(f'SELECT max({column_name}) FROM {tablename}')
+                query = sql.text(f'SELECT max({column_name}) FROM {tablename}')
                 result = conn.execute(query).fetchone()[0]
                 return result.strftime(api_date_format)
         except Exception as e:
             return default
+
+    def create_hypertable(self):
+        try:
+            with self.engine.begin() as conn:
+                for tablename in [
+                    "prognose_solar",
+                    "prognose_wind",
+                    "hochrechnung_solar",
+                    "hochrechnung_wind",
+                    "vermarktung_inanspruchnahme_ausgleichsenergie"
+                    "redispatch",
+                    "nrv_saldo",
+                    "rz_saldo",
+                    "aktivierte_srl",
+                    "aktivierte_mrl",
+                    "value_of_avoided_activation"
+                ]:
+                    query_create_hypertable = f"SELECT create_hypertable('{tablename}', 'von', if_not_exists => TRUE, migrate_data => TRUE);"
+                    conn.execute(sql.text(query_create_hypertable))
+            log.info(f"created hypertables for gie")
+        except Exception as e:
+            log.error(f"could not create hypertable: {e}")
+    
+    def check_table_exists(self, tablename):
+        return sql.inspect(self.engine).has_table(tablename)
 
 def database_friendly(string):
     return (string.lower()
@@ -343,11 +346,16 @@ def database_friendly(string):
             .replace(" ", "_")
         )
 
-def main():
-    crawler = NetztransparenzCrawler(db_uri("netztransparenz"))
+def main(db_uri_str):
+    crawler = NetztransparenzCrawler(db_uri(db_uri_str))
+    
     #crawler.check_health()
-    #crawler.forecast_solar()
-    #crawler.forecast_wind()
+    if not crawler.check_table_exists("prognose_solar"):
+        log.info("No Solar")
+        crawler.forecast_solar()
+    if not crawler.check_table_exists("prognose_wind"):
+        log.info("No Wind")
+        crawler.forecast_wind()
     crawler.extrapolation_solar()
     crawler.extrapolation_wind()
     crawler.utilization_balancing_energy()
@@ -357,7 +365,8 @@ def main():
     crawler.activated_automatic_balancing_capacity()
     crawler.activated_manual_balancing_capacity()
     crawler.value_of_avoided_activation()
+    crawler.create_hypertable()
 
 
 if(__name__ == "__main__"):
-    main()
+    main("netztransparenz")
