@@ -19,7 +19,6 @@ import os
 import io
 import logging
 import pandas as pd
-import numpy as np
 import datetime as dt
 
 from config import db_uri
