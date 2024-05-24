@@ -51,7 +51,7 @@ starts with
 #
 ```
 following are lines with different format, depending on their start string.
-One would have to create a parser here which reads the lines beginning with `Data type` 
+One would have to create a parser here which reads the lines beginning with `Data type`
 and matches the definition to lines beginning with `ST` and so.
 
 in /market_data/power/at/spot/csv/2016/MCCMarketResult_apg-eles_2016.csv
