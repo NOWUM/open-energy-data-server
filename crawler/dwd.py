@@ -7,6 +7,7 @@ import logging
 import multiprocessing as mp
 import os
 import os.path as osp
+from pathlib import Path
 
 import geopandas as gpd
 import numpy as np
@@ -44,7 +45,6 @@ dwd_longitude = np.load(data_path + "/lon_coordinates.npy")
 
 def create_nuts_map(coords):
     i, j = coords
-    nut = "x"
     point = Point(dwd_longitude[i][j], dwd_latitude[i][j])
     zipping = [
         nuts_id
@@ -64,7 +64,7 @@ class DWDCrawler:
         self.engine = create_engine(database)
         self.nuts_matrix = nuts_matrix
         self.download_dir = download_dir
-        nuts = np.unique(nuts_matrix[[nuts_matrix != "x"]].reshape((-1)))
+        nuts = np.unique(nuts_matrix[[nuts_matrix != "x"]].reshape(-1))
         self.countries = np.asarray([area[:2] for area in nuts])
         self.values = np.zeros_like(nuts)
 
@@ -95,7 +95,7 @@ class DWDCrawler:
             )
             with self.engine.begin() as conn:
                 conn.execute(query_create_hypertable)
-            log.info(f"created hypertable cosmo")
+            log.info("created hypertable cosmo")
         except Exception as e:
             log.error(f"could not create hypertable: {e}")
 
@@ -128,8 +128,8 @@ class DWDCrawler:
             df = pd.DataFrame(
                 columns=[key, "nuts"],
                 data={
-                    key: data_.values[nuts_matrix != "x"].reshape((-1)),
-                    "nuts": nuts_matrix[nuts_matrix != "x"].reshape((-1)),
+                    key: data_.values[nuts_matrix != "x"].reshape(-1),
+                    "nuts": nuts_matrix[nuts_matrix != "x"].reshape(-1),
                 },
             )
             df = pd.DataFrame(df.groupby(["nuts"])[key].mean())
@@ -173,7 +173,7 @@ class DWDCrawler:
                     log.info(
                         f"built data for  {date.month_name()} and start import to db"
                     )
-                    df.to_sql("cosmo", con=connection, if_exists="append")
+                    df.to_sql("cosmo", con=conn, if_exists="append")
                     log.info("import in db complete --> start with next hour")
                 except Exception as e:
                     log.error(repr(e))
@@ -226,6 +226,7 @@ if __name__ == "__main__":
 
     crawler = DWDCrawler(nuts_matrix, download_dir, db_uri)
     crawler.create_table()
+    date = "20190101"
     crawler.write_data(start, date)
 
     # # old code using multiprocessing:

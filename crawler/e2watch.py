@@ -38,7 +38,7 @@ class E2WatchCrawler:
                     )
                 )
                 conn.execute(text(query_create_hypertable))
-            log.info(f"created hypertable e2watch")
+            log.info("created hypertable e2watch")
         except Exception as e:
             log.error(f"could not create hypertable: {e}")
 
@@ -58,19 +58,19 @@ class E2WatchCrawler:
                         "PRIMARY KEY (bilanzkreis_id));"
                     )
                 )
-            log.info(f"created table buildings")
+            log.info("created table buildings")
         except Exception as e:
             log.error(f"could not create table: {e}")
 
     def get_all_buildings(self):
-        sql = f"select * from buildings"
+        sql = "select * from buildings"
 
         try:
             with self.engine.begin() as conn:
                 building_data = pd.read_sql(sql, conn, parse_dates=["timestamp"])
             if len(building_data) > 0:
                 log.info(
-                    f"Building data already exists in the database. No need to crawl it again."
+                    "Building data already exists in the database. No need to crawl it again."
                 )
                 building_data = building_data.set_index(["bilanzkreis_id"])
                 return building_data
@@ -166,12 +166,12 @@ class E2WatchCrawler:
             return pd.to_datetime(default_start_date)
 
     def feed(self, buildings: pd.DataFrame):
-        sql = f"select * from buildings"
+        sql = "select * from buildings"
         try:
             with self.engine.begin() as conn:
                 building_data = pd.read_sql(sql, conn, parse_dates=["timestamp"])
                 if len(building_data) == 0:
-                    log.info(f"creating new buildings table")
+                    log.info("creating new buildings table")
                     buildings.to_sql("buildings", con=conn, if_exists="append")
         except Exception as e:
             log.info(f"Probably no database connection: {e}")

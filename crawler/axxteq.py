@@ -7,6 +7,8 @@ reads data from xlsx files from axxteq parking provider
 export from axxteq must be in folder ./axxteq
 writes to database axxteq in a timescaleDB
 """
+
+import logging
 import os.path as osp
 from glob import glob
 
@@ -15,6 +17,8 @@ import pandas as pd
 from sqlalchemy import create_engine, text
 
 from crawler.config import db_uri
+
+log = logging.getLogger(__name__)
 
 garage_name = {
     318: "Stadt_A",
@@ -70,7 +74,7 @@ def create_table(engine):
         )
         with engine.begin() as conn:
             conn.execute(query_create_hypertable)
-        log.info(f"created hypertable parking_data")
+        log.info("created hypertable parking_data")
     except Exception as e:
         log.error(f"could not create hypertable: {e}")
 
@@ -81,7 +85,7 @@ def read(file):
             data = pd.read_csv(file, encoding="utf-8", sep=",", quotechar="'")
             if len(data.columns) < 3:
                 raise Exception("wrong format")
-        except:
+        except Exception:
             data = pd.read_csv(file, encoding="utf-8", sep=";", quotechar="'")
         data.columns = list(map(lambda x: x.replace("'", "").strip(), data.columns))
     else:

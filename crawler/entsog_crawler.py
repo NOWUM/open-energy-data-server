@@ -72,7 +72,7 @@ def getDataFrame(name, params=["limit=10000"], useJson=False):
                 log.info(f"{e.response.reason} - waiting 30 seconds..")
                 time.sleep(30)
         except urllib.error.HTTPError as e:
-            log.error(f"Error getting Dataframe")
+            log.error("Error getting Dataframe")
             if e.code >= 500:
                 log.info(f"{e.msg} - waiting 30 seconds..")
                 time.sleep(30)

@@ -6,10 +6,10 @@
 This crawler downloads all the generation data of germany from the smard portal of the Bundesnetzagentur at smard.de.
 It contains mostly data for Germany which is also availble in the ENTSO-E transparency platform but under a CC open license.
 """
+
 import json
 import logging
-import os
-from datetime import date, timedelta
+from datetime import timedelta
 
 import pandas as pd
 import requests
@@ -40,12 +40,11 @@ class SmardCrawler:
                     )
                 )
                 conn.execute(text(query_create_hypertable))
-            log.info(f"created hypertable smard")
+            log.info("created hypertable smard")
         except Exception as e:
             log.error(f"could not create hypertable: {e}")
 
     def get_data_per_commodity(self):
-        energy = ["strom", "wasser", "waerme"]
         keys = {
             # 411: 'Prognostizierter Stromverbrauch',
             410: "Realisierter Stromverbrauch",

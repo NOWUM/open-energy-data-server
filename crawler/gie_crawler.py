@@ -8,7 +8,7 @@ The resulting data is not available under an open-source license and should not 
 
 Licence Information from Websire:
 Data usage
-    It is mandatory to credit or mention to GIE (Gas Infrastructure Europe), AGSI or ALSI as data source when using or repackaging this data. 
+    It is mandatory to credit or mention to GIE (Gas Infrastructure Europe), AGSI or ALSI as data source when using or repackaging this data.
 Contact
     For data inquiries, please contact us via transparency@gie.eu
 
@@ -17,16 +17,17 @@ API and data documentation: https://www.gie.eu/transparency-platform/GIE_API_doc
 This crawler uses the roiti-gie client: https://github.com/ROITI-Ltd/roiti-gie
 """
 
-import logging
-import pandas as pd
 import asyncio
+import logging
 import os
 import time
+from datetime import date, datetime, timedelta
 
+import pandas as pd
 from roiti.gie import GiePandasClient
 from sqlalchemy import create_engine, text
+
 from crawler.config import db_uri
-from datetime import date, datetime, timedelta
 
 log = logging.getLogger("gie")
 log.setLevel(logging.INFO)
@@ -77,9 +78,7 @@ async def collect_Date(date, pandas_client: GiePandasClient, engine):
 
 
 def select_latest(engine):
-    day = datetime.strftime(default_start_date, "%Y-%m-%d")
-    today = datetime.strftime(date.today(), "%Y-%m-%d")
-    sql = f"SELECT gie.gasdaystart FROM gie_agsi_country AS gie ORDER BY gie.gasdaystart DESC LIMIT 1"
+    sql = "SELECT gie.gasdaystart FROM gie_agsi_country AS gie ORDER BY gie.gasdaystart DESC LIMIT 1"
     try:
         with engine.begin() as conn:
             return pd.read_sql(sql, conn, parse_dates=["datetime"]).values[0][0]
@@ -132,7 +131,7 @@ def create_hypertable(engine):
             ]:
                 query_create_hypertable = f"SELECT public.create_hypertable('{tablename}', 'gasDayStart', if_not_exists => TRUE, migrate_data => TRUE);"
                 conn.execute(text(query_create_hypertable))
-        log.info(f"created hypertables for gie")
+        log.info("created hypertables for gie")
     except Exception as e:
         log.error(f"could not create hypertable: {e}")
 

@@ -7,6 +7,7 @@
 This crawler downloads all the data of the ENTSO-E transparency platform.
 The resulting data is not available under an open-source license and should not be reshared but is available for crawling yourself.
 """
+
 import logging
 import os
 import time
@@ -14,12 +15,14 @@ from datetime import timedelta
 
 import pandas as pd
 from entsoe import EntsoePandasClient
-from entsoe.exceptions import (InvalidBusinessParameterError,
-                               NoMatchingDataError)
+from entsoe.exceptions import InvalidBusinessParameterError, NoMatchingDataError
 from entsoe.mappings import NEIGHBOURS, PSRTYPE_MAPPINGS, Area
 from requests.exceptions import HTTPError
 from sqlalchemy import text
 from tqdm import tqdm
+
+from .base_crawler import BasicDbCrawler
+from .config import db_uri
 
 # from .config import db_uri
 # from .base_crawler import BasicDbCrawler
@@ -366,7 +369,7 @@ class EntsoeCrawler(BasicDbCrawler):
                     ges = pd.concat([prev, data])
                     ges.index = pd.to_datetime(ges.index, utc=True)
                     ges.to_sql(proc.__name__, conn, if_exists="replace")
-                log.info(f"fixed error by adding new columns to crossborders")
+                log.info("fixed error by adding new columns to crossborders")
 
             try:
                 with self.db_accessor() as conn:
@@ -506,7 +509,7 @@ class EntsoeCrawler(BasicDbCrawler):
 
         """
         plant_countries = []
-        log.info(f"****** find countries with plant_data *******")
+        log.info("****** find countries with plant_data *******")
         for country in countries:
             try:
                 _ = client.query_generation_per_plant(
@@ -568,7 +571,7 @@ class EntsoeCrawler(BasicDbCrawler):
             plant_countries[:], client, start, delta, times=1
         )
 
-        log.info(f"****** finished updating ENTSO-E *******")
+        log.info("****** finished updating ENTSO-E *******")
 
     def create_database(self, client, start, delta, countries=all_countries):
         """

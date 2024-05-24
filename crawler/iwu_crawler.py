@@ -38,7 +38,7 @@ class IwuCrawler:
             iwu_data.ffill(inplace=True)
             iwu_data.bfill(inplace=True)
 
-            assign_columns(iwu_data)
+            self.assign_columns(iwu_data)
 
             iwu_data["Sanierungsstand"] = iwu_data.apply(
                 self.set_sanierungsstand, axis=1

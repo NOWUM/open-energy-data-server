@@ -12,11 +12,12 @@ It contains aggregated usage data of so-called Bilanzkreise in the past.
 The resulting data is not available under an open-source license and should not be reshared but is available for crawling yourself.
 """
 
-
 import glob
 import logging
+import os.path as osp
 
 import pandas as pd
+from sqlalchemy import create_engine, text
 
 from crawler.config import db_uri
 
@@ -52,10 +53,10 @@ def get_keys_from_export(connection):
 
 
 def init_database(connection, database):
-    query = f"DROP DATABASE IF EXISTS {database}"
+    query = text(f"DROP DATABASE IF EXISTS {database}")
     connection.execution_options(isolation_level="AUTOCOMMIT").execute(query)
 
-    query = f"CREATE DATABASE {database}"
+    query = text(f"CREATE DATABASE {database}")
     connection.execution_options(isolation_level="AUTOCOMMIT").execute(query)
 
     log.info("initialize database")
@@ -65,7 +66,7 @@ enet_path = osp.join(osp.dirname(__file__), "enet")
 
 
 def create_db_from_export(connection, enet_path):
-    for table in glob.glob(data_path + "/*.csv"):
+    for table in glob.glob(enet_path + "/*.csv"):
         df = pd.read_csv(table, sep=";", encoding="cp1252", decimal=",")
         df.columns = [x.lower() for x in df.columns]
         date_fields = [
