@@ -18,14 +18,10 @@ from entsoe import EntsoePandasClient
 from entsoe.exceptions import InvalidBusinessParameterError, NoMatchingDataError
 from entsoe.mappings import NEIGHBOURS, PSRTYPE_MAPPINGS, Area
 from requests.exceptions import HTTPError
-from sqlalchemy import text
+from sqlalchemy import create_engine, text
 from tqdm import tqdm
 
-from .base_crawler import BasicDbCrawler
 from .config import db_uri
-
-# from .config import db_uri
-# from .base_crawler import BasicDbCrawler
 
 log = logging.getLogger("entsoe")
 log.setLevel(logging.INFO)
@@ -65,6 +61,8 @@ def sanitize_series(seriesname):
     st = str.replace(st, "'", "")
     st = st.strip()
     st = str.replace(st, " ", "_")
+    if st == "0":
+        st = "value"
     return st
 
 
@@ -108,10 +106,13 @@ def calculate_nett_generation(df):
     return dat
 
 
-class EntsoeCrawler(BasicDbCrawler):
+class EntsoeCrawler:
     """
     class to allow easier crawling of ENTSO-E timeseries data
     """
+
+    def __init__(self, database):
+        self.engine = create_engine(database)
 
     def init_base_sql(self):
         """
@@ -124,7 +125,7 @@ class EntsoeCrawler(BasicDbCrawler):
             [[e.name, e.value, e.tz, e.meaning] for e in Area],
             columns=["name", "value", "tz", "meaning"],
         )
-        with self.db_accessor() as conn:
+        with self.engine.begin() as conn:
             areas.columns = [x.lower() for x in areas.columns]
             psrtype.columns = [x.lower() for x in psrtype.columns]
             areas.to_sql("areas", conn, if_exists="replace")
@@ -152,12 +153,12 @@ class EntsoeCrawler(BasicDbCrawler):
         try:
             try:
                 data = pd.DataFrame(proc(country, start=start, end=end))
-            except NoMatchingDataError as e:
-                raise e
+            except NoMatchingDataError:
+                raise
             except HTTPError as e:
                 log.error(f"{e.response.status_code} - {e.response.reason}")
                 if e.response.status_code == 400:
-                    raise e
+                    raise
                 else:
                     log.info(f"retrying: {repr(e)}, {start}, {end}")
                     time.sleep(10)
@@ -179,10 +180,10 @@ class EntsoeCrawler(BasicDbCrawler):
             # add country column
             data["country"] = country
             try:
-                with self.db_accessor() as conn:
+                with self.engine.begin() as conn:
                     data.to_sql(proc.__name__, conn, if_exists="append")
             except Exception as e:
-                with self.db_accessor() as conn:
+                with self.engine.begin() as conn:
                     log.info(f"handling {repr(e)} by concat")
                     # merge old data with new data
                     prev = pd.read_sql_query(
@@ -229,7 +230,7 @@ class EntsoeCrawler(BasicDbCrawler):
             return start, delta
         else:
             try:
-                with self.db_accessor() as conn:
+                with self.engine.begin() as conn:
                     query = text(f'select max("index") from {tablename}')
                     d = conn.execute(query).fetchone()[0]
                 start = pd.to_datetime(d)
@@ -285,7 +286,7 @@ class EntsoeCrawler(BasicDbCrawler):
 
         # indexe anlegen für schnelles suchen
         try:
-            with self.db_accessor() as conn:
+            with self.engine.begin() as conn:
                 log.info(f"creating index country_idx_{proc.__name__}")
                 query = text(
                     f'CREATE INDEX IF NOT EXISTS "country_idx_{proc.__name__}" ON "{proc.__name__}" ("country", "index");'
@@ -299,7 +300,7 @@ class EntsoeCrawler(BasicDbCrawler):
 
         # falls es eine TimescaleDB ist, erzeuge eine Hypertable
         try:
-            with self.db_accessor() as conn:
+            with self.engine.begin() as conn:
                 query_create_hypertable = text(
                     f"SELECT public.create_hypertable('{proc.__name__}', 'index', if_not_exists => TRUE, migrate_data => TRUE);"
                 )
@@ -357,11 +358,11 @@ class EntsoeCrawler(BasicDbCrawler):
 
             data.columns = [x.lower() for x in data.columns]
             try:
-                with self.db_accessor() as conn:
+                with self.engine.begin() as conn:
                     data.to_sql(proc.__name__, conn, if_exists="append")
             except Exception as e:
                 log.error(f"error saving crossboarders {e}")
-                with self.db_accessor() as conn:
+                with self.engine.begin() as conn:
                     prev = pd.read_sql_query(
                         f"select * from {proc.__name__}", conn, index_col="index"
                     )
@@ -372,7 +373,7 @@ class EntsoeCrawler(BasicDbCrawler):
                 log.info("fixed error by adding new columns to crossborders")
 
             try:
-                with self.db_accessor() as conn:
+                with self.engine.begin() as conn:
                     query_create_hypertable = text(
                         f"SELECT public.create_hypertable('{proc.__name__}', 'index', if_not_exists => TRUE, migrate_data => TRUE);"
                     )
@@ -410,7 +411,7 @@ class EntsoeCrawler(BasicDbCrawler):
         ]
         # delete those without location or eic_code
 
-        with self.db_accessor() as conn:
+        with self.engine.begin() as conn:
             df.to_sql("powersystemdata", conn, if_exists="replace")
         return df
 
@@ -471,7 +472,7 @@ class EntsoeCrawler(BasicDbCrawler):
         )
 
         try:
-            with self.db_accessor() as conn:
+            with self.engine.begin() as conn:
                 query = text(
                     'CREATE INDEX IF NOT EXISTS "idx_name_query_per_plant" ON "query_per_plant" ("name", "index", "country");'
                 )
@@ -480,7 +481,7 @@ class EntsoeCrawler(BasicDbCrawler):
             log.error(f"could not create index: {e}")
 
         try:
-            with self.db_accessor() as conn:
+            with self.engine.begin() as conn:
                 query = "select distinct name, country,type from query_per_plant"
                 names = pd.read_sql_query(query, conn)
                 names.to_sql("plant_names", conn, if_exists="replace")

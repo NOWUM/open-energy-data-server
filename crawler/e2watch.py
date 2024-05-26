@@ -122,7 +122,7 @@ class E2WatchCrawler:
                     "timestamp",
                     (
                         measurement + "_kwh"
-                        if (measurement == "strom" or measurement == "waerme")
+                        if measurement in ("strom", "waerme")
                         else measurement + "_m3"
                     ),
                 ]
@@ -178,18 +178,18 @@ class E2WatchCrawler:
         for data_for_building in self.get_data_per_building(buildings):
             if data_for_building.empty:
                 continue
-            data_for_building = data_for_building.set_index(
+            df_for_building = data_for_building.set_index(
                 ["timestamp", "bilanzkreis_id"]
             )
             # delete timezone duplicate
             # https://stackoverflow.com/a/34297689
-            data_for_building = data_for_building[
-                ~data_for_building.index.duplicated(keep="first")
+            df_for_building = df_for_building[
+                ~df_for_building.index.duplicated(keep="first")
             ]
 
-            log.info(data_for_building)
+            log.info(df_for_building)
             with self.engine.begin() as conn:
-                data_for_building.to_sql("e2watch", con=conn, if_exists="append")
+                df_for_building.to_sql("e2watch", con=conn, if_exists="append")
 
 
 def main(db_uri):

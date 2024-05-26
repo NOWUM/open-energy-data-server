@@ -126,18 +126,18 @@ class SmardCrawler:
         for data_for_commodity in self.get_data_per_commodity():
             if data_for_commodity.empty:
                 continue
-            data_for_commodity = data_for_commodity.set_index(
+            df_for_commodity = data_for_commodity.set_index(
                 ["timestamp", "commodity_id"]
             )
             # delete timezone duplicate
             # https://stackoverflow.com/a/34297689
-            data_for_commodity = data_for_commodity[
-                ~data_for_commodity.index.duplicated(keep="first")
+            df_for_commodity = df_for_commodity[
+                ~df_for_commodity.index.duplicated(keep="first")
             ]
 
-            log.info(data_for_commodity)
+            log.info(df_for_commodity)
             with self.engine.begin() as conn:
-                data_for_commodity.to_sql("smard", con=conn, if_exists="append")
+                df_for_commodity.to_sql("smard", con=conn, if_exists="append")
 
 
 def main(db_uri):

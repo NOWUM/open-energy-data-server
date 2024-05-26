@@ -34,7 +34,7 @@ class IwuCrawler:
             # Drop unrelated columns, rows and assign column names
             iwu_data.drop(columns=iwu_data.columns[75:], inplace=True)
             iwu_data.drop(columns=iwu_data.columns[0:51], inplace=True)
-            iwu_data.drop(range(0, 13), inplace=True)
+            iwu_data.drop(range(13), inplace=True)
             iwu_data.ffill(inplace=True)
             iwu_data.bfill(inplace=True)
 
