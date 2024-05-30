@@ -7,14 +7,26 @@ from datetime import datetime, timedelta
 
 import pandas as pd
 import requests
+from dateutil.relativedelta import relativedelta
 from jao import JaoAPIClient
 
 # pip install git+https://github.com/maurerle/jao-py@improve_horizon_support
 from sqlalchemy import MetaData, create_engine, text
+from sqlalchemy.exc import OperationalError
 
 from crawler.config import db_uri
 
 log = logging.getLogger("jao")
+
+
+DELTAS = {
+    "seasonal": relativedelta(years=1),
+    "yearly": relativedelta(years=1),
+    "monthly": relativedelta(month=1),
+    "weekly": relativedelta(weeks=1),
+    "daily": relativedelta(days=1),
+    "intraday": relativedelta(days=1),
+}
 
 
 def string_to_timestamp(*dates):
@@ -157,17 +169,53 @@ def crawl_single_horizon(
     log.info(
         f"started crawling bids of {corridor} - {horizon} for {len(auctions_data)} auctions"
     )
+    auctions_data["horizon"] = horizon
 
-    with db_manager.engine.begin() as connection:
-        auctions_data["horizon"] = horizon
-        auctions_data.to_sql("auctions", connection, if_exists="append", index=False)
+    try:
+        with db_manager.engine.begin() as connection:
+            auctions_data.to_sql(
+                "auctions",
+                connection,
+                if_exists="append",
+                index=False,
+                method="multi",
+                chunksize=10_000,
+            )
+    except OperationalError:
+        log.exception(
+            f"database error writing {len(auctions_data)} entries - trying again"
+        )
+        import time
+
+        time.sleep(5)
+        with db_manager.engine.begin() as connection:
+            auctions_data.to_sql(
+                "auctions", connection, if_exists="append", index=False
+            )
 
     for auction_id, auction_date in auctions_data.loc[:, ["id", "date"]].values:
         bids_data = jao_client.get_bids(auction_id)
 
-        if not bids_data.empty:
-            bids_data["auctionId"] = auction_id
-            bids_data["date"] = auction_date
+        if bids_data.empty:
+            continue
+
+        bids_data["auctionId"] = auction_id
+        bids_data["date"] = auction_date
+        try:
+            with db_manager.engine.begin() as connection:
+                bids_data.to_sql(
+                    table_name,
+                    connection,
+                    if_exists="append",
+                    index=False,
+                    method="multi",
+                    chunksize=10_000,
+                )
+        except OperationalError:
+            log.error(f"database error writing {len(bids_data)} entries - trying again")
+            import time
+
+            time.sleep(5)
             with db_manager.engine.begin() as connection:
                 bids_data.to_sql(
                     table_name, connection, if_exists="append", index=False
@@ -187,16 +235,18 @@ def run_data_crawling(
                 continue
 
             first_date, last_date = calculate_min_max(db_manager, corridor, horizon)
-            print(horizon, corridor)
+            log.info(f"crawl {horizon}, {corridor} - {from_date} - {to_date}")
             if not first_date:
                 first_date = to_date
-            if not last_date:
-                last_date = from_date
             if from_date < first_date:
+                log.info(f"crawling before {from_date} until {first_date}")
                 crawl_single_horizon(
                     jao_client, db_manager, from_date, first_date, corridor, horizon
                 )
-            if to_date > last_date:
+            delta = DELTAS.get(horizon.lower(), timedelta(days=1))
+            if last_date and to_date - delta > last_date:
+                # must be at least one horizon ahead, otherwise we are crawling duplicates
+                log.info(f"crawling before {last_date} until {to_date}")
                 crawl_single_horizon(
                     jao_client, db_manager, last_date, to_date, corridor, horizon
                 )
