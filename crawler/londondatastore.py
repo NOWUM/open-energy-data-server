@@ -1,3 +1,15 @@
+# SPDX-FileCopyrightText: Florian Maurer
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+"""
+Consumption data of various households in london gathered from 2011 to 2014.
+A sub-set of 1,100 customers (Dynamic Time of Use or dToU) were given specific times when their electricity tariff would be higher or lower price than normal
+High (67.20p/kWh), Low (3.99p/kWh) or normal (11.76p/kWh).
+The rest of the sample (around 4,500) were on a flat rate of 14.228p/kWh.
+https://data.london.gov.uk/blog/electricity-consumption-in-a-sample-of-london-households/
+"""
+
 import io
 import logging
 import zipfile
