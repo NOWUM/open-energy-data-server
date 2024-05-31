@@ -18,12 +18,13 @@ from crawler.config import db_uri
 
 log = logging.getLogger("jao")
 
+MIN_WEEKLY_DATE = datetime(2023, 1, 1)
 
 DELTAS = {
     "seasonal": relativedelta(years=1),
     "yearly": relativedelta(years=1),
     "monthly": relativedelta(month=1),
-    "weekly": relativedelta(weeks=1),
+    "weekly": relativedelta(weeks=1, weekday=0),
     "daily": relativedelta(days=1),
     "intraday": relativedelta(days=1),
 }
@@ -231,8 +232,11 @@ def run_data_crawling(
     log.info(f"starting run_data_crawling from {from_date} to {to_date}")
     for horizon in jao_client.get_horizons():
         for corridor in jao_client.get_corridors():
-            if "intraday" in horizon.lower():
+            if "intraday" == horizon.lower():
                 continue
+
+            if horizon.lower() == "weekly":
+                from_date = max(MIN_WEEKLY_DATE, from_date)
 
             first_date, last_date = calculate_min_max(db_manager, corridor, horizon)
             log.info(f"crawl {horizon}, {corridor} - {from_date} - {to_date}")
