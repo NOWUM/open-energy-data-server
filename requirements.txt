@@ -26,5 +26,7 @@ cfgrib
 eccodes
 pyarrow
 typing
+yfinance
+cloudscraper
 git+https://github.com/maurerle/roiti-gie@maurerle
 git+https://github.com/maurerle/jao-py@improve_horizon_support

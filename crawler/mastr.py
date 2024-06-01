@@ -76,6 +76,7 @@ id_fields = [
     "NetzanschlusspunktMastrNummer",
     "Id",
     "GenMastrNummer",
+    "MarktateurMastrNummer",  # GeloeschteUndDeaktivierteMarktakteure
 ]
 
 
