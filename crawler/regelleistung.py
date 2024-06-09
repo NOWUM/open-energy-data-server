@@ -21,7 +21,7 @@ from .config import db_uri
 log = logging.getLogger("regelleistung")
 log.setLevel(logging.INFO)
 
-DEFAULT_MAX_DAYS_PAST = 365 * 2
+EARLIEST_DATE_TO_WRITE = datetime.strptime("2020-01-01", "%Y-%m-%d").date()
 
 TABLE_NAME_FCR_DEMANDS = "fcr_bedarfe"
 URL_FCR_DEMANDS = "https://www.regelleistung.net/apps/cpp-publisher/api/v1/download/tenders/demands?date={date_str}&exportFormat=xlsx&market=CAPACITY&productTypes=FCR"
@@ -221,56 +221,64 @@ def write_concat_table(engine, table_name, new_data):
 
 
 def write_past_entries(
-    engine, table_name, url, earliest_date, max_days_past=DEFAULT_MAX_DAYS_PAST
+    engine,
+    table_name,
+    url,
+    earliest_date,
+    earliest_date_to_write=EARLIEST_DATE_TO_WRITE,
 ):
     data_for_date_exists = True
-    past_days = 1
+    wrote_data = False
 
-    while data_for_date_exists and (past_days <= max_days_past):
+    while data_for_date_exists and (earliest_date_to_write < earliest_date):
         try:
             earliest_date -= timedelta(days=1)
             df = get_df_for_date(url, earliest_date)
             with engine.begin() as conn:
                 df.to_sql(table_name, conn, if_exists="append", index=False)
-            past_days += 1
+            wrote_data = True
         except sqlalchemy.exc.ProgrammingError as e:
             _, err_obj, _ = sys.exc_info()
             if "psycopg2.errors.UndefinedColumn" in str(err_obj):
                 log.info(f"handling {repr(e)} by concat")
                 write_concat_table(engine, table_name, df)
                 log.info(f"replaced table {table_name}")
-                past_days += 1
+                wrote_data = True
             else:
                 log.error(f"Encountered error {e}")
                 data_for_date_exists = False
         except Exception as e:
             log.info(
-                f"The earliest date for {table_name} is the date after {earliest_date}. {e}"
+                f"The earliest date for {table_name} is the date {earliest_date}. {e}"
             )
             data_for_date_exists = False
 
-    if past_days > 1:
+    if wrote_data:
         log.info(
             f"Finished writing {table_name} to Database with earliest date {earliest_date}"
+        )
+    elif not wrote_data and data_for_date_exists:
+        log.info(
+            f"The defined date for the earliest entry was already reached in {table_name}. If you want to have more data, simply adjust the earliest date to write parameter."
         )
     else:
         log.info(f"No past data was written for {table_name}")
 
 
 def create_table_and_write_past_data(
-    engine, url, table_name, max_days_past=DEFAULT_MAX_DAYS_PAST
+    engine, url, table_name, earliest_date_to_write=EARLIEST_DATE_TO_WRITE
 ):
     log.info(f"Start creating table {table_name} and adding new data")
     earliest_date = date.today()
-    write_past_entries(engine, table_name, url, earliest_date, max_days_past)
+    write_past_entries(engine, table_name, url, earliest_date, earliest_date_to_write)
 
 
 def add_additional_past_entries(
-    engine, table_name, url, max_days_past=DEFAULT_MAX_DAYS_PAST
+    engine, table_name, url, earliest_date_to_write=EARLIEST_DATE_TO_WRITE
 ):
     log.info(f"Start writing missing past entries in table {table_name} if any")
     earliest_date = get_earliest_date_if_table_exists(engine, table_name)
-    write_past_entries(engine, table_name, url, earliest_date, max_days_past)
+    write_past_entries(engine, table_name, url, earliest_date, earliest_date_to_write)
 
 
 def write_new_data_from_latest_date_to_today(engine, url, table_name, latest_data_date):
@@ -310,16 +318,18 @@ def write_data_in_table(
     engine,
     table_name,
     url,
-    max_days_past=DEFAULT_MAX_DAYS_PAST,
+    earliest_date_to_write=EARLIEST_DATE_TO_WRITE,
     write_additional_past_entries_if_any=True,
 ):
     latest_date = get_latest_date_if_table_exists(engine, table_name)
     if latest_date is not None:
         write_new_data_from_latest_date_to_today(engine, url, table_name, latest_date)
         if write_additional_past_entries_if_any:
-            add_additional_past_entries(engine, table_name, url, max_days_past)
+            add_additional_past_entries(engine, table_name, url, earliest_date_to_write)
     else:
-        create_table_and_write_past_data(engine, url, table_name, max_days_past)
+        create_table_and_write_past_data(
+            engine, url, table_name, earliest_date_to_write
+        )
 
 
 def write_all_tables(engine):
