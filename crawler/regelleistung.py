@@ -140,11 +140,12 @@ def database_friendly(string):
 def get_df_for_date(url, date_to_get):
     date_str = date_to_get.strftime("%Y-%m-%d")
     url_with_date = url.format(date_str=date_str)
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        df = pd.read_excel(
-            url_with_date, sheet_name="001", na_values=["-", "n.a.", "n.e."]
-        )
+    warnings.filterwarnings(
+        action="ignore",
+        category=UserWarning,
+        message="Workbook contains no default style, apply openpyxl's default",
+    )
+    df = pd.read_excel(url_with_date, sheet_name="001", na_values=["-", "n.a.", "n.e."])
     df.rename(mapper=lambda x: database_friendly(x), axis="columns", inplace=True)
 
     # adapt date_from and date_to column
