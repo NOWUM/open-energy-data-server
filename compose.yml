@@ -8,8 +8,8 @@ services:
     image: timescale/timescaledb-ha:pg16-oss
     container_name: open-data-16
     restart: always
-    shm_size: 4g
-    command: postgres -c "max_connections=2000" -c "timescaledb.max_background_workers=32" -c "timescaledb.telemetry_level=off"
+    shm_size: 32g
+    command: postgres -c 'max_connections=6000' -c 'timescaledb.max_background_workers=32' -c 'timescaledb.telemetry_level=off'
     environment:
       - POSTGRES_USER=opendata
       - POSTGRES_PASSWORD=opendata
@@ -33,3 +33,16 @@ services:
         - ./data/pgadmin:/var/lib/pgadmin
     ports:
         - "8080:80"
+
+  open-postgrest:
+     image: postgrest/postgrest:latest
+     container_name: postgrest
+     ports:
+       - "3001:3000"
+     environment:
+       PGRST_DB_URI: postgres://readonly:readonly@open-data-16:5432/opendata
+       PGRST_DB_PRE_CONFIG: postgrest.pre_config
+       PGRST_DB_ANON_ROLE: readonly
+       PGRST_DB_AGGREGATES_ENABLED: True
+     depends_on:
+       - open-data-16
