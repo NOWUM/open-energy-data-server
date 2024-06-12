@@ -4,6 +4,7 @@ default:
 
 stages:
 - build
+- deploy
 
 build-docker:
   image: docker:dind
@@ -15,3 +16,18 @@ build-docker:
   script:
     - docker build -f Dockerfile_dwd  -t "$CI_REGISTRY_IMAGE/dwd_crawler:latest" .
     - docker push $CI_REGISTRY_IMAGE/dwd_crawler:latest
+
+// DONT COMMIT THIS FILE WITH YOUR CREDENTIALS
+deploy-app:
+  image: alpine:latest
+  stage: deploy
+  script:
+    - chmod og= $SSH_ED25519
+    - apk update && apk add openssh-client
+    - ssh -p $SERVER_PORT -i $SSH_ED25519 -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_IP "cd /home/nowum/reverse-proxy/waerme-vision && docker-compose pull && docker-compose down && docker-compose up -d && docker system prune -f"
+  only:
+    - main
+  environment:
+    url: https://$SERVER_IP
+    name: production
+

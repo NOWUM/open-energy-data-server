@@ -46,3 +46,11 @@ services:
        PGRST_DB_AGGREGATES_ENABLED: True
      depends_on:
        - open-data-16
+
+  dashboard:
+    image: registry.git.fh-aachen.de
+    container_name: dashboard-frontend
+    ports:
+      - "3004:3000"
+    depends_on:
+      - open-postgrest
