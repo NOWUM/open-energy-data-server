@@ -21,6 +21,8 @@ services:
       - "6432:5432"
 
   pgadmin:
+  # WINDOWS PERMISSIONS BODGE
+    user: root
     image: dpage/pgadmin4:latest
     container_name: pgadmin4
     restart: always
@@ -48,7 +50,8 @@ services:
        - open-data-16
 
   dashboard:
-    image: registry.git.fh-aachen.de
+  # TODO VA ASK FLORIAN HOW BEST TO DO THI
+    image: docker.io/library/dashboard
     container_name: dashboard-frontend
     ports:
       - "3004:3000"
