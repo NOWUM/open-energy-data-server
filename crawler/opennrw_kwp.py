@@ -91,7 +91,8 @@ class DataCrawler:
 
 if __name__ == "__main__":
     crawler = DataCrawler()
-    if crawler.pullData():
-        crawler.save_to_database()
-        crawler.clean()
-        pass
+    if False:
+        if crawler.pullData():
+            crawler.save_to_database()
+            crawler.clean()
+            pass
