@@ -3,9 +3,12 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
+import datetime
 import logging
 import os.path as osp
 from glob import glob
+
+from sqlalchemy import create_engine
 
 from crawler.config import db_uri
 
@@ -62,3 +65,17 @@ if __name__ == "__main__":
             if dbname == "nuts_mapper":
                 dbname == "public"
             import_and_exec(crawler_name, db_uri(dbname))
+    
+    # Update metadata
+    engine = create_engine(db_uri)
+    current_date = datetime.now().date()
+
+    update_query = """
+    UPDATE public.metadata
+    SET crawl_age = :current_date
+    WHERE schema_name IN :schema_names
+    """
+
+    with engine.begin() as conn:
+        conn.execute(update_query, {'current_date': current_date, 'schema_names': tuple(crawlers)})
+
