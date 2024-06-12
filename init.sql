@@ -29,8 +29,8 @@ ALTER ROLE readonly SET search_path TO public;
 ALTER ROLE opendata SET search_path TO public;
 CREATE TABLE public.metadata (
     schema_name TEXT PRIMARY KEY,
-    crawl_age DATE,
-    data_age DATE,
+    crawl_date DATE,
+    data_date DATE,
     data_source TEXT,
     licence TEXT,
     description TEXT,
