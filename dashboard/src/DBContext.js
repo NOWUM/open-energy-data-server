@@ -1,11 +1,12 @@
 import React, { createContext, useState, useEffect } from 'react';
 
-export const SwaggerContext = createContext();
+export const DBContext = createContext();
 
-export const SwaggerProvider = ({ children }) => {
+export const DBProvider = ({ children }) => {
     const [swaggerSpec, setSwaggerSpec] = useState(null);
     const [swaggerOptions, setSwaggerOptions] = useState([]);
     const [selectedProfile, setSelectedProfile] = useState('');
+    const [metadataOptions, setMetadataOptions] = useState([]);
 
     useEffect(() => {
         fetch("https://monitor.nowum.fh-aachen.de/oeds/rpc/swagger_schemas")
@@ -34,9 +35,22 @@ export const SwaggerProvider = ({ children }) => {
             .catch(error => console.error('Error fetching swagger spec:', error));
     }, [selectedProfile]);
 
+    useEffect(() => {
+        if (!selectedProfile) return;
+
+        const url = new URL("https://monitor.nowum.fh-aachen.de/oeds/metadata");
+        fetch(url)
+        .then(res => res.json())
+        .then(data => {
+            setMetadataOptions(data);
+            console.log(data)
+        })
+        .catch(error => console.error('Error fetching swagger schemas:', error));
+    }, [selectedProfile]);
+
     return (
-        <SwaggerContext.Provider value={{ swaggerSpec, swaggerOptions, selectedProfile, setSelectedProfile }}>
+        <DBContext.Provider value={{ swaggerSpec, swaggerOptions, metadataOptions, selectedProfile, setSelectedProfile }}>
             {children}
-        </SwaggerContext.Provider>
+        </DBContext.Provider>
     );
 };

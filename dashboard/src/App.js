@@ -1,14 +1,15 @@
+// App.js
 import React, { useState } from 'react';
 import './App.css';
 import RestTab from './RestTab';
 import MetadataTab from './MetadataTab';
-import { SwaggerProvider } from './SwaggerContext';
+import { DBProvider } from './DBContext';
 
 function App() {
   const [activeTab, setActiveTab] = useState('rest');
 
   return (
-    <SwaggerProvider>
+    <DBProvider>
       <div className="App">
         <header className="App-header">
           <h1>OEDS Explorer</h1>
@@ -22,7 +23,7 @@ function App() {
           {activeTab === 'metadata' && <MetadataTab />}
         </div>
       </div>
-    </SwaggerProvider>
+    </DBProvider>
   );
 }
 

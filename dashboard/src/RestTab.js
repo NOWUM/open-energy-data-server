@@ -1,10 +1,10 @@
 import React, { useContext } from 'react';
 import SwaggerUI from 'swagger-ui-react';
 import 'swagger-ui-react/swagger-ui.css';
-import { SwaggerContext } from './SwaggerContext';
+import { DBContext } from './DBContext';
 
 function RestTab() {
-    const { swaggerSpec, swaggerOptions, selectedProfile, setSelectedProfile } = useContext(SwaggerContext);
+    const { swaggerSpec, swaggerOptions, selectedProfile, setSelectedProfile } = useContext(DBContext);
 
     return (
         <>

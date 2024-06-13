@@ -1,0 +1,70 @@
+.metadata-tab {
+    padding: 20px;
+}
+
+.section {
+    margin-bottom: 20px;
+}
+
+.search-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.search-container input {
+    flex: 1;
+    padding: 8px;
+    margin-right: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.search-container button {
+    padding: 8px 16px;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.search-container button:hover {
+    background-color: #0056b3;
+}
+
+.cards-container {
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 10px; 
+}
+
+.cards {
+    display: inline-flex;
+    gap: 10px;
+}
+
+.card {
+    width: 200px;
+    height: 50px; 
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    text-align: center;
+    flex-shrink: 0; 
+}
+
+.metadata-table {
+    width: 80%; 
+    margin: 0 auto; 
+    border-collapse: collapse;
+}
+
+.metadata-table td:first-child {
+    width: 10%; 
+}
+
+.metadata-table td:last-child {
+    width: 90%; 
+}
