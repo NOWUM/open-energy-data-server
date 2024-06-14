@@ -43,7 +43,6 @@ export const DBProvider = ({ children }) => {
         .then(res => res.json())
         .then(data => {
             setMetadataOptions(data);
-            console.log(data)
         })
         .catch(error => console.error('Error fetching swagger schemas:', error));
     }, [selectedProfile]);

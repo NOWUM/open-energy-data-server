@@ -36,10 +36,7 @@ CREATE TABLE public.metadata (
     description TEXT,
     contact TEXT,
     tables INTEGER,
-    bbox_min_lat NUMERIC,
-    bbox_max_lat NUMERIC,
-    bbox_min_lon NUMERIC,
-    bbox_max_lon NUMERIC,
+    concave_hull_geometry GEOMETRY,
     temporal_start TIMESTAMP,
     temporal_end TIMESTAMP,
     size BIGINT

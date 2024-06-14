@@ -1,57 +1,25 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState } from 'react';
 import { DBContext } from './DBContext';
+import MetadataOverview from './MetadataOverview';
+import TimelineChart from './MetadataTimeline';
+import MapComponent from './MetadataMap';
+import { getDataFormat } from './util.js';
 import './MetadataTab.css';
 
 function MetadataTab() {
-    const { swaggerOptions, metadataOptions } = useContext(DBContext);
+    const { metadataOptions } = useContext(DBContext);
     const [searchTerm, setSearchTerm] = useState('');
-    const [filteredOptions, setFilteredOptions] = useState(swaggerOptions);
     const [selectedMetadata, setSelectedMetadata] = useState(null);
-
-    useEffect(() => {
-        const filtered = swaggerOptions.filter(option =>
-            option.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-        setFilteredOptions(filtered);
-    }, [searchTerm, swaggerOptions]);
-
-    const getDataFormat = (metadata) => {
-        const hasTemporal = metadata.temporal_start || metadata.temporal_end;
-        const hasSpatial = metadata.bbox_min_lat || metadata.bbox_max_lat || metadata.bbox_min_lon || metadata.bbox_max_lon;
-        if (hasTemporal && hasSpatial) return "Type: Temporal & Spatial";
-        if (hasTemporal) return "Type: Temporal";
-        if (hasSpatial) return "Type: Spatial";
-        return "Type: Standard";
-    };
-
-    const handleCardClick = (metadata) => {
-        setSelectedMetadata(metadata);
-    };
 
     return (
         <div className="metadata-tab">
             <h2>Metadata</h2>
-            <div className="section">
-                <h3>Overview</h3>
-                <div className="search-container">
-                    <input
-                        type="text"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        placeholder="Search schemas..."
-                    />
-                </div>
-                <div className="cards-container">
-                    <div className="cards">
-                        {metadataOptions.map(metadata => (
-                            <div key={metadata.schema_name} className="card" onClick={() => handleCardClick(metadata)}>
-                                <div>{metadata.schema_name}</div>
-                                <div>{getDataFormat(metadata)}</div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
+            <MetadataOverview
+                metadataOptions={metadataOptions}
+                searchTerm={searchTerm}
+                setSearchTerm={setSearchTerm}
+                setSelectedMetadata={setSelectedMetadata}
+            />
             {selectedMetadata && (
                 <div className="section detail-view">
                     <h3>Details for {selectedMetadata.schema_name}</h3>
@@ -71,15 +39,8 @@ function MetadataTab() {
                     </table>
                 </div>
             )}
-
-            <div className="section">
-                <h3>Availability Timeline</h3>
-                <p>Timeline content goes here.</p>
-            </div>
-            <div className="section">
-                <h3>Availability Map</h3>
-                <p>Map content goes here.</p>
-            </div>
+            <TimelineChart metadataOptions={metadataOptions} />
+            <MapComponent />
         </div>
     );
 }
