@@ -40,7 +40,7 @@ function MetadataTab() {
                 </div>
             )}
             <TimelineChart metadataOptions={metadataOptions} />
-            <MapComponent />
+            <MapComponent metadataOptions={metadataOptions} />
         </div>
     );
 }

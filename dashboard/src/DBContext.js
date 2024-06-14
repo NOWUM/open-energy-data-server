@@ -42,6 +42,7 @@ export const DBProvider = ({ children }) => {
         fetch(url)
         .then(res => res.json())
         .then(data => {
+            console.log(data);
             setMetadataOptions(data);
         })
         .catch(error => console.error('Error fetching swagger schemas:', error));
