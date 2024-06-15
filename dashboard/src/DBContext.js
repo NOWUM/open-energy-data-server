@@ -42,8 +42,8 @@ export const DBProvider = ({ children }) => {
         fetch(url)
         .then(res => res.json())
         .then(data => {
-            console.log(data);
-            setMetadataOptions(data);
+            const sorted = data.sort((a, b) => a.schema_name.localeCompare(b.schema_name));
+            setMetadataOptions(sorted);
         })
         .catch(error => console.error('Error fetching swagger schemas:', error));
     }, [selectedProfile]);

@@ -17,6 +17,20 @@ build-docker:
     - docker build -f Dockerfile_dwd  -t "$CI_REGISTRY_IMAGE/dwd_crawler:latest" .
     - docker push $CI_REGISTRY_IMAGE/dwd_crawler:latest
 
+build-dash:
+  image: docker:dind
+  services:
+    - docker:dind
+  stage: build
+  before_script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u $CI_REGISTRY_USER --password-stdin $CI_REGISTRY
+  script:
+    - cd FE
+    - docker build -t "$CI_REGISTRY_IMAGE:latest" .
+    - docker build -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME" .
+    - docker push $CI_REGISTRY_IMAGE:latest
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
+
 // DONT COMMIT THIS FILE WITH YOUR CREDENTIALS
 deploy-app:
   image: alpine:latest

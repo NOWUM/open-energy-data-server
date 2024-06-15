@@ -1,7 +1,3 @@
-# SPDX-FileCopyrightText: Florian Maurer, Christian Rieke
-#
-# SPDX-License-Identifier: AGPL-3.0-or-later
-
 version: "3"
 services:
   open-data-16:
@@ -21,7 +17,6 @@ services:
       - "6432:5432"
 
   pgadmin:
-  # WINDOWS PERMISSIONS BODGE
     user: root
     image: dpage/pgadmin4:latest
     container_name: pgadmin4
@@ -50,10 +45,11 @@ services:
        - open-data-16
 
   dashboard:
-  # TODO VA ASK FLORIAN HOW BEST TO DO THI
-    image: docker.io/library/dashboard
+    build: 
+      context: ./dashboard
+      dockerfile: Dockerfile
     container_name: dashboard-frontend
     ports:
       - "3004:3000"
     depends_on:
-      - open-postgrest
+      - open-postgrest  

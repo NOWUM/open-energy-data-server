@@ -14,8 +14,8 @@ function App() {
         <header className="App-header">
           <h1>OEDS Explorer</h1>
           <div style={{ display: 'flex' }}>
-            <button style={{ flex: 1 }} onClick={() => setActiveTab('rest')}>REST</button>
-            <button style={{ flex: 1 }} onClick={() => setActiveTab('metadata')}>Metadata</button>
+            <button className="button" onClick={() => setActiveTab('rest')}>REST</button>
+            <button className="button" onClick={() => setActiveTab('metadata')}>Metadata</button>
           </div>
         </header>
         <div className="tab-content">

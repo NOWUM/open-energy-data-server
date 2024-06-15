@@ -1,10 +1,14 @@
 import React from 'react';
 import { getDataFormat } from './util.js';
 
-function MetadataOverview({ metadataOptions, searchTerm, setSearchTerm, setSelectedMetadata }) {
+function MetadataOverview({ metadataOptions, searchTerm, setSearchTerm, selectedMetadata, setSelectedMetadata }) {
 
 
     const handleCardClick = metadata => {
+        if (metadata === selectedMetadata) {
+            setSelectedMetadata(null);
+            return;
+        }
         setSelectedMetadata(metadata);
     };
 

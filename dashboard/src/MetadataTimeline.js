@@ -1,23 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Brush } from 'recharts';
 
-function TimelineChart({ metadataOptions }) {
+function TimelineChart({ metadataOptions, selectedMetadata }) {
     const [chartData, setChartData] = useState([]);
 
     useEffect(() => {
-        const datefulOptions = metadataOptions.filter(metadata => metadata.temporal_start && metadata.temporal_end);
+        let activeMetadata = metadataOptions;
+        if (selectedMetadata && (selectedMetadata.temporal_start || selectedMetadata.temporal_end)) {
+            activeMetadata = [selectedMetadata];	
+        }
+
+
+        const datefulOptions =  activeMetadata.filter(metadata => metadata.temporal_start && metadata.temporal_end);
+
+
         const tempDates = datefulOptions.map(metadata => ({
             schema_name: metadata.schema_name,
             start: new Date(metadata.temporal_start),
             end: new Date(metadata.temporal_end)
         })).filter(dates => !isNaN(dates.start.valueOf()) && !isNaN(dates.end.valueOf()));
-    
+
         if (tempDates.length === 0) return;
-    
-        const minDate = new Date(Math.min(...tempDates.map(dates => dates.start)));
-        const maxDate = new Date(Math.max(...tempDates.map(dates => dates.end)));
+
+        const fullTempDates = metadataOptions.map(metadata => ({
+            start: new Date(metadata.temporal_start),
+            end: new Date(metadata.temporal_end)
+        })).filter(dates => !isNaN(dates.start.valueOf()) && !isNaN(dates.end.valueOf()));
+
+        const minDate = new Date(Math.min(...fullTempDates.map(dates => dates.start)));
+        const maxDate = new Date(Math.max(...fullTempDates.map(dates => dates.end)));
+
         let data = [];
-        for (let m = new Date(minDate); m <= maxDate; m.setMonth(m.getMonth() + 1)) { 
+        for (let m = new Date(minDate); m <= maxDate; m.setMonth(m.getMonth() + 1)) {
             let count = 0;
             let activeOptions = [];
             tempDates.forEach(({ schema_name, start, end }) => {
@@ -30,8 +44,7 @@ function TimelineChart({ metadataOptions }) {
             data.push({ name: yearMonth, value: count, activeOptions });
         }
         setChartData(data);
-    }, [metadataOptions]);
-
+    }, [metadataOptions, selectedMetadata]);
 
     const customTooltip = ({ active, payload, label }) => {
         if (active && payload && payload.length) {
@@ -47,7 +60,6 @@ function TimelineChart({ metadataOptions }) {
                 </div>
             );
         }
-
         return null;
     };
 
@@ -62,7 +74,7 @@ function TimelineChart({ metadataOptions }) {
                     <YAxis />
                     <Tooltip content={customTooltip} />
                     <Legend />
-                    <Line type="monotone" dataKey="value" stroke="#8884d8"  dot={false} />
+                    <Line type="monotone" dataKey="value" stroke="#8884d8" dot={false} />
                     <Brush dataKey='name' height={30} stroke="#8884d8" />
                 </LineChart>
             </div>
