@@ -12,7 +12,10 @@ This is a repository that contains python web-crawler scripts to download variou
 
 The main target is to create an institute-wide available database that can be set up once and then be used by multiple researchers.
 
-Allowing native access through postgreSQL allows any easy integration of different software which can access data from a SQL database.
+Allowing native access through PostgreSQL allows any easy integration of different software which can access data from a SQL database.
+
+![Basic outline of the architecture and included services](docs/media/oeds-architecture.png)
+
 
 ## Getting started
 
@@ -21,8 +24,13 @@ And start the `compose.yml` with `docker compose up -d`.
 
 Then you have a running TimescaleDB server listening on postgresql default port `5432`.
 
+![Visualization of OEDS Usage Workflow](docs/media/oeds-workflow.png)
+
+As seen in the above workflow outline, the data is inserted by scripts which retrieve the data from a source API.
+This is the core part, afterwards, everything is basically usable.
+
 To execute the scripts, you need a python environment.
-As of February 2024 - this works with Python versions 3.9 up to 3.12
+As of June 2024 - this works with Python versions 3.9 up to 3.12
 You can install all python dependencies:
 
 `pip install -r requirements.txt`
@@ -36,6 +44,7 @@ If you want to use the ECMWF crawler you need to create an account at [copernicu
 ## TimeScaleDB
 
 The used database technology for the database server is [TimescaleDB](https://timescale.com/) which is an extension for PostgreSQL (just like PostGIS but for timeseries databases).
+
 
 ### What is a time-series database?
 Normal SQL tables can get quite slow if millions of entries are stored in them.
