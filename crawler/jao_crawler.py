@@ -2,6 +2,16 @@
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
+"""
+Downloads latest data from the Joint Allocation Office (JAO).
+
+Currently, this only includes market results and their bids.
+Data from the https://publicationtool.jao.eu/ is not yet included.
+
+Good analysis of this data is included in https://boerman.dev/ and
+https://data.boerman.dev/d/5CYxW2JVz/flows-scheduled-commercial-exchanges-day-ahead
+"""
+
 import logging
 from datetime import datetime, timedelta
 

@@ -6,10 +6,11 @@
 Data from REFIT paper
 https://www.nature.com/articles/sdata2016122
 
-REFIT (An electrical load measurements dataset of United Kingdom households from a two-year longitudinal study) 
+REFIT (An electrical load measurements dataset of United Kingdom households from a two-year longitudinal study)
 
 This dataset is typically used for NILM applications (non-intrusive load monitoring).
 """
+
 import io
 import logging
 
