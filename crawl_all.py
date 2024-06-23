@@ -8,7 +8,7 @@ import logging
 import os.path as osp
 from glob import glob
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 
 from crawler.config import db_uri
 
@@ -51,6 +51,40 @@ def get_available_crawlers():
     return crawlers
 
 
+def update_metadata():
+    engine = create_engine(db_uri)
+    current_date = datetime.datetime.now().date()
+
+    create_query = text("""
+    INSERT INTO public.metadata (schema_name, tables, size)
+    SELECT 
+        nspname AS schema_name, 
+        COUNT(*) AS tables,
+        SUM(pg_total_relation_size(pg_class.oid)) AS size
+    FROM pg_class
+    JOIN pg_namespace ON pg_namespace.oid = pg_class.relnamespace
+    WHERE nspname NOT IN ('pg_catalog', 'information_schema')
+      AND pg_class.relkind = 'r'
+      AND nspname NOT LIKE '%timescaledb%'
+      AND nspname NOT LIKE '%pg_%'
+      AND nspname NOT LIKE 'pg_%'
+      AND NOT EXISTS (
+          SELECT 1 FROM public.metadata WHERE schema_name = nspname
+      )
+    GROUP BY nspname;
+    """)
+
+    update_query = text("""
+    UPDATE public.metadata
+    SET crawl_date = :current_date
+    WHERE schema_name IN :schema_names
+    """)
+
+    with engine.begin() as conn:
+        conn.execute(create_query)
+        conn.execute(update_query, {
+                     'current_date': current_date, 'schema_names': tuple(crawlers)})
+        
 if __name__ == "__main__":
     logging.basicConfig()
     # remove crawlers without publicly available data
@@ -66,16 +100,4 @@ if __name__ == "__main__":
                 dbname == "public"
             import_and_exec(crawler_name, db_uri(dbname))
     
-    # Update metadata
-    engine = create_engine(db_uri)
-    current_date = datetime.now().date()
-
-    update_query = """
-    UPDATE public.metadata
-    SET crawl_age = :current_date
-    WHERE schema_name IN :schema_names
-    """
-
-    with engine.begin() as conn:
-        conn.execute(update_query, {'current_date': current_date, 'schema_names': tuple(crawlers)})
-
+    update_metadata()

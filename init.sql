@@ -23,6 +23,7 @@ CREATE SCHEMA ladesaeulenregister;
 CREATE SCHEMA gie;
 CREATE SCHEMA iwugebaeudetypen;
 CREATE SCHEMA nrw_kwp_waermedichte;
+CREATE SCHEMA postgrest;
 CREATE ROLE readonly WITH LOGIN PASSWORD 'readonly' NOSUPERUSER INHERIT NOCREATEDB NOCREATEROLE NOREPLICATION VALID UNTIL 'infinity';
 GRANT pg_read_all_data TO readonly;
 ALTER ROLE readonly SET search_path TO public;
