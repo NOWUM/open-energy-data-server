@@ -98,4 +98,4 @@ def main(db_uri):
 
 
 if __name__ == "__main__":
-    main(db_uri("kwp_nrw"))
+    main(db_uri("nrw_kwp_waermedichte"))
