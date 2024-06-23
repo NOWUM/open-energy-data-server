@@ -38,7 +38,7 @@ class IwuCrawler:
             iwu_data.ffill(inplace=True)
             iwu_data.bfill(inplace=True)
 
-            assign_columns(iwu_data)
+            self.assign_columns(iwu_data)
 
             iwu_data["Sanierungsstand"] = iwu_data.apply(
                 self.set_sanierungsstand, axis=1
@@ -156,11 +156,11 @@ class IwuCrawler:
         ]
 
 
-if __name__ == "__main__":
+def main(db_uri):
     logging.basicConfig()
-    database = db_uri("iwu_gebaeudetypen")
-    craw = IwuCrawler(database)
+    craw = IwuCrawler(db_uri)
     data = craw.pullData()
     craw.sendData(data)
-    log.info("Done")
-    log.info(data)
+
+if __name__ == "__main__":
+    main(db_uri("iwu_gebaeudetypen"))

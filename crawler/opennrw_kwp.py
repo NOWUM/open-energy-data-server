@@ -11,15 +11,15 @@ import pandas as pd
 import requests
 import geopandas
 from sqlalchemy import create_engine, text
+from crawler.config import db_uri
 
-# from .config import db_uri
 
 
 log = logging.getLogger("iwu")
 log.setLevel(logging.INFO)
 
 class DataCrawler:
-    def __init__(self):
+    def __init__(self, db_uri):
         self.engine = create_engine(db_uri)
         pass
 
@@ -89,10 +89,13 @@ class DataCrawler:
         os.rmdir(os.path.join(os.path.dirname(__file__)) + "\data\kwp_nrw")
 
 
+def main(db_uri):
+    crawler = DataCrawler(db_uri)
+    if crawler.pullData():
+        crawler.save_to_database()
+        crawler.clean()
+        pass
+
+
 if __name__ == "__main__":
-    crawler = DataCrawler()
-    if False:
-        if crawler.pullData():
-            crawler.save_to_database()
-            crawler.clean()
-            pass
+    main(db_uri("kwp_nrw"))
