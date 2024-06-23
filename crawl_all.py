@@ -22,7 +22,8 @@ def import_and_exec(module, db_uri):
     A module must reside in the crawler folder.
     """
     try:
-        imported_module = __import__(f"crawler.{module}", fromlist=["eex.main"])
+        imported_module = __import__(
+            f"crawler.{module}", fromlist=["eex.main"])
         imported_module.main(db_uri)
         log.info(f"executed main from {module}")
     except AttributeError as e:
@@ -52,7 +53,7 @@ def get_available_crawlers():
 
 
 def update_metadata():
-    engine = create_engine(db_uri)
+    engine = create_engine(db_uri("public"))
     current_date = datetime.datetime.now().date()
 
     create_query = text("""
@@ -84,7 +85,8 @@ def update_metadata():
         conn.execute(create_query)
         conn.execute(update_query, {
                      'current_date': current_date, 'schema_names': tuple(crawlers)})
-        
+
+
 if __name__ == "__main__":
     logging.basicConfig()
     # remove crawlers without publicly available data
@@ -99,5 +101,5 @@ if __name__ == "__main__":
             if dbname == "nuts_mapper":
                 dbname == "public"
             import_and_exec(crawler_name, db_uri(dbname))
-    
+
     update_metadata()

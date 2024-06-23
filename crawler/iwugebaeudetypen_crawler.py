@@ -163,4 +163,4 @@ def main(db_uri):
     craw.sendData(data)
 
 if __name__ == "__main__":
-    main(db_uri("iwu_gebaeudetypen"))
+    main(db_uri("iwugebaeudetypen"))
