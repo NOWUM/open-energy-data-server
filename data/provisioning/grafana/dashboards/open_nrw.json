@@ -1,0 +1,1367 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
+          "type": "dashboard"
+        },
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": 65,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 7,
+      "panels": [],
+      "title": "Solarkataster",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "cdki7o6hyve9sd"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-RdYlGr"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "kwatt"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 20,
+        "w": 13,
+        "x": 0,
+        "y": 1
+      },
+      "id": 3,
+      "options": {
+        "basemap": {
+          "config": {
+            "showLabels": true,
+            "theme": "light"
+          },
+          "type": "carto"
+        },
+        "controls": {
+          "mouseWheelZoom": true,
+          "showAttribution": true,
+          "showDebug": false,
+          "showLayercontrol": true,
+          "showScale": false,
+          "showZoom": true
+        },
+        "layers": [
+          {
+            "config": {
+              "cluster": false,
+              "clusterDistance": 20,
+              "clusterMinDistance": 0,
+              "clusterValue": "size",
+              "color": {
+                "field": "power",
+                "fixed": "dark-green"
+              },
+              "enableGradient": false,
+              "enableShadow": false,
+              "fillOpacity": 0.4,
+              "iconSize": 9,
+              "pinShape": "marker",
+              "shape": "circle",
+              "showLegend": true,
+              "showPin": false,
+              "size": {
+                "fixed": 5,
+                "max": 15,
+                "min": 2
+              }
+            },
+            "displayProperties": [
+              "nuts_id",
+              "power"
+            ],
+            "location": {
+              "geojson": "geom",
+              "mode": "geojson"
+            },
+            "name": "Photovoltaik",
+            "query": "A",
+            "type": "markers"
+          },
+          {
+            "config": {
+              "cluster": false,
+              "clusterDistance": 20,
+              "clusterMinDistance": 0,
+              "clusterValue": "size",
+              "color": {
+                "fixed": "dark-blue"
+              },
+              "enableGradient": false,
+              "enableShadow": false,
+              "fillOpacity": 0.6,
+              "iconSize": 9,
+              "pinShape": "marker",
+              "shape": "circle",
+              "showLegend": false,
+              "showPin": false,
+              "size": {
+                "fixed": 3,
+                "max": 15,
+                "min": 2
+              }
+            },
+            "displayProperties": [
+              "power"
+            ],
+            "location": {
+              "geojson": "geom",
+              "latitude": "lat",
+              "longitude": "lon",
+              "mode": "geojson"
+            },
+            "name": "PV Markers",
+            "query": "B",
+            "type": "markers"
+          }
+        ],
+        "view": {
+          "id": "coords",
+          "lat": 51.727277,
+          "lon": 6.527983,
+          "zoom": 6.33
+        }
+      },
+      "pluginVersion": "8.5.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "cdki7o6hyve9sd"
+          },
+          "format": "table",
+          "group": [],
+          "hide": false,
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "Select \r\n  d.nuts_id, ST_AsGeoJSON(nuts.geometry) as geom, \r\n  sum(power) as power \r\nfrom solar d\r\nJoin nuts on d.nuts_id = nuts.nuts_id\r\nGroup by d.nuts_id, nuts.geometry",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "ST_AsGeoJSON(geometry)"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "nuts",
+          "timeColumn": "level",
+          "timeColumnType": "int8",
+          "where": [
+            {
+              "name": "$__unixEpochFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "cdki7o6hyve9sd"
+          },
+          "format": "table",
+          "group": [],
+          "hide": false,
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "Select \n  d.nuts_id, ST_AsGeoJSON(nuts.geometry) as geom, \n  sum(power) as power \nfrom solar d\nJoin nuts on d.nuts_id = nuts.nuts_id\nwhere d.nuts_id = '$NUTS3'\nGroup by d.nuts_id, nuts.geometry\n\n\n",
+          "refId": "B",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "timeColumn": "time",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "title": "PV Potential by NUTS3",
+      "type": "orchestracities-map-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "cdki7o6hyve9sd"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "yellow",
+                "value": null
+              }
+            ]
+          },
+          "unit": "megwatt"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 11,
+        "x": 13,
+        "y": 1
+      },
+      "id": 11,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.4.4",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "cdki7o6hyve9sd"
+          },
+          "format": "table",
+          "group": [
+            {
+              "params": [
+                "$__interval",
+                "none"
+              ],
+              "type": "time"
+            }
+          ],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  nuts_id,\n  sum(power)/ 1000 AS \"Potential $NUTS3\" \nFROM solar\nwhere nuts_id = '$NUTS3'\nGROUP BY 1\nORDER BY 1",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "power"
+                ],
+                "type": "column"
+              },
+              {
+                "params": [
+                  "avg"
+                ],
+                "type": "aggregate"
+              },
+              {
+                "params": [
+                  "power"
+                ],
+                "type": "alias"
+              }
+            ]
+          ],
+          "table": "solar",
+          "timeColumn": "\"time\"",
+          "timeColumnType": "timestamp",
+          "where": []
+        }
+      ],
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "cdki7o6hyve9sd"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-GrYlRd"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "yellow",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 2,
+        "w": 11,
+        "x": 13,
+        "y": 3
+      },
+      "id": 12,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "10.4.4",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "cdki7o6hyve9sd"
+          },
+          "format": "table",
+          "group": [
+            {
+              "params": [
+                "$__interval",
+                "none"
+              ],
+              "type": "time"
+            }
+          ],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  nuts_id,\n  count(power) AS \"possible Systems in $NUTS3\" \nFROM solar\nwhere nuts_id = '$NUTS3'\nGROUP BY 1\nORDER BY 1",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "power"
+                ],
+                "type": "column"
+              },
+              {
+                "params": [
+                  "avg"
+                ],
+                "type": "aggregate"
+              },
+              {
+                "params": [
+                  "power"
+                ],
+                "type": "alias"
+              }
+            ]
+          ],
+          "table": "solar",
+          "timeColumn": "\"time\"",
+          "timeColumnType": "timestamp",
+          "where": []
+        }
+      ],
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "cdki7o6hyve9sd"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "fillOpacity": 60,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 0
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "yellow",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 11,
+        "x": 13,
+        "y": 5
+      },
+      "id": 16,
+      "options": {
+        "bucketOffset": 0,
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "cdki7o6hyve9sd"
+          },
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  azimuth\nFROM solar\nWHERE nuts_id = '$NUTS3' and azimuth > 0\nORDER BY 1",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "azimuth"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "solar",
+          "timeColumn": "time",
+          "where": []
+        }
+      ],
+      "title": "Azimuth Distribution",
+      "type": "histogram"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "cdki7o6hyve9sd"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "fillOpacity": 60,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 0
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "yellow",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 11,
+        "x": 13,
+        "y": 10
+      },
+      "id": 17,
+      "options": {
+        "bucketOffset": 0,
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "cdki7o6hyve9sd"
+          },
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  tilt\nFROM solar\nWHERE nuts_id = '$NUTS3' and tilt > 0\nORDER BY 1",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "azimuth"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "solar",
+          "timeColumn": "time",
+          "where": []
+        }
+      ],
+      "title": "Tilt Distribution",
+      "type": "histogram"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "cdki7o6hyve9sd"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "custom": {
+            "fillOpacity": 48,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "lineWidth": 0
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "yellow",
+                "value": null
+              }
+            ]
+          },
+          "unit": "kwatt"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 11,
+        "x": 13,
+        "y": 15
+      },
+      "id": 14,
+      "options": {
+        "bucketOffset": 5,
+        "bucketSize": 2.5,
+        "combine": false,
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": false
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "cdki7o6hyve9sd"
+          },
+          "format": "table",
+          "group": [],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  power as \"system_power\"\nFROM solar\nwhere\n  nuts_id = '$NUTS3' and\n  power < 50\n\nORDER BY 1",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "timeColumn": "time",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "title": "System Power Distribution",
+      "type": "histogram"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 21
+      },
+      "id": 19,
+      "panels": [],
+      "title": "Wärmekataster",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "cdki7o6hyve9sd"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-RdYlGr"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "kwatt"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 20,
+        "w": 13,
+        "x": 0,
+        "y": 22
+      },
+      "id": 20,
+      "options": {
+        "basemap": {
+          "config": {
+            "showLabels": true,
+            "theme": "light"
+          },
+          "type": "carto"
+        },
+        "controls": {
+          "mouseWheelZoom": true,
+          "showAttribution": true,
+          "showDebug": false,
+          "showLayercontrol": true,
+          "showScale": false,
+          "showZoom": true
+        },
+        "layers": [
+          {
+            "config": {
+              "cluster": false,
+              "clusterDistance": 20,
+              "clusterMinDistance": 0,
+              "clusterValue": "size",
+              "color": {
+                "field": "demand",
+                "fixed": "dark-green"
+              },
+              "enableGradient": false,
+              "enableShadow": false,
+              "fillOpacity": 0.4,
+              "iconSize": 9,
+              "pinShape": "marker",
+              "shape": "circle",
+              "showLegend": true,
+              "showPin": false,
+              "size": {
+                "fixed": 5,
+                "max": 15,
+                "min": 2
+              }
+            },
+            "displayProperties": [
+              "nuts_id",
+              "demand"
+            ],
+            "location": {
+              "geojson": "geom",
+              "mode": "geojson"
+            },
+            "name": "Demand",
+            "query": "A",
+            "type": "markers"
+          },
+          {
+            "config": {
+              "cluster": false,
+              "clusterDistance": 20,
+              "clusterMinDistance": 0,
+              "clusterValue": "size",
+              "color": {
+                "fixed": "dark-blue"
+              },
+              "enableGradient": false,
+              "enableShadow": false,
+              "fillOpacity": 0.6,
+              "iconSize": 9,
+              "pinShape": "marker",
+              "shape": "circle",
+              "showLegend": false,
+              "showPin": false,
+              "size": {
+                "fixed": 3,
+                "max": 15,
+                "min": 2
+              }
+            },
+            "displayProperties": [
+              "nuts_id",
+              "demand"
+            ],
+            "location": {
+              "geojson": "geom",
+              "latitude": "lat",
+              "longitude": "lon",
+              "mode": "geojson"
+            },
+            "name": "PV Markers",
+            "query": "B",
+            "type": "markers"
+          }
+        ],
+        "view": {
+          "id": "coords",
+          "lat": 51.727277,
+          "lon": 6.527983,
+          "zoom": 6.33
+        }
+      },
+      "pluginVersion": "8.5.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "cdki7o6hyve9sd"
+          },
+          "format": "table",
+          "group": [],
+          "hide": false,
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "Select \r\n  d.nuts_id, ST_AsGeoJSON(nuts.geometry) as geom, \r\n  sum(demand) as demand \r\nfrom heat d\r\nJoin nuts on d.nuts_id = nuts.nuts_id\r\nGroup by d.nuts_id, nuts.geometry",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "ST_AsGeoJSON(geometry)"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "table": "nuts",
+          "timeColumn": "level",
+          "timeColumnType": "int8",
+          "where": [
+            {
+              "name": "$__unixEpochFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        },
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "cdki7o6hyve9sd"
+          },
+          "format": "table",
+          "group": [],
+          "hide": false,
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "Select \n  d.nuts_id, ST_AsGeoJSON(nuts.geometry) as geom, \n  sum(demand) as demand \nfrom heat d\nJoin nuts on d.nuts_id = nuts.nuts_id\nwhere d.nuts_id = '$NUTS3'\nGroup by d.nuts_id, nuts.geometry\n\n\n",
+          "refId": "B",
+          "select": [
+            [
+              {
+                "params": [
+                  "value"
+                ],
+                "type": "column"
+              }
+            ]
+          ],
+          "timeColumn": "time",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "title": "Heat Demand  by NUTS3",
+      "type": "orchestracities-map-panel"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 42
+      },
+      "id": 9,
+      "panels": [],
+      "title": "European weather",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "P6EAA63344BCC9F38"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-YlRd"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "percentage",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 12,
+        "w": 6,
+        "x": 7,
+        "y": 43
+      },
+      "id": 5,
+      "options": {
+        "basemap": {
+          "config": {},
+          "type": "osm-standard"
+        },
+        "controls": {
+          "mouseWheelZoom": true,
+          "showAttribution": true,
+          "showDebug": false,
+          "showLayercontrol": true,
+          "showScale": false,
+          "showZoom": true
+        },
+        "layers": [
+          {
+            "config": {
+              "cluster": false,
+              "clusterDistance": 20,
+              "clusterMinDistance": 0,
+              "clusterValue": "size",
+              "color": {
+                "field": "ghi",
+                "fixed": "dark-green"
+              },
+              "enableGradient": false,
+              "enableShadow": false,
+              "fillOpacity": 1,
+              "iconSize": 9,
+              "pinShape": "marker",
+              "shape": "circle",
+              "showLegend": true,
+              "showPin": false,
+              "size": {
+                "fixed": 5,
+                "max": 15,
+                "min": 2
+              }
+            },
+            "displayProperties": [
+              "ghi"
+            ],
+            "location": {
+              "geojson": "geom",
+              "mode": "geojson"
+            },
+            "name": "GHI",
+            "query": "A",
+            "type": "markers"
+          }
+        ],
+        "view": {
+          "id": "europe",
+          "lat": 46,
+          "lon": 14,
+          "zoom": 4
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "P6EAA63344BCC9F38"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "group": [
+            {
+              "params": [
+                "$__interval",
+                "none"
+              ],
+              "type": "time"
+            }
+          ],
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  avg(ghi) AS \"ghi\",\n  ST_AsGeoJSON(geometry) AS \"geom\"\nFROM weather.ecmwf_eu eu JOIN nuts ON eu.nuts_id = nuts.nuts_id \nGROUP BY geom\nORDER BY 1",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "precipitation"
+                ],
+                "type": "column"
+              },
+              {
+                "params": [
+                  "avg"
+                ],
+                "type": "aggregate"
+              },
+              {
+                "params": [
+                  "precipitation"
+                ],
+                "type": "alias"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "ST_AsGeoJSON(geometry)"
+                ],
+                "type": "column"
+              },
+              {
+                "params": [
+                  "geom"
+                ],
+                "type": "alias"
+              }
+            ]
+          ],
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          },
+          "table": "ecmwf_eu",
+          "timeColumn": "\"time\"",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            }
+          ]
+        }
+      ],
+      "title": "Average Irradiation Europe",
+      "type": "orchestracities-map-panel"
+    },
+    {
+      "datasource": {
+        "type": "grafana-postgresql-datasource",
+        "uid": "P6EAA63344BCC9F38"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "continuous-YlRd"
+          },
+          "custom": {
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "#d0e3ff",
+                "value": null
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "ghi.*"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "Wm2"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 15,
+        "w": 9,
+        "x": 15,
+        "y": 43
+      },
+      "id": 24,
+      "options": {
+        "basemap": {
+          "config": {},
+          "name": "Layer 0",
+          "type": "default"
+        },
+        "controls": {
+          "mouseWheelZoom": true,
+          "showAttribution": true,
+          "showDebug": false,
+          "showMeasure": false,
+          "showScale": false,
+          "showZoom": true
+        },
+        "layers": [
+          {
+            "config": {
+              "showLegend": true,
+              "style": {
+                "color": {
+                  "field": "ghi",
+                  "fixed": "dark-green"
+                },
+                "opacity": 0.4,
+                "rotation": {
+                  "fixed": 0,
+                  "max": 360,
+                  "min": -360,
+                  "mode": "mod"
+                },
+                "size": {
+                  "fixed": 5,
+                  "max": 15,
+                  "min": 2
+                },
+                "symbol": {
+                  "fixed": "img/icons/marker/circle.svg",
+                  "mode": "fixed"
+                },
+                "text": {
+                  "field": "nuts_id",
+                  "fixed": "",
+                  "mode": "fixed"
+                },
+                "textConfig": {
+                  "fontSize": 12,
+                  "offsetX": 0,
+                  "offsetY": 0,
+                  "textAlign": "center",
+                  "textBaseline": "middle"
+                }
+              }
+            },
+            "filterData": {
+              "id": "byRefId",
+              "options": "A"
+            },
+            "location": {
+              "mode": "auto"
+            },
+            "name": "Layer 1",
+            "tooltip": true,
+            "type": "markers"
+          }
+        ],
+        "tooltip": {
+          "mode": "details"
+        },
+        "view": {
+          "allLayers": true,
+          "id": "europe",
+          "lat": 46,
+          "lon": 14,
+          "zoom": 4
+        }
+      },
+      "pluginVersion": "10.4.4",
+      "targets": [
+        {
+          "datasource": {
+            "type": "grafana-postgresql-datasource",
+            "uid": "P6EAA63344BCC9F38"
+          },
+          "editorMode": "code",
+          "format": "table",
+          "group": [
+            {
+              "params": [
+                "$__interval",
+                "none"
+              ],
+              "type": "time"
+            }
+          ],
+          "hide": false,
+          "metricColumn": "none",
+          "rawQuery": true,
+          "rawSql": "SELECT\n  --$__timeGroupAlias(\"time\",$__interval),\n  --avg(temp_air-273.15) AS \"temp_air\",\n  avg(ghi/3600) AS \"ghi\",\n  --avg(\"wind_speed\") AS \"wind_speed\",\n  longitude,\n  latitude,\n  nuts_id\nFROM weather.ecmwf_eu\nWHERE\n  \"time\" = (SELECT MAX(\"time\") FROM  weather.ecmwf WHERE $__timeFilter(\"time\"))\n  \nGROUP BY longitude, latitude, nuts_id\n--, 1\n--ORDER BY 1",
+          "refId": "A",
+          "select": [
+            [
+              {
+                "params": [
+                  "temp_air-273.15"
+                ],
+                "type": "column"
+              },
+              {
+                "params": [
+                  "avg"
+                ],
+                "type": "aggregate"
+              },
+              {
+                "params": [
+                  "temp_air"
+                ],
+                "type": "alias"
+              }
+            ],
+            [
+              {
+                "params": [
+                  "ghi"
+                ],
+                "type": "column"
+              },
+              {
+                "params": [
+                  "avg"
+                ],
+                "type": "aggregate"
+              },
+              {
+                "params": [
+                  "ghi"
+                ],
+                "type": "alias"
+              }
+            ]
+          ],
+          "sql": {
+            "columns": [
+              {
+                "parameters": [],
+                "type": "function"
+              }
+            ],
+            "groupBy": [
+              {
+                "property": {
+                  "type": "string"
+                },
+                "type": "groupBy"
+              }
+            ],
+            "limit": 50
+          },
+          "table": "cosmo",
+          "timeColumn": "\"time\"",
+          "timeColumnType": "timestamp",
+          "where": [
+            {
+              "name": "$__timeFilter",
+              "params": [],
+              "type": "macro"
+            },
+            {
+              "datatype": "text",
+              "name": "",
+              "params": [
+                "country",
+                "=",
+                "'DE'"
+              ],
+              "type": "expression"
+            }
+          ]
+        }
+      ],
+      "title": "Average Europe Irradiation map",
+      "type": "geomap"
+    }
+  ],
+  "refresh": false,
+  "schemaVersion": 39,
+  "tags": [],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "DEA11",
+          "value": "DEA11"
+        },
+        "datasource": {
+          "type": "grafana-postgresql-datasource",
+          "uid": "cdki7o6hyve9sd"
+        },
+        "definition": "Select distinct nuts_id from nuts where level = 3 and country = 'DE' and SUBSTRING(nuts_id,1,3) = 'DEA' order by nuts_id",
+        "hide": 0,
+        "includeAll": false,
+        "multi": false,
+        "name": "NUTS3",
+        "options": [],
+        "query": "Select distinct nuts_id from nuts where level = 3 and country = 'DE' and SUBSTRING(nuts_id,1,3) = 'DEA' order by nuts_id",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 0,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-1y",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "",
+  "title": "Open-NRW",
+  "uid": "ZXG8ZnzVk",
+  "version": 1,
+  "weekStart": ""
+}
