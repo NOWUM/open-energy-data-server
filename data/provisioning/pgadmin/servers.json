@@ -1,0 +1,13 @@
+{
+    "Servers": {
+        "1": {
+            "Name": "opendata",
+            "Group": "Servers",
+            "Port": 5432,
+            "Username": "opendata",
+            "Host": "open-data-16",
+            "SSLMode": "prefer",
+            "MaintenanceDB": "postgres"
+        }
+    }
+}
