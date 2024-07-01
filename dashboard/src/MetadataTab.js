@@ -26,27 +26,29 @@ function MetadataTab() {
                         selectedMetadata={selectedMetadata}
                         setSelectedMetadata={setSelectedMetadata}
                     />
-                    {selectedMetadata && (
+                    <div className='table-map'>
                         <div className="section detail-view">
-                            <h3>Details for {selectedMetadata.schema_name}</h3>
                             <table className="metadata-table">
                                 <tbody>
-                                    <tr><td>Schema Name</td><td>{selectedMetadata.schema_name}</td></tr>
-                                    <tr><td>Crawl Date</td><td>{selectedMetadata.crawl_date || 'N/A'}</td></tr>
-                                    <tr><td>Data Date</td><td>{selectedMetadata.data_date || 'N/A'}</td></tr>
-                                    <tr><td>Data Source</td><td>{selectedMetadata.data_source || 'N/A'}</td></tr>
-                                    <tr><td>Licence</td><td>{selectedMetadata.licence || 'N/A'}</td></tr>
-                                    <tr><td>Description</td><td>{selectedMetadata.description || 'N/A'}</td></tr>
-                                    <tr><td>Contact</td><td>{selectedMetadata.contact || 'N/A'}</td></tr>
-                                    <tr><td>Tables</td><td>{selectedMetadata.tables || 'N/A'}</td></tr>
-                                    <tr><td>Size</td><td>{selectedMetadata.size ? `${selectedMetadata.size} bytes` : 'N/A'}</td></tr>
-                                    <tr><td>Type</td><td>{getDataFormat(selectedMetadata)}</td></tr>
+                                    <tr><td>Name</td><td>{selectedMetadata ? selectedMetadata.schema_name : "Nothing selected"}</td></tr>
+                                    <tr><td>Crawl Date</td><td>{selectedMetadata ? selectedMetadata.crawl_date : 'N/A'}</td></tr>
+                                    <tr><td>Data Date</td><td>{selectedMetadata ? selectedMetadata.data_date : 'N/A'}</td></tr>
+                                    <tr><td>Data Source</td><td>{selectedMetadata ? selectedMetadata.data_source : 'N/A'}</td></tr>
+                                    <tr><td>Licence</td><td>{selectedMetadata ? selectedMetadata.licence : 'N/A'}</td></tr>
+                                    <tr><td>Description</td><td>{selectedMetadata ? selectedMetadata.description : 'N/A'}</td></tr>
+                                    <tr><td>Contact</td><td>{selectedMetadata ? selectedMetadata.contact : 'N/A'}</td></tr>
+                                    <tr><td>Tables</td><td>{selectedMetadata ? selectedMetadata.tables : 'N/A'}</td></tr>
+                                    <tr><td>Size</td><td>{selectedMetadata && selectedMetadata.size ? `${selectedMetadata.size} bytes` : 'N/A'}</td></tr>
+                                    <tr><td>Type</td><td>{selectedMetadata ? getDataFormat(selectedMetadata) : 'N/A'}</td></tr>
                                 </tbody>
                             </table>
+
                         </div>
-                    )}
+
+                            <MapComponent metadataOptions={metadataOptions} selectedMetadata={selectedMetadata} />
+                    </div>
+
                     <TimelineChart metadataOptions={metadataOptions} selectedMetadata={selectedMetadata} />
-                    <MapComponent metadataOptions={metadataOptions} selectedMetadata={selectedMetadata} />
                 </>
             )}
         </div>

@@ -12,14 +12,18 @@ function Header({ activeTab, setActiveTab }) {
         setActiveTab(tab);
     }
 
+    const getButtonStyle = (tab) => {
+        return tab === activeTab ? { backgroundColor: '#f0f0f0' } : {};
+    }
+
     return (
         <>
             <div className="App-header">
                 <header className="top-header">
                     <h1>OEDS Explorer</h1>
                     <div className='button-container'>
-                        <button className="button" onClick={() => handleButtonClick('rest')} >REST</button>
-                        <button className="button" onClick={() => handleButtonClick('metadata')} >Metadata</button>
+                        <button className="button" onClick={() => handleButtonClick('rest')} style={getButtonStyle('rest')}>REST</button>
+                        <button className="button" onClick={() => handleButtonClick('metadata')}  style={getButtonStyle('metadata')}>Metadata</button>
                     </div>
 
                 </header>

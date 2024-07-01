@@ -16,9 +16,13 @@ function MetadataOverview({ metadataOptions, searchTerm, setSearchTerm, selected
         metadata.schema_name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const getCardStyle = schemaName => {
+        if (!selectedMetadata) return {};
+        return schemaName === selectedMetadata.schema_name ? { backgroundColor: '#f0f0f0' } : {};
+    }
+    
     return (
-        <div className="section">
-            <h3>Overview</h3>
+        <div className="cards-section">
             <div className="search-container">
                 <input
                     type="text"
@@ -30,7 +34,7 @@ function MetadataOverview({ metadataOptions, searchTerm, setSearchTerm, selected
             <div className="cards-container">
                 <div className="cards">
                     {filteredOptions.map(metadata => (
-                        <div key={metadata.schema_name} className="card" onClick={() => handleCardClick(metadata)}>
+                        <div key={metadata.schema_name} className="card" onClick={() => handleCardClick(metadata)} style={getCardStyle(metadata.schema_name)}>
                             <div>{metadata.schema_name}</div>
                             <div>{getDataFormat(metadata)}</div>
                         </div>

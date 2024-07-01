@@ -1,46 +1,61 @@
 .section {
-    border: 1px solid #ccc;
-    padding: 5px;
+    padding: 0px 0px 10px 0px;
     text-align: center;
-    margin-bottom: 20px;
 }
-
-.search-container {
+.cards-section {
     display: flex;
-    align-items: center;
-    margin-bottom: 10px;
+    padding: 0px 0px 10px 0px;
+    flex-direction:row;
+    justify-content: center;
+    align-items: flex-start;
 }
 
-.details-container {
-    height: 500px;
-    overflow-y: auto;
-    margin-top: 10px;
-    padding: 5px;
+.detail-view {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
 }
+
+.table-map {
+    align-items: center;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
 
 .chart-container {
-    width: '100%';
-    height: '300px';
     display: flex;
-    justify-content: center;
-    align-items: center;
+    justify-content: right;
+    width: 60vw;
 }
 
-.search-container input {
-    flex: 1;
+.metadata-table {
+    width: 40vw;
+    min-width: 300px;
+    word-break: break-all;
+}
+
+.map-container {
+    flex-grow: 1;
+}
+.search-container {
+
+}
+
+
+.search-container input,
+.search-container button {
     padding: 8px;
-    margin-right: 10px;
+    margin: 5px;
     border: 1px solid #ccc;
     border-radius: 4px;
 }
 
 .search-container button {
-    padding: 8px 16px;
-    border: none;
     background-color: #007bff;
     color: white;
-    border-radius: 4px;
-    cursor: pointer;
 }
 
 .search-container button:hover {
@@ -50,18 +65,18 @@
 .cards-container {
     overflow-x: auto;
     white-space: nowrap;
-    padding-bottom: 10px;
 }
 
 .cards {
+    padding: 5px;
     display: inline-flex;
     gap: 10px;
 }
 
 .card {
-    width: 200px;
-    height: 50px;
-    padding: 20px;
+    width: 160px;
+    height: 40px;
+    padding: 8px;
     border: 1px solid #ccc;
     border-radius: 5px;
     background-color: #f9f9f9;
@@ -69,19 +84,14 @@
     flex-shrink: 0;
 }
 
-.metadata-table {
-    width: 80%;
-    max-width: 100%;
-    margin: 0 auto;
-    border-collapse: collapse;
+.card.selected {
+    background-color: #007bff;
+    color: white;
 }
 
 .metadata-table td,
 .metadata-table th {
     border: 1px solid #ccc;
-    padding: 8px;
-    max-width: 200px;
-    word-wrap: break-word;
 }
 
 .metadata-table td:first-child {
@@ -92,34 +102,32 @@
     width: 75%;
 }
 
-.custom-tooltip {
-    background: rgba(255, 255, 255, 0.9);
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    padding: 10px;
-    box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.2);
-}
-
-.custom-tooltip .label {
-    font-size: 14px;
-    margin-bottom: 5px;
-    font-weight: bold;
-}
-
-.custom-tooltip ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-.custom-tooltip li {
-    font-size: 12px;
-    color: #333;
-}
 
 .loading-container {
     text-align: center;
     padding: 20px;
     font-size: 16px;
     color: #666;
+}
+
+@media (max-width: 700px) {
+
+    .table-map {
+        flex-direction: column;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .chart-container {
+        display: flex;
+        align-self: center;
+        width: 92%;
+
+    }
+
+    .metadata-table {
+        width: 95vw;
+        align-self: center;
+    }
+
 }

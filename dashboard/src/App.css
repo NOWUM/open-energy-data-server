@@ -7,24 +7,24 @@
 }
 
 .select-container select {
-  flex: 1; 
+  flex: 1;
   padding: 8px;
-  margin: 0px 5px 0px 5px; 
+  margin: 0px 5px 0px 5px;
   border: 1px solid #ccc;
   border-radius: 4px;
-  background-color: #ffffff; 
-  cursor: pointer; 
+  background-color: #ffffff;
+  cursor: pointer;
 }
 
 .select-container select:focus {
   border-color: #007bff;
-  outline: none; 
+  outline: none;
 }
 
 .select-container option {
-  padding: 8px; 
-  background: white; 
-  color: #333; 
+  padding: 8px;
+  background: white;
+  color: #333;
 }
 
 .select-container option:hover {
@@ -46,16 +46,16 @@
 .App-header {
   z-index: 1000;
   width: 100%;
-  position: fixed; 
+  position: fixed;
   display: flex;
   flex-direction: column;
   top: 0;
   left: 0;
-  background-color: #ffffff; 
-  height: 60px; 
+  background-color: #ffffff;
 }
+
 .top-header {
-  background-color: #ffffff; 
+  background-color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: space-around;
@@ -63,10 +63,11 @@
 
 .tab-content {
   flex: 1;
-  margin-top: 128px;
+  margin-top: 90px;
   overflow-y: auto;
   width: 100%;
 }
+
 
 .button {
   border: 1px solid #ccc;
@@ -86,12 +87,13 @@
 
 @media (max-width: 500px) {
   .App-header div {
-    padding: 10px;
+    padding: 5px;
     display: flex;
     align-items: center;
   }
 
   .App-header h1 {
+    margin: 0px;
     width: 100%;
   }
 
@@ -103,7 +105,9 @@
 
   .tab-content {
     flex: 1;
-    margin-top: 160px;
+    margin-top: 110px;
     overflow-y: auto;
-    width: 100%;  }
+    width: 100%;
+  }
+
 }

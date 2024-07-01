@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, useMapEvents, ZoomControl } from 'reac
 import 'leaflet/dist/leaflet.css';
 import * as turf from '@turf/turf';
 import L from 'leaflet';
-
+import './MetadataTab.css';
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 
@@ -70,10 +70,8 @@ function MapComponent({ metadataOptions, selectedMetadata }) {
     };
 
     return (
-        <div className="section">
-            <h3>Availability Map</h3>
             <div className="chart-container">
-                <MapContainer ref={mapRef} zoomControl={false} center={position} zoom={4} style={{ height: '600px', width: '60%' }}>
+                <MapContainer ref={mapRef} zoomControl={false} center={position} zoom={4} style={{height:'40vh', width: '100%', minHeight:'300px' }}>
                     <TileLayer
                         url="https://map.nowum.fh-aachen.de/cartodb/light_all/{z}/{x}/{y}.png"
                         attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
@@ -85,16 +83,16 @@ function MapComponent({ metadataOptions, selectedMetadata }) {
                     )}
                 </MapContainer>
             </div>
-            <div className="details-container">
-                <h4>Overlapping Sources at Click:</h4>
-                <ul style={{ listStyleType: 'none' }}>
-                    {overlappingSources.map((source, index) => (
-                        <li key={index}>{source.schema_name || "Unnamed Source"}</li>
-                    ))}
-                </ul>
-            </div>
-        </div>
+           
     );
 }
-
+// <div className="details-container">
+//                <h4>Overlapping Sources at Click:</h4>
+//                <ul style={{ listStyleType: 'none' }}>
+//                    {overlappingSources.map((source, index) => (
+//                        <li key={index}>{source.schema_name || "Unnamed Source"}</li>
+//                    ))}
+//                </ul>
+//            </div>
+//
 export default MapComponent;

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Brush, ResponsiveContainer } from 'recharts';
+import './MetadataTab.css';
 
 function TimelineChart({ metadataOptions, selectedMetadata }) {
     const [chartData, setChartData] = useState([]);
@@ -62,19 +63,19 @@ function TimelineChart({ metadataOptions, selectedMetadata }) {
     };
 
     return (
-        <div className="section">
-            <h3>Availability Timeline</h3>
-            <div className="chart-container">
+        <div >
+            <div style={{  height: '300px' }}>
                 <ResponsiveContainer>
                     <LineChart data={chartData}
-                        margin={{ top: 2, right: 100, left: 100, bottom: 2 }}>
+                        	 margin={{ top: 5, right: 64, left: 5, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="name" />
                         <YAxis />
                         <Tooltip content={customTooltip} />
                         <Legend />
                         <Line type="monotone" dataKey="value" stroke="#8884d8" dot={false} />
-                        <Brush dataKey='name' height={30} stroke="#8884d8" />
+                     
+                    <Brush dataKey='name' padding={{ top: 5, bottom: 0 , left: 0, right: 64}} height={30} stroke="#8884d8"    />
                     </LineChart>
                 </ResponsiveContainer>
             </div>
