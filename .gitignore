@@ -15,3 +15,4 @@ config.py
 .env
 .venv
 crawler/data/Waermebedarf_NRW.gdb/
+data/pgadmin
