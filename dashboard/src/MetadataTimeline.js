@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Brush } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Brush, ResponsiveContainer } from 'recharts';
 
 function TimelineChart({ metadataOptions, selectedMetadata }) {
     const [chartData, setChartData] = useState([]);
@@ -10,9 +10,7 @@ function TimelineChart({ metadataOptions, selectedMetadata }) {
             activeMetadata = [selectedMetadata];	
         }
 
-
-        const datefulOptions =  activeMetadata.filter(metadata => metadata.temporal_start && metadata.temporal_end);
-
+        const datefulOptions = activeMetadata.filter(metadata => metadata.temporal_start && metadata.temporal_end);
 
         const tempDates = datefulOptions.map(metadata => ({
             schema_name: metadata.schema_name,
@@ -67,16 +65,18 @@ function TimelineChart({ metadataOptions, selectedMetadata }) {
         <div className="section">
             <h3>Availability Timeline</h3>
             <div className="chart-container">
-                <LineChart width={800} height={300} data={chartData}
-                    margin={{ top: 5, right: 100, left: 50, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip content={customTooltip} />
-                    <Legend />
-                    <Line type="monotone" dataKey="value" stroke="#8884d8" dot={false} />
-                    <Brush dataKey='name' height={30} stroke="#8884d8" />
-                </LineChart>
+                <ResponsiveContainer>
+                    <LineChart data={chartData}
+                        margin={{ top: 2, right: 100, left: 100, bottom: 2 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip content={customTooltip} />
+                        <Legend />
+                        <Line type="monotone" dataKey="value" stroke="#8884d8" dot={false} />
+                        <Brush dataKey='name' height={30} stroke="#8884d8" />
+                    </LineChart>
+                </ResponsiveContainer>
             </div>
         </div>
     );

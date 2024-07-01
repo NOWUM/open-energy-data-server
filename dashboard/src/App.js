@@ -1,9 +1,12 @@
 // App.js
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import { DBContext } from './DBContext';
 import './App.css';
 import RestTab from './RestTab';
 import MetadataTab from './MetadataTab';
 import { DBProvider } from './DBContext';
+import { center } from '@turf/turf';
+import Header from './Header';
 
 function App() {
   const [activeTab, setActiveTab] = useState('rest');
@@ -11,13 +14,8 @@ function App() {
   return (
     <DBProvider>
       <div className="App">
-        <header className="App-header">
-          <h1>OEDS Explorer</h1>
-          <div style={{ display: 'flex' }}>
-            <button className="button" onClick={() => setActiveTab('rest')}>REST</button>
-            <button className="button" onClick={() => setActiveTab('metadata')}>Metadata</button>
-          </div>
-        </header>
+        <Header activeTab={activeTab} setActiveTab={setActiveTab} />
+        
         <div className="tab-content">
           {activeTab === 'rest' && <RestTab />}
           {activeTab === 'metadata' && <MetadataTab />}

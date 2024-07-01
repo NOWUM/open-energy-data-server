@@ -40,12 +40,12 @@ export const DBProvider = ({ children }) => {
 
         const url = new URL("https://monitor.nowum.fh-aachen.de/oeds/metadata");
         fetch(url)
-        .then(res => res.json())
-        .then(data => {
-            const sorted = data.sort((a, b) => a.schema_name.localeCompare(b.schema_name));
-            setMetadataOptions(sorted);
-        })
-        .catch(error => console.error('Error fetching swagger schemas:', error));
+            .then(res => res.json())
+            .then(data => {
+                const sorted = data.sort((a, b) => a.schema_name.localeCompare(b.schema_name));
+                setMetadataOptions(sorted);
+            })
+            .catch(error => console.error('Error fetching swagger schemas:', error));
     }, [selectedProfile]);
 
     return (

@@ -1,8 +1,7 @@
-
-
 .section {
-    border: 1px solid #ccc; 
+    border: 1px solid #ccc;
     padding: 5px;
+    text-align: center;
     margin-bottom: 20px;
 }
 
@@ -13,13 +12,15 @@
 }
 
 .details-container {
-    height: 500px; 
-    overflow-y: auto; 
+    height: 500px;
+    overflow-y: auto;
     margin-top: 10px;
     padding: 5px;
 }
 
 .chart-container {
+    width: '100%';
+    height: '300px';
     display: flex;
     justify-content: center;
     align-items: center;
@@ -49,7 +50,7 @@
 .cards-container {
     overflow-x: auto;
     white-space: nowrap;
-    padding-bottom: 10px; 
+    padding-bottom: 10px;
 }
 
 .cards {
@@ -59,35 +60,36 @@
 
 .card {
     width: 200px;
-    height: 50px; 
+    height: 50px;
     padding: 20px;
     border: 1px solid #ccc;
     border-radius: 5px;
     background-color: #f9f9f9;
     text-align: center;
-    flex-shrink: 0; 
+    flex-shrink: 0;
 }
 
 .metadata-table {
-    width: 80%; 
-    max-width: 100%; 
+    width: 80%;
+    max-width: 100%;
     margin: 0 auto;
     border-collapse: collapse;
 }
 
-.metadata-table td, .metadata-table th {
+.metadata-table td,
+.metadata-table th {
     border: 1px solid #ccc;
     padding: 8px;
-    max-width: 200px; 
-    word-wrap: break-word; 
+    max-width: 200px;
+    word-wrap: break-word;
 }
 
 .metadata-table td:first-child {
-    width: 25%; 
+    width: 25%;
 }
 
 .metadata-table td:last-child {
-    width: 75%; 
+    width: 75%;
 }
 
 .custom-tooltip {
@@ -95,7 +97,7 @@
     border: 1px solid #ccc;
     border-radius: 5px;
     padding: 10px;
-    box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.2);
+    box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.2);
 }
 
 .custom-tooltip .label {

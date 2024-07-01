@@ -1,32 +1,109 @@
 .App {
-    text-align: center;
-  }
-  
-  .App-header {
-    flex-direction: column;
+  text-align: center;
+  overflow: hidden;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.select-container select {
+  flex: 1; 
+  padding: 8px;
+  margin: 0px 5px 0px 5px; 
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #ffffff; 
+  cursor: pointer; 
+}
+
+.select-container select:focus {
+  border-color: #007bff;
+  outline: none; 
+}
+
+.select-container option {
+  padding: 8px; 
+  background: white; 
+  color: #333; 
+}
+
+.select-container option:hover {
+  background-color: #f2f2f2;
+}
+
+.select-container {
+  display: flex;
+  padding: 5px;
+}
+
+.loading-container {
+  text-align: center;
+  padding: 10px;
+  font-size: 16px;
+  color: #666;
+}
+
+.App-header {
+  z-index: 1000;
+  width: 100%;
+  position: fixed; 
+  display: flex;
+  flex-direction: column;
+  top: 0;
+  left: 0;
+  background-color: #ffffff; 
+  height: 60px; 
+}
+.top-header {
+  background-color: #ffffff; 
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.tab-content {
+  flex: 1;
+  margin-top: 128px;
+  overflow-y: auto;
+  width: 100%;
+}
+
+.button {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+  z-index: 1000000;
+  margin: 5px 0px 5px 20px;
+  width: 120px;
+  height: 40px;
+  text-align: center;
+}
+
+.button-container {
+  display: flex;
+  align-items: center;
+}
+
+@media (max-width: 500px) {
+  .App-header div {
+    padding: 10px;
+    display: flex;
     align-items: center;
-    justify-content: center;
-    position: fixed;
-    width: 100%;
-    top: 0;
-    z-index: 1000;
-    background-color: white;
-  }
-  
-  .tab-content {
-    margin-top: 15vh;
-    padding: 20px;
-    overflow-y: auto;
-    height: calc(100vh - 15vh); 
   }
 
-  .button {
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background-color: #f9f9f9;
-    text-align: center;
-    flex-shrink: 0; 
-    flex: 1;
-    z-index: 1000000;
+  .App-header h1 {
+    width: 100%;
   }
+
+  .button-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .tab-content {
+    flex: 1;
+    margin-top: 160px;
+    overflow-y: auto;
+    width: 100%;  }
+}
