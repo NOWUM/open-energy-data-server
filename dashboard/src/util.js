@@ -7,3 +7,11 @@ export function getDataFormat(metadata) {
     if (hasSpatial) return "Spatial";
     return "Relational";
 };
+
+export function getFormattedSize(size) {
+    if (size < 1000) return `${size} B`;
+    if (size < 1000 * 1000) return `${(size / 1024).toFixed(2)} KB`;
+    if (size < 1000 * 1000 * 1000) return `${(size / (1000 * 1000)).toFixed(2)} MB`;
+    if (size < 1000 * 1000 * 1000 * 1000) return `${(size / (1000 * 1000 * 1000)).toFixed(2)} GB`;
+    return `${(size / (1000 * 1000 * 1000 * 1000)).toFixed(2)} TB`;
+};

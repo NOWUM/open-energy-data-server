@@ -8,7 +8,7 @@ import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 
 function MapComponent({ metadataOptions, selectedMetadata }) {
-    const position = [50.775132, 6.083861]; 
+    const position = [50.775132, 6.083861];
     const [clickedLocation, setClickedLocation] = useState(null);
     const [overlappingSources, setOverlappingSources] = useState([]);
     const [activeMetadata, setActiveMetadata] = useState([]);
@@ -36,19 +36,35 @@ function MapComponent({ metadataOptions, selectedMetadata }) {
             geoJsonLayersRef.current.forEach(layer => mapRef.current.removeLayer(layer));
             geoJsonLayersRef.current = [];
 
-            activeMetadata.forEach(option => {
-                const geoJsonLayer = L.geoJSON(option.concave_hull_geometry, {
+            if (selectedMetadata && selectedMetadata.concave_hull_geometry) {
+                const geoJsonLayer = L.geoJSON(selectedMetadata.concave_hull_geometry, {
                     style: {
-                        color: 'rgb(255, 0, 0)',
+                        color: 'rgb(    255, 0, 0)',
                         weight: 0,
                         fillColor: 'rgb(255, 0, 0)',
                         fillOpacity: 0.2
                     }
                 }).addTo(mapRef.current);
                 geoJsonLayersRef.current.push(geoJsonLayer);
-            });
+            } else if (!selectedMetadata) {
+                activeMetadata.forEach(option => {
+                    const geoJsonLayer = L.geoJSON(option.concave_hull_geometry, {
+                        style: {
+                            color: 'rgb(255, 0, 0)',
+                            weight: 0,
+                            fillColor: 'rgb(255, 0, 0)',
+                            fillOpacity: 0.2
+                        }
+                    }).addTo(mapRef.current);
+                    geoJsonLayersRef.current.push(geoJsonLayer);
+                })
+            }
+
+
+
+
         }
-    }, [activeMetadata]);
+    }, [activeMetadata, selectedMetadata]);
 
     const MapEvents = () => {
         useMapEvents({
@@ -70,20 +86,18 @@ function MapComponent({ metadataOptions, selectedMetadata }) {
     };
 
     return (
-            <div className="chart-container">
-                <MapContainer ref={mapRef} zoomControl={false} center={position} zoom={4} style={{height:'40vh', width: '100%', minHeight:'300px' }}>
-                    <TileLayer
-                        url="https://map.nowum.fh-aachen.de/cartodb/light_all/{z}/{x}/{y}.png"
-                        attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-                    />
-                    <ZoomControl position='bottomleft' />
-                    <MapEvents />
-                    {clickedLocation && (
-                        <Marker position={clickedLocation}></Marker>
-                    )}
-                </MapContainer>
-            </div>
-           
+        <div className="chart-container">
+            <MapContainer ref={mapRef} zoomControl={false} center={position} zoom={4} style={{ height: '38vh', width: '100%', minHeight: '280px' }}>
+                <TileLayer
+                    url="https://map.nowum.fh-aachen.de/cartodb/light_all/{z}/{x}/{y}.png"
+                    attribution='&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+                />
+                <ZoomControl position='bottomleft' />
+                <MapEvents />
+
+            </MapContainer>
+        </div>
+
     );
 }
 // <div className="details-container">

@@ -4,7 +4,6 @@
 }
 .cards-section {
     display: flex;
-    padding: 0px 0px 10px 0px;
     flex-direction:row;
     justify-content: center;
     align-items: flex-start;
@@ -17,8 +16,7 @@
 }
 
 .table-map {
-    align-items: center;
-
+    align-items: top;
     display: flex;
     flex-direction: row;
     justify-content: space-between;
@@ -27,13 +25,13 @@
 
 .chart-container {
     display: flex;
-    justify-content: right;
+    margin: 2px 0;
+
     width: 60vw;
 }
 
 .metadata-table {
     width: 40vw;
-    min-width: 300px;
     word-break: break-all;
 }
 
@@ -72,7 +70,19 @@
     display: inline-flex;
     gap: 10px;
 }
-
+.custom-tooltip{
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    padding: 5px;
+    font-size: 14px;
+    color: #333;
+}
+.hover-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
 .card {
     width: 160px;
     height: 40px;
@@ -95,11 +105,11 @@
 }
 
 .metadata-table td:first-child {
-    width: 25%;
+    width: 100px;
 }
 
 .metadata-table td:last-child {
-    width: 75%;
+    width: 200px;
 }
 
 

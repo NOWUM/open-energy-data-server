@@ -51,7 +51,7 @@ function TimelineChart({ metadataOptions, selectedMetadata }) {
                 <div className="custom-tooltip">
                     <p className="label">{`${label} : ${payload[0].value}`}</p>
                     <p>Active schemas:</p>
-                    <ul>
+                    <ul className='hover-list'>
                         {payload[0].payload.activeOptions.map((item, index) => (
                             <li key={index}>{item}</li>
                         ))}
@@ -64,7 +64,7 @@ function TimelineChart({ metadataOptions, selectedMetadata }) {
 
     return (
         <div >
-            <div style={{  height: '300px' }}>
+            <div style={{  height: '30vh' }}>
                 <ResponsiveContainer>
                     <LineChart data={chartData}
                         	 margin={{ top: 5, right: 64, left: 5, bottom: 0 }}>

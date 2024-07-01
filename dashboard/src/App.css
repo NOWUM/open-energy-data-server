@@ -8,8 +8,7 @@
 
 .select-container select {
   flex: 1;
-  padding: 8px;
-  margin: 0px 5px 0px 5px;
+  padding: 5px;
   border: 1px solid #ccc;
   border-radius: 4px;
   background-color: #ffffff;
@@ -23,6 +22,7 @@
 
 .select-container option {
   padding: 8px;
+  margin: 5px;
   background: white;
   color: #333;
 }
@@ -43,16 +43,6 @@
   color: #666;
 }
 
-.App-header {
-  z-index: 1000;
-  width: 100%;
-  position: fixed;
-  display: flex;
-  flex-direction: column;
-  top: 0;
-  left: 0;
-  background-color: #ffffff;
-}
 
 .top-header {
   background-color: #ffffff;
@@ -63,7 +53,6 @@
 
 .tab-content {
   flex: 1;
-  margin-top: 90px;
   overflow-y: auto;
   width: 100%;
 }
@@ -74,7 +63,7 @@
   border-radius: 5px;
   background-color: #f9f9f9;
   z-index: 1000000;
-  margin: 5px 0px 5px 20px;
+  margin: 0px 0px 0px 20px;
   width: 120px;
   height: 40px;
   text-align: center;
@@ -105,7 +94,6 @@
 
   .tab-content {
     flex: 1;
-    margin-top: 110px;
     overflow-y: auto;
     width: 100%;
   }

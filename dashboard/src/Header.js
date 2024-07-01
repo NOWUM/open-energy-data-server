@@ -19,14 +19,14 @@ function Header({ activeTab, setActiveTab }) {
     return (
         <>
             <div className="App-header">
-                <header className="top-header">
+                <div className="top-header">
                     <h1>OEDS Explorer</h1>
                     <div className='button-container'>
                         <button className="button" onClick={() => handleButtonClick('rest')} style={getButtonStyle('rest')}>REST</button>
                         <button className="button" onClick={() => handleButtonClick('metadata')}  style={getButtonStyle('metadata')}>Metadata</button>
                     </div>
 
-                </header>
+                </div>
                 {activeTab === 'rest' &&
                     <div className="select-container" >
                         <select
