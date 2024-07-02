@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, useMapEvents, ZoomControl } from 'react-leaflet';
+import { MapContainer, TileLayer, useMapEvents, ZoomControl } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import * as turf from '@turf/turf';
 import L from 'leaflet';
@@ -9,8 +9,6 @@ import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 
 function MapComponent({ metadataOptions, selectedMetadata }) {
     const position = [50.775132, 6.083861];
-    const [clickedLocation, setClickedLocation] = useState(null);
-    const [overlappingSources, setOverlappingSources] = useState([]);
     const [activeMetadata, setActiveMetadata] = useState([]);
     const mapRef = useRef(null);
     const geoJsonLayersRef = useRef([]);
@@ -100,13 +98,4 @@ function MapComponent({ metadataOptions, selectedMetadata }) {
 
     );
 }
-// <div className="details-container">
-//                <h4>Overlapping Sources at Click:</h4>
-//                <ul style={{ listStyleType: 'none' }}>
-//                    {overlappingSources.map((source, index) => (
-//                        <li key={index}>{source.schema_name || "Unnamed Source"}</li>
-//                    ))}
-//                </ul>
-//            </div>
-//
 export default MapComponent;

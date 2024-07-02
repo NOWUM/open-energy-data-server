@@ -12,7 +12,7 @@ function MetadataTab() {
     const [selectedMetadata, setSelectedMetadata] = useState(null);
     const [mapZoomTrigger, setMapZoomTrigger] = useState(null);
 
-    const isLoading = !metadataOptions || metadataOptions.length === 0; // Check if metadataOptions are not loaded yet
+    const isLoading = !metadataOptions || metadataOptions.length === 0;
 
     const handleZoomClick = () => {
         if (selectedMetadata && selectedMetadata.concave_hull_geometry) {
@@ -47,7 +47,6 @@ function MetadataTab() {
                                     <tr><td>Tables</td><td>{selectedMetadata ? selectedMetadata.tables : 'N/A'}</td></tr>
                                     <tr><td>Size</td><td>{selectedMetadata && selectedMetadata.size ? getFormattedSize(selectedMetadata.size) : 'N/A'}</td></tr>
                                     <tr><td>Type</td>{ selectedMetadata ?  (selectedMetadata.concave_hull_geometry ? <td>{getDataFormat(selectedMetadata)} <button onClick={handleZoomClick} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>🔍</button> </td> :<td>{  getDataFormat(selectedMetadata) } </td> ): <td>{ 'N/A'} </td>}</tr>
-
                                 </tbody>
                             </table>
                         </div>

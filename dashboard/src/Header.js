@@ -1,12 +1,9 @@
 import React, { useContext } from 'react';
 import { DBContext } from './DBContext';
-import SwaggerUI from 'swagger-ui-react';
 import 'swagger-ui-react/swagger-ui.css';
 import './RestTab.css';
 function Header({ activeTab, setActiveTab }) {
-    const { swaggerSpec, swaggerOptions, selectedProfile, setSelectedProfile } = useContext(DBContext);
-
-    const isLoading = !swaggerSpec || !swaggerOptions.length;
+    const { swaggerOptions, selectedProfile, setSelectedProfile } = useContext(DBContext);
 
     const handleButtonClick = (tab) => {
         setActiveTab(tab);
