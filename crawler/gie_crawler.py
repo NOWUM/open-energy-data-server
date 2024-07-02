@@ -23,7 +23,7 @@ import asyncio
 import os
 import time
 
-from roiti.gie import GiePandasClient
+from gie import GiePandasClient
 from sqlalchemy import create_engine, text
 from crawler.config import db_uri
 from datetime import date, datetime, timedelta

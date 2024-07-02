@@ -52,7 +52,7 @@ def get_available_crawlers():
     return crawlers
 
 
-def update_metadata():
+def update_metadata(crawlers):
     engine = create_engine(db_uri("public"))
     current_date = datetime.datetime.now().date()
 
@@ -92,6 +92,7 @@ if __name__ == "__main__":
     # remove crawlers without publicly available data
     available_crawlers = get_available_crawlers()
     crawlers = sorted(available_crawlers)
+    dbs = []
     for crawler_name in crawlers:
         if crawler_name in available_crawlers:
             log.info(f"executing crawler {crawler_name}")
@@ -101,5 +102,6 @@ if __name__ == "__main__":
             if dbname == "nuts_mapper":
                 dbname == "public"
             import_and_exec(crawler_name, db_uri(dbname))
+            dbs.append(dbname)
 
-    update_metadata()
+    update_metadata(dbs)
