@@ -18,16 +18,10 @@ services:
 
   pgadmin:
     user: root
-    user: root
     image: dpage/pgadmin4:latest
     container_name: pgadmin4
     restart: always
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.admin
-      PGADMIN_DEFAULT_PASSWORD: admin
-      PGADMIN_LISTEN_PORT: 80
-      PGADMIN_CONFIG_UPGRADE_CHECK_ENABLED: "False"
-      PGADMIN_SERVER_JSON_FILE: /pgadmin4/servers.json
       PGADMIN_DEFAULT_EMAIL: admin@admin.admin
       PGADMIN_DEFAULT_PASSWORD: admin
       PGADMIN_LISTEN_PORT: 80
