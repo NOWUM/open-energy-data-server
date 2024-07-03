@@ -136,7 +136,7 @@ def main(db_uri):
     engine = create_engine(db_uri)
 
     try:
-        tables = create_db_from_export(connection=engine)
+        create_db_from_export(connection=engine)
     except Exception:
         log.exception("error in mastr")
 

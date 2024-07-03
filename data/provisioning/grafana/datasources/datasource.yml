@@ -1,0 +1,28 @@
+# SPDX-FileCopyrightText: Opendata Developers
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+# config file version
+apiVersion: 1
+
+# list of datasources that should be deleted from the database
+deleteDatasources:
+  - name: OPENDATA
+    orgId: 1
+
+# list of datasources to insert/update depending
+# whats available in the database
+datasources:
+- name: OPENDATA
+  type: postgres
+  url: open-data-16:5432
+  user: readonly
+  database: opendata
+  secureJsonData:
+    password: readonly
+  jsonData:
+    sslmode: "disable"
+    postgresVersion: 1600
+    timescaledb: true
+  isDefault: true
+  editable: true

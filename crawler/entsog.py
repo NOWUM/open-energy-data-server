@@ -15,12 +15,10 @@ from datetime import date, timedelta
 
 import pandas as pd
 import requests
-from sqlalchemy import text
+from sqlalchemy import create_engine, text
 from tqdm import tqdm
 
 from crawler.config import db_uri
-
-from .base_crawler import BasicDbCrawler
 
 log = logging.getLogger("entsog")
 log.setLevel(logging.INFO)
@@ -64,15 +62,15 @@ def getDataFrame(name, params=["limit=10000"], useJson=False):
                 url = f"{api_endpoint}{name}.csv{params_str}"
                 data = pd.read_csv(url, index_col=False)
             success = True
-        except requests.exceptions.InvalidURL as e:
-            raise e
+        except requests.exceptions.InvalidURL:
+            raise
         except requests.exceptions.HTTPError as e:
             log.error("Error getting Dataframe")
             if e.response.status_code >= 500:
                 log.info(f"{e.response.reason} - waiting 30 seconds..")
                 time.sleep(30)
         except urllib.error.HTTPError as e:
-            log.error(f"Error getting Dataframe")
+            log.error("Error getting Dataframe")
             if e.code >= 500:
                 log.info(f"{e.msg} - waiting 30 seconds..")
                 time.sleep(30)
@@ -83,7 +81,10 @@ def getDataFrame(name, params=["limit=10000"], useJson=False):
     return data
 
 
-class EntsogCrawler(BasicDbCrawler):
+class EntsogCrawler:
+    def __init__(self, database):
+        self.engine = create_engine(database)
+
     def pullData(self, names):
         pbar = tqdm(names)
         for name in pbar:
@@ -95,7 +96,7 @@ class EntsogCrawler(BasicDbCrawler):
                 # and tpTSO column are named tSO in connpointdirections
                 data = getDataFrame(name, useJson=True)
 
-                with self.db_accessor() as conn:
+                with self.engine.begin() as conn:
                     tbl_name = name.lower().replace(" ", "_")
                     data.to_sql(tbl_name, conn, if_exists="replace")
 
@@ -103,7 +104,7 @@ class EntsogCrawler(BasicDbCrawler):
                 log.exception("error pulling data")
 
         if "operatorpointdirections" in names:
-            with self.db_accessor() as conn:
+            with self.engine.begin() as conn:
                 query = text(
                     'CREATE INDEX IF NOT EXISTS "idx_opd" ON operatorpointdirections (operatorKey, pointKey,directionkey);'
                 )
@@ -111,7 +112,7 @@ class EntsogCrawler(BasicDbCrawler):
 
     def findNewBegin(self, table_name):
         try:
-            with self.db_accessor() as conn:
+            with self.engine.begin() as conn:
                 query = text(f"select max(periodfrom) from {table_name}")
                 d = conn.execute(query).fetchone()[0]
             begin = pd.to_datetime(d).date()
@@ -162,11 +163,11 @@ class EntsogCrawler(BasicDbCrawler):
                 df["periodto"] = pd.to_datetime(df["periodto"])
 
                 try:
-                    with self.db_accessor() as conn:
+                    with self.engine.begin() as conn:
                         df.to_sql(tbl_name, conn, if_exists="append")
                 except Exception as e:
                     # allow adding a new column or converting type
-                    with self.db_accessor() as conn:
+                    with self.engine.begin() as conn:
                         log.info(f"handling {repr(e)} by concat")
                         # merge old data with new data
                         prev = pd.read_sql_query(f"select * from {tbl_name}", conn)
@@ -176,7 +177,7 @@ class EntsogCrawler(BasicDbCrawler):
                         log.info(f"replaced table {tbl_name}")
 
             try:
-                with self.db_accessor() as conn:
+                with self.engine.begin() as conn:
                     query_create_hypertable = f"SELECT public.create_hypertable('{tbl_name}', 'periodfrom', if_not_exists => TRUE, migrate_data => TRUE);"
                     conn.execute(query_create_hypertable)
                     log.info(f"created hypertable {tbl_name}")
@@ -187,7 +188,7 @@ class EntsogCrawler(BasicDbCrawler):
         # ref: https://www.sqlite.org/optoverview.html#or_optimizations
         # reference https://stackoverflow.com/questions/31031561/sqlite-query-to-get-the-closest-datetime
         if "Allocation" in indicators:
-            with self.db_accessor() as conn:
+            with self.engine.begin() as conn:
                 query = text(
                     'CREATE INDEX IF NOT EXISTS "idx_opdata" ON Allocation (operatorKey,periodfrom);'
                 )
@@ -198,7 +199,7 @@ class EntsogCrawler(BasicDbCrawler):
                 )
                 conn.execute(query)
         if "Physical Flow" in indicators:
-            with self.db_accessor() as conn:
+            with self.engine.begin() as conn:
                 query = text(
                     'CREATE INDEX IF NOT EXISTS "idx_phys_operator" ON Physical_Flow (operatorKey,periodfrom);'
                 )
@@ -210,7 +211,7 @@ class EntsogCrawler(BasicDbCrawler):
                 conn.execute(query)
 
         if "Firm Technical" in indicators:
-            with self.db_accessor() as conn:
+            with self.engine.begin() as conn:
                 query = text(
                     'CREATE INDEX IF NOT EXISTS "idx_ft_opdata" ON Firm_Technical (operatorKey,periodfrom);'
                 )

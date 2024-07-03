@@ -83,7 +83,7 @@ class EViewCrawler:
             query_create_hypertable = "SELECT public.create_hypertable('eview', 'datetime', if_not_exists => TRUE, migrate_data => TRUE);"
             with self.engine.begin() as conn:
                 conn.execute(query_create_hypertable)
-            log.info(f"created hypertable eview")
+            log.info("created hypertable eview")
         except Exception as e:
             log.error(f"could not create hypertable: {e}")
 
@@ -97,7 +97,7 @@ def main(db_uri):
         try:
             begin_date = ec.select_latest(plant)
             ec.crawl_unit(plant, begin_date)
-        except Exception as e:
+        except Exception:
             log.exception(f"Error with {plant}")
 
     ec.create_hypertable()

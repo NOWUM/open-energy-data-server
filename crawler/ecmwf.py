@@ -8,12 +8,12 @@ import logging
 import os
 from datetime import date, datetime, timedelta
 from io import StringIO
-import xarray as xr
 
 import cdsapi
 import geopandas as gpd
 import pandas as pd
-import swifter
+import swifter  # noqa: F401
+import xarray as xr
 from shapely.geometry import Point
 from sqlalchemy import create_engine, text
 
@@ -69,7 +69,7 @@ def create_table(engine):
                 "PRIMARY KEY (time , latitude, longitude));"
             )
             conn.exec_driver_sql(query_create_hypertable)
-        log.info(f"created hypertable ecmwf")
+        log.info("created hypertable ecmwf")
     except Exception as e:
         log.error(f"could not create hypertable: {e}")
 
@@ -90,7 +90,7 @@ def create_table(engine):
                 "PRIMARY KEY (time , latitude, longitude, nuts_id));"
             )
             conn.exec_driver_sql(query_create_hypertable_eu)
-        log.info(f"created hypertable ecmwf_eu")
+        log.info("created hypertable ecmwf_eu")
     except Exception as e:
         log.error(f"could not create hypertable: {e}")
 
@@ -114,13 +114,13 @@ def psql_insert_copy(table, conn, keys: list[str], data_iter):
         writer.writerows(data_iter)
         s_buf.seek(0)
 
-        columns = ", ".join('"{}"'.format(k) for k in keys)
+        columns = ", ".join(f'"{k}"' for k in keys)
         if table.schema:
-            table_name = "{}.{}".format(table.schema, table.name)
+            table_name = f"{table.schema}.{table.name}"
         else:
             table_name = table.name
 
-        sql = "COPY {} ({}) FROM STDIN WITH CSV".format(table_name, columns)
+        sql = f"COPY {table_name} ({columns}) FROM STDIN WITH CSV"
         cur.copy_expert(sql=sql, file=s_buf)
 
 

@@ -15,7 +15,7 @@ from sqlalchemy.exc import ProgrammingError
 
 def main(db_uri):
     # Download shp zip for EU NUTS here:
-    # https://ec.europa.eu/eurostat/web/gisco/geodata/reference-data/administrative-units-statistical-units/nuts
+    # https://ec.europa.eu/eurostat/web/gisco/geodata/statistical-units/territorial-units-statistics
     download_url = "https://gisco-services.ec.europa.eu/distribution/v2/nuts/shp/NUTS_RG_01M_2021_4326.shp.zip"
     # download file
     r = requests.get(download_url)
@@ -37,6 +37,11 @@ def main(db_uri):
 
     # columns to lower
     geo_information.columns = map(str.lower, geo_information.columns)
+    # ignore warning, geographic CRS centroid are enough for us
+    # also see here: https://github.com/openclimatefix/nowcasting_dataset/issues/154#issuecomment-927148746
+    centroids = geo_information["geometry"].centroid
+    geo_information["longitude"] = centroids.x
+    geo_information["latitude"] = centroids.y
     geo_information.to_postgis("nuts", con=connection, if_exists="replace")
 
     # https://gisco-services.ec.europa.eu/tercet/flat-files
@@ -49,12 +54,6 @@ def main(db_uri):
         plz_list = pd.read_csv(f, sep=";", index_col="CODE", quotechar="'")
 
     # remove str literals from plzlist with read_csv
-
-    # ignore warning, geographic CRS centroid are enough for us
-    # also see here: https://github.com/openclimatefix/nowcasting_dataset/issues/154#issuecomment-927148746
-    centroids = geo_information["geometry"].centroid
-    geo_information["longitude"] = centroids.x
-    geo_information["latitude"] = centroids.y
     # where levl_code == 1 and country == DE
     geo_information = geo_information[geo_information["levl_code"] == 3]
     geo_information = geo_information[geo_information["cntr_code"] == "DE"]
@@ -73,4 +72,5 @@ def main(db_uri):
 
 if __name__ == "__main__":
     from crawler.config import db_uri
+
     main(db_uri("public"))

@@ -6,10 +6,10 @@
 This crawler downloads all the generation data of germany from the smard portal of the Bundesnetzagentur at smard.de.
 It contains mostly data for Germany which is also availble in the ENTSO-E transparency platform but under a CC open license.
 """
+
 import json
 import logging
-import os
-from datetime import date, timedelta
+from datetime import timedelta
 
 import pandas as pd
 import requests
@@ -40,12 +40,11 @@ class SmardCrawler:
                     )
                 )
                 conn.execute(text(query_create_hypertable))
-            log.info(f"created hypertable smard")
+            log.info("created hypertable smard")
         except Exception as e:
             log.error(f"could not create hypertable: {e}")
 
     def get_data_per_commodity(self):
-        energy = ["strom", "wasser", "waerme"]
         keys = {
             # 411: 'Prognostizierter Stromverbrauch',
             410: "Realisierter Stromverbrauch",
@@ -127,18 +126,18 @@ class SmardCrawler:
         for data_for_commodity in self.get_data_per_commodity():
             if data_for_commodity.empty:
                 continue
-            data_for_commodity = data_for_commodity.set_index(
+            df_for_commodity = data_for_commodity.set_index(
                 ["timestamp", "commodity_id"]
             )
             # delete timezone duplicate
             # https://stackoverflow.com/a/34297689
-            data_for_commodity = data_for_commodity[
-                ~data_for_commodity.index.duplicated(keep="first")
+            df_for_commodity = df_for_commodity[
+                ~df_for_commodity.index.duplicated(keep="first")
             ]
 
-            log.info(data_for_commodity)
+            log.info(df_for_commodity)
             with self.engine.begin() as conn:
-                data_for_commodity.to_sql("smard", con=conn, if_exists="append")
+                df_for_commodity.to_sql("smard", con=conn, if_exists="append")
 
 
 def main(db_uri):

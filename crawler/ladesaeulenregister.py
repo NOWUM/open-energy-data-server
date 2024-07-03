@@ -8,12 +8,10 @@ https://www.bundesnetzagentur.de/DE/Fachthemen/ElektrizitaetundGas/E-Mobilitaet/
 One can download the raw file as CSV from this link:
 https://www.bundesnetzagentur.de/SharedDocs/Downloads/DE/Sachgebiete/Energie/Unternehmen_Institutionen/E_Mobilitaet/Ladesaeulenregister_CSV.csv?__blob=publicationFile&v=42
 """
-import io
+
 import logging
-import zipfile
 
 import pandas as pd
-import requests
 from sqlalchemy import create_engine
 
 from .config import db_uri

@@ -12,6 +12,7 @@ with sshfs you can use:
 
 `sshfs root@eex:/root/eex /mnt/eex/`
 """
+
 import logging
 import os
 import os.path as osp
@@ -50,7 +51,7 @@ starts with
 #
 ```
 following are lines with different format, depending on their start string.
-One would have to create a parser here which reads the lines beginning with `Data type` 
+One would have to create a parser here which reads the lines beginning with `Data type`
 and matches the definition to lines beginning with `ST` and so.
 
 in /market_data/power/at/spot/csv/2016/MCCMarketResult_apg-eles_2016.csv
@@ -135,7 +136,7 @@ class EEXCrawler:
                         df = self.read_eex_trade_spot_file(file)
                         with self.engine.begin() as conn:
                             df.to_sql(name, conn, if_exists="append")
-                    except Exception as e:
+                    except Exception:
                         log.error(f"error writing {file} to db")
                 else:
                     log.error(f"file does not contain intraday_transactions: {file}")

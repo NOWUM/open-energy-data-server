@@ -11,6 +11,7 @@ To extract and aggregate the data efficiently, the load is divided onto multiple
 This allows to download all the data faster, if one wants to mirror all of DWDs history.
 Still, this takes a few days to finish, with one container per download year.
 """
+
 output = []
 output.append('version: "3"\n')
 output.append("services:\n")
