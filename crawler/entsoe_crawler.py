@@ -21,7 +21,7 @@ from requests.exceptions import HTTPError
 from sqlalchemy import create_engine, text
 from tqdm import tqdm
 
-from .config import db_uri
+from config import db_uri
 
 log = logging.getLogger("entsoe")
 log.setLevel(logging.INFO)

@@ -22,7 +22,7 @@ from glob import glob
 import pandas as pd
 from sqlalchemy import create_engine
 
-from .config import db_uri
+from config import db_uri
 
 log = logging.getLogger("eex")
 log.setLevel(logging.INFO)

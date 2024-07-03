@@ -12,7 +12,7 @@ import requests
 import shapely.wkt
 from shapely.geometry import Point
 
-from .config import db_uri
+from config import db_uri
 
 
 def scigrid_links_and_nodes():

@@ -142,6 +142,6 @@ def main(db_uri):
 
 
 if __name__ == "__main__":
-    from .config import db_uri
+    from config import db_uri
 
     main(db_uri("mastr"))

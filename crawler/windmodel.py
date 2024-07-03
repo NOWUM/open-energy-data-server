@@ -11,7 +11,7 @@ import requests
 from bs4 import BeautifulSoup  # parse html
 from tqdm import tqdm  # fancy for loop
 
-from .config import db_uri
+from config import db_uri
 
 """
 Downloads the available powercurve data from https://www.wind-turbine-models.com/ to a csv file

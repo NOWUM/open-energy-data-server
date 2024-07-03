@@ -11,7 +11,7 @@ import pandas as pd
 import requests
 from sqlalchemy import create_engine, text
 
-from .config import db_uri
+from config import db_uri
 
 log = logging.getLogger("e2watch")
 default_start_date = "2023-01-01 06:00:00"

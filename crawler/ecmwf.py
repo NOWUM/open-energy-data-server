@@ -17,7 +17,7 @@ import xarray as xr
 from shapely.geometry import Point
 from sqlalchemy import create_engine, text
 
-from .config import db_uri
+from config import db_uri
 
 """
     Note that only requests with no more that 1000 items at a time are valid.
