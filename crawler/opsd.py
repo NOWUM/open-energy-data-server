@@ -9,7 +9,7 @@ import sqlite3
 import pandas as pd
 import requests
 
-from crawler.config import db_uri
+from .config import db_uri
 
 log = logging.getLogger("opsd")
 log.setLevel(logging.INFO)

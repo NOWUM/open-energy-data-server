@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 from sqlalchemy import create_engine, text
 
-from crawler.config import db_uri
+from .config import db_uri
 
 log = logging.getLogger(__name__)
 

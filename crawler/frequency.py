@@ -10,7 +10,7 @@ import pandas as pd
 import requests
 from sqlalchemy import create_engine
 
-from crawler.config import db_uri
+from .config import db_uri
 
 log = logging.getLogger("frequency")
 log.setLevel(logging.INFO)

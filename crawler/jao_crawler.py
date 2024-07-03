@@ -14,7 +14,7 @@ from jao import JaoAPIClient
 from sqlalchemy import MetaData, create_engine, text
 from sqlalchemy.exc import OperationalError
 
-from crawler.config import db_uri
+from .config import db_uri
 
 log = logging.getLogger("jao")
 

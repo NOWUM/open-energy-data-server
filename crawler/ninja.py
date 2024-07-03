@@ -6,7 +6,7 @@ import os.path as osp
 
 import pandas as pd
 
-from crawler.config import db_uri
+from .config import db_uri
 
 
 def write_wind_capacity_factors(engine):

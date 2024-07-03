@@ -18,7 +18,7 @@ import requests
 from sqlalchemy import create_engine, text
 from tqdm import tqdm
 
-from crawler.config import db_uri
+from .config import db_uri
 
 log = logging.getLogger("entsog")
 log.setLevel(logging.INFO)

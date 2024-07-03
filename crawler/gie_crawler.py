@@ -27,7 +27,7 @@ import pandas as pd
 from roiti.gie import GiePandasClient
 from sqlalchemy import create_engine, text
 
-from crawler.config import db_uri
+from .config import db_uri
 
 log = logging.getLogger("gie")
 log.setLevel(logging.INFO)

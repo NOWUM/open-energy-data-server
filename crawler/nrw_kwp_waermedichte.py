@@ -11,7 +11,7 @@ import pandas as pd
 import requests
 import geopandas
 from sqlalchemy import create_engine, text
-from crawler.config import db_uri
+from .config import db_uri
 
 
 
