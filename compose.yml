@@ -30,8 +30,6 @@ services:
     volumes:
       - ./data/pgadmin:/var/lib/pgadmin
       - ./data/provisioning/pgadmin/servers.json:/pgadmin4/servers.json
-      - ./data/pgadmin:/var/lib/pgadmin
-      - ./data/provisioning/pgadmin/servers.json:/pgadmin4/servers.json
     ports:
       - "8080:80"
     depends_on:
@@ -68,5 +66,7 @@ services:
       GF_RENDERING_CALLBACK_URL: http://grafana:3000/
       GF_LOG_FILTERS: rendering:debug
     volumes:
-      - ./data/provisioning/grafana:/etc/grafana/provisioning/datasources
+      - ./data/provisioning/grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./data/provisioning/grafana/dashboardproviders:/etc/grafana/provisioning/dashboards
+      - ./data/provisioning/grafana/dashboards:/var/lib/grafana/dashboards
     restart: always
