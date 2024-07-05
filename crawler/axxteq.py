@@ -54,7 +54,8 @@ ticket_types = {
 
 
 def create_table(engine):
-    engine.execute(
+    with engine.begin() as conn:
+        conn.execute(
         text(
             "CREATE TABLE IF NOT EXISTS parking_data( "
             "time timestamp without time zone NOT NULL, "
