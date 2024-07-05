@@ -44,3 +44,15 @@ CREATE TABLE public.metadata (
     temporal_end TIMESTAMP,
     size BIGINT
 );
+create or replace function postgrest.pre_config()
+returns void as $$
+  select
+    set_config('pgrst.db_schemas', string_agg(nspname, ','), true)
+  from pg_namespace
+  where nspname not like '%timescaledb%'
+	and nspname not like '%information_schema%'
+	and nspname not like '%pg%';
+$$ language sql;
+
+NOTIFY pgrst, 'reload config';
+NOTIFY pgrst, 'reload schema';
