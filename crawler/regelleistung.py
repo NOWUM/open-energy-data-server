@@ -6,11 +6,11 @@
 https://regelleistung.net/
 """
 
+import functools as ft
 import logging
 import sys
 import warnings
 from datetime import date, datetime, timedelta
-import functools as ft
 
 import numpy as np
 import pandas as pd
@@ -24,6 +24,7 @@ log.setLevel(logging.INFO)
 
 EARLIEST_DATE_TO_WRITE = datetime.strptime("2020-01-01", "%Y-%m-%d").date()
 
+# Regelleistungsmarkt
 TABLE_NAME_FCR_DEMANDS = "fcr_bedarfe"
 URL_FCR_DEMANDS = "https://www.regelleistung.net/apps/cpp-publisher/api/v1/download/tenders/demands?date={date_str}&exportFormat=xlsx&market=CAPACITY&productTypes=FCR"
 TABLE_NAME_FCR_RESULTS = "fcr_ergebnisse"
@@ -45,6 +46,7 @@ URL_MFRR_RESULTS_CAPACITY = "https://www.regelleistung.net/apps/cpp-publisher/ap
 TABLE_NAME_MFRR_ANONYM_RESULTS_CAPACITY = "mfrr_anonyme_ergebnisse_regelleistung"
 URL_MFRR_ANONYM_RESULTS_CAPACITY = "https://www.regelleistung.net/apps/cpp-publisher/api/v1/download/tenders/anonymousresults?date={date_str}&exportFormat=xlsx&market=CAPACITY&productTypes=mFRR"
 
+# Regelarbeitsmarkt
 TABLE_NAME_AFRR_DEMANDS_ENERGY = "afrr_bedarfe_regelarbeit"
 URL_AFRR_DEMANDS_ENERGY = "https://www.regelleistung.net/apps/cpp-publisher/api/v1/download/tenders/demands?date={date_str}&exportFormat=xlsx&market=ENERGY&productTypes=aFRR"
 TABLE_NAME_AFRR_RESULTS_ENERGY = "afrr_ergebnisse_regelarbeit"
@@ -59,11 +61,21 @@ URL_MFRR_RESULTS_ENERGY = "https://www.regelleistung.net/apps/cpp-publisher/api/
 TABLE_NAME_MFRR_ANONYM_RESULTS_ENERGY = "mfrr_anonyme_ergebnisse_regelarbeit"
 URL_MFRR_ANONYM_RESULTS_ENERGY = "https://www.regelleistung.net/apps/cpp-publisher/api/v1/download/tenders/anonymousresults?date={date_str}&exportFormat=xlsx&market=ENERGY&productTypes=mFRR"
 
+# Abschaltbare Lasten
+TABLE_NAME_ABLA_DEMANDS_ENERGY = "abla_bedarfe"
+URL_ABLA_DEMANDS_ENERGY = "https://www.regelleistung.net/apps/cpp-publisher/api/v1/download/tenders/demands?date={date_str}&exportFormat=xlsx&market=CAPACITY&productTypes=ABLA"
+TABLE_NAME_ABLA_RESULTS_ENERGY = "abla_ergebnisse"
+URL_ABLA_RESULTS_ENERGY = "https://www.regelleistung.net/apps/cpp-publisher/api/v1/download/tenders/resultsoverview?date={date_str}&exportFormat=xlsx&market=CAPACITY&productTypes=ABLA"
+TABLE_NAME_ABLA_ANONYM_RESULTS_ENERGY = "abla_anonyme_ergebnisse"
+URL_ABLA_ANONYM_RESULTS_ENERGY = "https://www.regelleistung.net/apps/cpp-publisher/api/v1/download/tenders/anonymousresults?date={date_str}&exportFormat=xlsx&market=CAPACITY&productTypes=ABLA"
+
+
 def get_date_column_from_table_name(table_name):
     if "regelarbeit" in table_name:
         return "delivery_date"
     else:
         return "date_from"
+
 
 def get_date_from_sql(engine, table_name, sql):
     try:
@@ -77,6 +89,13 @@ def get_date_from_sql(engine, table_name, sql):
         if "psycopg2.errors.UndefinedTable" in str(err_obj):
             log.info(f"There does not exist a table {table_name} yet.")
             return None
+        elif (
+            f'(psycopg2.errors.UndefinedColumn) column "{date_col}" does not exist'
+            in str(err_obj)
+        ):
+            log.info(
+                f'The date column "{date_col}" does not exist in the table "{table_name}".'
+            )
         else:
             log.error(e)
     except Exception as e:
@@ -207,9 +226,12 @@ def prepare_demands_df(df):
             nuclear_portion_cols.append(col_name)
         else:
             id_vars.append(col_name)
-    var_col_name = "area_tso"
+    var_col_name = "area"
     df_melted_demand = df.melt(
-        id_vars=id_vars, value_vars=demand_cols, var_name=var_col_name, value_name="demand_mw"
+        id_vars=id_vars,
+        value_vars=demand_cols,
+        var_name=var_col_name,
+        value_name="demand_mw",
     )
     df_melted_demand[var_col_name] = df_melted_demand[var_col_name].replace(col_mapping)
     df_melted_export = df.melt(
@@ -217,7 +239,6 @@ def prepare_demands_df(df):
         value_vars=export_cols,
         var_name=var_col_name,
         value_name="export_limit_mw",
-
     )
     df_melted_export[var_col_name] = df_melted_export[var_col_name].replace(col_mapping)
     df_melted_nuclear = df.melt(
@@ -226,7 +247,9 @@ def prepare_demands_df(df):
         var_name=var_col_name,
         value_name="nuclear_portion_mw",
     )
-    df_melted_nuclear[var_col_name] = df_melted_nuclear[var_col_name].replace(col_mapping)
+    df_melted_nuclear[var_col_name] = df_melted_nuclear[var_col_name].replace(
+        col_mapping
+    )
 
     dfs = [df_melted_demand, df_melted_export, df_melted_nuclear]
     dfs = [df.set_index([*id_vars, var_col_name]) for df in dfs]
@@ -235,7 +258,7 @@ def prepare_demands_df(df):
     df_final = df_final.dropna(
         subset=["demand_mw", "export_limit_mw", "nuclear_portion_mw"], how="all"
     )
-    
+
     return df_final.reset_index()
 
 
@@ -341,33 +364,41 @@ def prepare_afrr_mfrr_results_df(df):
         else:
             id_vars.append(col_name)
     df_melted_min_cap_price = df.melt(
-        id_vars=id_vars, 
-        value_vars=min_cap_price_cols, 
-        var_name="area", 
-        value_name="min_capacity_price_eur_mwh"
+        id_vars=id_vars,
+        value_vars=min_cap_price_cols,
+        var_name="area",
+        value_name="min_capacity_price_eur_mwh",
     )
-    df_melted_min_cap_price["area"] = df_melted_min_cap_price["area"].replace(col_mapping)
+    df_melted_min_cap_price["area"] = df_melted_min_cap_price["area"].replace(
+        col_mapping
+    )
     df_melted_avg_cap_price = df.melt(
         id_vars=id_vars,
         value_vars=avg_cap_price_cols,
         var_name="area",
         value_name="average_capacity_price_eur_mwh",
     )
-    df_melted_avg_cap_price["area"] = df_melted_avg_cap_price["area"].replace(col_mapping)
+    df_melted_avg_cap_price["area"] = df_melted_avg_cap_price["area"].replace(
+        col_mapping
+    )
     df_melted_max_cap_price = df.melt(
         id_vars=id_vars,
         value_vars=max_cap_price_cols,
         var_name="area",
         value_name="marginal_capacity_price_eur_mwh",
     )
-    df_melted_max_cap_price["area"] = df_melted_max_cap_price["area"].replace(col_mapping)
+    df_melted_max_cap_price["area"] = df_melted_max_cap_price["area"].replace(
+        col_mapping
+    )
     df_melted_import_export = df.melt(
         id_vars=id_vars,
         value_vars=import_export_cols,
         var_name="area",
         value_name="import_export_mw",
     )
-    df_melted_import_export["area"] = df_melted_import_export["area"].replace(col_mapping)
+    df_melted_import_export["area"] = df_melted_import_export["area"].replace(
+        col_mapping
+    )
     df_melted_sum_off_cap = df.melt(
         id_vars=id_vars,
         value_vars=sum_off_cap_cols,
@@ -376,46 +407,56 @@ def prepare_afrr_mfrr_results_df(df):
     )
     df_melted_sum_off_cap["area"] = df_melted_sum_off_cap["area"].replace(col_mapping)
     df_melted_min_energy_price = df.melt(
-        id_vars=id_vars, 
-        value_vars=min_energy_price_cols, 
-        var_name="area", 
-        value_name="min_energy_price_eur_mwh"
+        id_vars=id_vars,
+        value_vars=min_energy_price_cols,
+        var_name="area",
+        value_name="min_energy_price_eur_mwh",
     )
-    df_melted_min_energy_price["area"] = df_melted_min_energy_price["area"].replace(col_mapping)
+    df_melted_min_energy_price["area"] = df_melted_min_energy_price["area"].replace(
+        col_mapping
+    )
     df_melted_avg_energy_price = df.melt(
         id_vars=id_vars,
         value_vars=avg_energy_price_cols,
         var_name="area",
         value_name="average_energy_price_eur_mwh",
     )
-    df_melted_avg_energy_price["area"] = df_melted_avg_energy_price["area"].replace(col_mapping)
+    df_melted_avg_energy_price["area"] = df_melted_avg_energy_price["area"].replace(
+        col_mapping
+    )
     df_melted_max_energy_price = df.melt(
         id_vars=id_vars,
         value_vars=max_energy_price_cols,
         var_name="area",
         value_name="marginal_energy_price_eur_mwh",
     )
-    df_melted_max_energy_price["area"] = df_melted_max_energy_price["area"].replace(col_mapping)
+    df_melted_max_energy_price["area"] = df_melted_max_energy_price["area"].replace(
+        col_mapping
+    )
 
-    dfs = [df_melted_min_cap_price, 
-           df_melted_avg_cap_price, 
-           df_melted_max_cap_price, 
-           df_melted_import_export, 
-           df_melted_sum_off_cap, 
-           df_melted_min_energy_price, 
-           df_melted_avg_energy_price, 
-           df_melted_max_energy_price]
+    dfs = [
+        df_melted_min_cap_price,
+        df_melted_avg_cap_price,
+        df_melted_max_cap_price,
+        df_melted_import_export,
+        df_melted_sum_off_cap,
+        df_melted_min_energy_price,
+        df_melted_avg_energy_price,
+        df_melted_max_energy_price,
+    ]
     dfs = [df.set_index([*id_vars, "area"]) for df in dfs]
     df_final = ft.reduce(lambda left, right: left.join(right, how="outer"), dfs)
 
-    pivot_cols = ["min_capacity_price_eur_mwh", 
-                  "average_capacity_price_eur_mwh", 
-                  "marginal_capacity_price_eur_mwh", 
-                  "import_export_mw", 
-                  "sum_of_offered_capacity_mw", 
-                  "min_energy_price_eur_mwh", 
-                  "average_energy_price_eur_mwh", 
-                  "marginal_energy_price_eur_mwh"]
+    pivot_cols = [
+        "min_capacity_price_eur_mwh",
+        "average_capacity_price_eur_mwh",
+        "marginal_capacity_price_eur_mwh",
+        "import_export_mw",
+        "sum_of_offered_capacity_mw",
+        "min_energy_price_eur_mwh",
+        "average_energy_price_eur_mwh",
+        "marginal_energy_price_eur_mwh",
+    ]
 
     df_final = df_final.dropna(subset=pivot_cols, how="all")
     return df_final.reset_index()
@@ -433,7 +474,7 @@ def get_df_for_date(url, date_to_get, table_name):
     df.rename(mapper=lambda x: database_friendly(x), axis="columns", inplace=True)
 
     # adapt date_from and date_to column if from regelleistungsmarkt
-    if get_date_column_from_table_name(table_name) == "date_from":
+    if get_date_column_from_table_name(table_name) == "date_from" and df.shape[0] > 0:
         product_split_array = (df["product"].str.split("_")).to_numpy()
         hours_from = np.array([product_list[1] for product_list in product_split_array])
         hours_to = np.array([product_list[2] for product_list in product_split_array])
@@ -443,7 +484,7 @@ def get_df_for_date(url, date_to_get, table_name):
         df["date_to"] = df["date_to"] + pd.to_timedelta(timedelta_to, "d")
 
     # adapt mw column to mwh column
-    if get_date_column_from_table_name(table_name) == "date_from":
+    if get_date_column_from_table_name(table_name) == "date_from" and df.shape[0] > 0:
         hours_from = np.array([product_list[1] for product_list in product_split_array])
         hours_to = np.array([product_list[2] for product_list in product_split_array])
         hours_from_int = (hours_from).astype(np.int16)
@@ -471,13 +512,34 @@ def get_df_for_date(url, date_to_get, table_name):
             if col_to_drop in df.columns:
                 df = df.drop(col_to_drop, axis=1)
 
-    if table_name in [TABLE_NAME_FCR_DEMANDS, TABLE_NAME_AFRR_DEMANDS_CAPACITY, TABLE_NAME_MFRR_DEMANDS_CAPACITY, TABLE_NAME_AFRR_DEMANDS_ENERGY, TABLE_NAME_MFRR_DEMANDS_ENERGY]:
+    if (
+        table_name
+        in [
+            TABLE_NAME_FCR_DEMANDS,
+            TABLE_NAME_AFRR_DEMANDS_CAPACITY,
+            TABLE_NAME_MFRR_DEMANDS_CAPACITY,
+            TABLE_NAME_AFRR_DEMANDS_ENERGY,
+            TABLE_NAME_MFRR_DEMANDS_ENERGY,
+            TABLE_NAME_ABLA_DEMANDS_ENERGY,
+        ]
+        and df.shape[0] > 0
+    ):
         df = prepare_demands_df(df)
-    elif table_name == TABLE_NAME_FCR_RESULTS:
+    elif table_name == TABLE_NAME_FCR_RESULTS and df.shape[0] > 0:
         df = prepare_fcr_results_df(df)
-    elif table_name in [TABLE_NAME_AFRR_RESULTS_CAPACITY, TABLE_NAME_MFRR_RESULTS_CAPACITY, TABLE_NAME_AFRR_RESULTS_ENERGY, TABLE_NAME_MFRR_RESULTS_ENERGY]:
+    elif (
+        table_name
+        in [
+            TABLE_NAME_AFRR_RESULTS_CAPACITY,
+            TABLE_NAME_MFRR_RESULTS_CAPACITY,
+            TABLE_NAME_AFRR_RESULTS_ENERGY,
+            TABLE_NAME_MFRR_RESULTS_ENERGY,
+            TABLE_NAME_ABLA_RESULTS_ENERGY,
+        ]
+        and df.shape[0] > 0
+    ):
         df = prepare_afrr_mfrr_results_df(df)
-    
+
     df = df.dropna(axis="columns", how="all")
     return df
 
@@ -591,7 +653,8 @@ def write_new_data_from_latest_date_to_today(engine, url, table_name, latest_dat
 
 def create_hypertable(engine, table_name):
     try:
-        query_create_hypertable = f"SELECT public.create_hypertable('{table_name}', 'date_from', if_not_exists => TRUE, migrate_data => TRUE);"
+        date_col = get_date_column_from_table_name(table_name)
+        query_create_hypertable = f"SELECT public.create_hypertable('{table_name}', '{date_col}', if_not_exists => TRUE, migrate_data => TRUE);"
         with engine.begin() as conn:
             conn.execute(query_create_hypertable)
         log.info(f"created hypertable {table_name}")
@@ -619,27 +682,54 @@ def write_data_in_table(
 
 
 def write_all_tables(engine):
+    # Regelleistungsmarkt
     write_data_in_table(engine, TABLE_NAME_FCR_DEMANDS, URL_FCR_DEMANDS)
     write_data_in_table(engine, TABLE_NAME_FCR_RESULTS, URL_FCR_RESULTS)
     write_data_in_table(engine, TABLE_NAME_FCR_ANONYM_RESULTS, URL_FCR_ANONYM_RESULTS)
 
-    # Regelleistungsmarkt
-    write_data_in_table(engine, TABLE_NAME_AFRR_DEMANDS_CAPACITY, URL_AFRR_DEMANDS_CAPACITY)
-    write_data_in_table(engine, TABLE_NAME_AFRR_RESULTS_CAPACITY, URL_AFRR_RESULTS_CAPACITY)
-    write_data_in_table(engine, TABLE_NAME_AFRR_ANONYM_RESULTS_CAPACITY, URL_AFRR_ANONYM_RESULTS_CAPACITY)
+    write_data_in_table(
+        engine, TABLE_NAME_AFRR_DEMANDS_CAPACITY, URL_AFRR_DEMANDS_CAPACITY
+    )
+    write_data_in_table(
+        engine, TABLE_NAME_AFRR_RESULTS_CAPACITY, URL_AFRR_RESULTS_CAPACITY
+    )
+    write_data_in_table(
+        engine,
+        TABLE_NAME_AFRR_ANONYM_RESULTS_CAPACITY,
+        URL_AFRR_ANONYM_RESULTS_CAPACITY,
+    )
 
-    write_data_in_table(engine, TABLE_NAME_MFRR_DEMANDS_CAPACITY, URL_MFRR_DEMANDS_CAPACITY)
-    write_data_in_table(engine, TABLE_NAME_MFRR_RESULTS_CAPACITY, URL_MFRR_RESULTS_CAPACITY)
-    write_data_in_table(engine, TABLE_NAME_MFRR_ANONYM_RESULTS_CAPACITY, URL_MFRR_ANONYM_RESULTS_CAPACITY)
+    write_data_in_table(
+        engine, TABLE_NAME_MFRR_DEMANDS_CAPACITY, URL_MFRR_DEMANDS_CAPACITY
+    )
+    write_data_in_table(
+        engine, TABLE_NAME_MFRR_RESULTS_CAPACITY, URL_MFRR_RESULTS_CAPACITY
+    )
+    write_data_in_table(
+        engine,
+        TABLE_NAME_MFRR_ANONYM_RESULTS_CAPACITY,
+        URL_MFRR_ANONYM_RESULTS_CAPACITY,
+    )
 
     # Regelarbeitsmarkt
     write_data_in_table(engine, TABLE_NAME_AFRR_DEMANDS_ENERGY, URL_AFRR_DEMANDS_ENERGY)
     write_data_in_table(engine, TABLE_NAME_AFRR_RESULTS_ENERGY, URL_AFRR_RESULTS_ENERGY)
-    write_data_in_table(engine, TABLE_NAME_AFRR_ANONYM_RESULTS_ENERGY, URL_AFRR_ANONYM_RESULTS_ENERGY)
+    write_data_in_table(
+        engine, TABLE_NAME_AFRR_ANONYM_RESULTS_ENERGY, URL_AFRR_ANONYM_RESULTS_ENERGY
+    )
 
     write_data_in_table(engine, TABLE_NAME_MFRR_DEMANDS_ENERGY, URL_MFRR_DEMANDS_ENERGY)
     write_data_in_table(engine, TABLE_NAME_MFRR_RESULTS_ENERGY, URL_MFRR_RESULTS_ENERGY)
-    write_data_in_table(engine, TABLE_NAME_MFRR_ANONYM_RESULTS_ENERGY, URL_MFRR_ANONYM_RESULTS_ENERGY)
+    write_data_in_table(
+        engine, TABLE_NAME_MFRR_ANONYM_RESULTS_ENERGY, URL_MFRR_ANONYM_RESULTS_ENERGY
+    )
+
+    # Abschaltbare Lasten
+    write_data_in_table(engine, TABLE_NAME_ABLA_DEMANDS_ENERGY, URL_ABLA_DEMANDS_ENERGY)
+    write_data_in_table(engine, TABLE_NAME_ABLA_RESULTS_ENERGY, URL_ABLA_RESULTS_ENERGY)
+    write_data_in_table(
+        engine, TABLE_NAME_ABLA_ANONYM_RESULTS_ENERGY, URL_ABLA_ANONYM_RESULTS_ENERGY
+    )
 
 
 def main(db_uri):
