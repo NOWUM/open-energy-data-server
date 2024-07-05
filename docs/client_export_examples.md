@@ -3,9 +3,25 @@ Dataset:
 Londondatastore.
 Average data from london smartmeter measurements.
 
+## SQL using Python
+
+```python
+import pandas as pd
+from sqlalchemy import create_engine
+
+engine = create_engine('postgresql://timescale.nowum.fh-aachen.de:5432/opendata?search_path=londondatastore')
+query = "SELECT ""DateTime"" AS hourly_timestamp,  AVG(""power"") AS average_power FROM consumption WHERE DateTime >= '2012-01-01' AND DateTime <= '2013-01-01' LIMIT 10"
+
+with engine.connect() as conn:
+    df = pd.read_sql(query, conn, parse_dates="DateTime", index_col="DateTime")
+df = df.resample("1h").mean()
+df.to_csv("londondatastore_pgrst.csv")
+```
 ## Grafana
 
-Using the Graph from this dashboard: http://localhost:3006/d/edn5t9gi0wyrke/refit-load-profile?orgId=1
+Using the Graph from this dashboard: 
+http://localhost:3006/d/edn5t9gi0wyrke/refit-load-profile?orgId=1
+https://monitor.nowum.fh-aachen.de/d/edn5t9gi0wyrke/refit-load-profile?orgId=1
 
 One can inspect to see the data (or the query) of the graph easily as shown below:
 
@@ -38,3 +54,11 @@ Password: admin
 Pgadmin is provisioned using information from data/provisioning/pgadmin/servers.json
 
 ![pgAdmin Export](./media/pgadmin_export.png)
+
+## PSQL
+
+PSQL is the command line interface for PostgreSQL. It is quite powerful and can be used to export data from the database to a file.
+
+```
+
+```

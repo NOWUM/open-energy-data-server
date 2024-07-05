@@ -3,21 +3,6 @@ Dataset:
 Londondatastore.
 Average data from london smartmeter measurements.
 
-## SQL using Python
-
-```python
-import pandas as pd
-from sqlalchemy import create_engine
-
-engine = create_engine('postgresql://timescale.nowum.fh-aachen.de:5432/opendata?search_path=londondatastore')
-query = "SELECT ""DateTime"" AS hourly_timestamp,  AVG(""power"") AS average_power FROM consumption WHERE DateTime >= '2012-01-01' AND DateTime <= '2013-01-01' LIMIT 10"
-
-with engine.connect() as conn:
-    df = pd.read_sql(query, conn, parse_dates="DateTime", index_col="DateTime")
-df = df.resample("1h").mean()
-df.to_csv("londondatastore_pgrst.csv")
-```
-
 ## HTTP using Python requests
 
 ```python
