@@ -8,7 +8,7 @@ from datetime import date, datetime, timedelta
 
 import pandas as pd
 import requests
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 
 from config import db_uri
 
@@ -80,7 +80,7 @@ class EViewCrawler:
 
     def create_hypertable(self):
         try:
-            query_create_hypertable = "SELECT public.create_hypertable('eview', 'datetime', if_not_exists => TRUE, migrate_data => TRUE);"
+            query_create_hypertable =text("SELECT public.create_hypertable('eview', 'datetime', if_not_exists => TRUE, migrate_data => TRUE);")
             with self.engine.begin() as conn:
                 conn.execute(query_create_hypertable)
             log.info("created hypertable eview")
@@ -102,7 +102,6 @@ def main(db_uri):
 
     ec.create_hypertable()
 
-
 if __name__ == "__main__":
     logging.basicConfig()
 
@@ -113,5 +112,6 @@ if __name__ == "__main__":
     plant = "FI"
     begin_date = ec.select_latest(plant)
     ec.crawl_unit(plant, begin_date)
+    ec.create_hypertable()
 
 #    main(db_uri)
