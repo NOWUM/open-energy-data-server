@@ -10,7 +10,7 @@ import pandas as pd
 import requests
 from sqlalchemy import create_engine, text
 
-# import lxml # for reading xml
+import lxml
 
 
 logging.basicConfig()
