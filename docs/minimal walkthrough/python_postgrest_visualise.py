@@ -3,10 +3,17 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 POSTGREST_URL = 'http://localhost:3001/rpc/opsd_national_generation_year_country'
+POSTGREST_URL_SCHEMA = 'http://localhost:3001/national_generation_capacity?limit=10'
 # POSTGREST_URL = 'https://timescale.nowum.fh-aachen.de/oeds/rpc/opsd_national_generation_year_country'
 
 def fetch_data():
-    response = requests.get(POSTGREST_URL)
+    response = requests.get(POSTGREST_URL, headers={'Accept-Profile': 'public'})  
+    response.raise_for_status() 
+    data = response.json()
+    return data
+
+def fetch_data_schema():
+    response = requests.get(POSTGREST_URL_SCHEMA, headers={'Accept-Profile': 'opsd'})
     response.raise_for_status() 
     data = response.json()
     return data
@@ -30,7 +37,9 @@ def plot_data(data):
 
 def main():
     data = fetch_data()
-    
+    schema_data = fetch_data_schema()
+
+    print(pd.DataFrame(schema_data).head())
     print(pd.DataFrame(data).head())
     
     plot_data(data)
