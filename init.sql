@@ -10,7 +10,6 @@ CREATE SCHEMA entsoe;
 CREATE SCHEMA entsog;
 CREATE SCHEMA eview;
 CREATE SCHEMA frequency;
-CREATE SCHEMA opsd;
 CREATE SCHEMA gie;
 CREATE SCHEMA iwugebaeudetypen;
 CREATE SCHEMA jao;
