@@ -3,13 +3,24 @@ Dataset:
 Londondatastore.
 Average data from london smartmeter measurements.
 
+## PSQL command line
+
+```
+echo >londondatastore.csv
+psql postgresql://opendata:opendata@localhost:6432  
+\copy (SELECT * FROM londondatastore.consumption LIMIT 20) TO './londondatastore.csv' WITH CSV HEADER; 
+```
+
 ## SQL using Python
 
 ```python
 import pandas as pd
 from sqlalchemy import create_engine
 
-engine = create_engine('postgresql://timescale.nowum.fh-aachen.de:5432/opendata?search_path=londondatastore')
+//Remote connection
+//engine = create_engine('postgresql://timescale.nowum.fh-aachen.de:5432/opendata?search_path=londondatastore')
+//Remote default local configuration
+engine = create_engine('postgresql://localhost:6432/opendata?search_path=londondatastore')
 query = "SELECT ""DateTime"" AS hourly_timestamp,  AVG(""power"") AS average_power FROM consumption WHERE DateTime >= '2012-01-01' AND DateTime <= '2013-01-01' LIMIT 10"
 
 with engine.connect() as conn:
@@ -17,6 +28,7 @@ with engine.connect() as conn:
 df = df.resample("1h").mean()
 df.to_csv("londondatastore_pgrst.csv")
 ```
+
 ## Grafana
 
 Using the Graph from this dashboard: 
@@ -54,11 +66,3 @@ Password: admin
 Pgadmin is provisioned using information from data/provisioning/pgadmin/servers.json
 
 ![pgAdmin Export](./media/pgadmin_export.png)
-
-## PSQL
-
-PSQL is the command line interface for PostgreSQL. It is quite powerful and can be used to export data from the database to a file.
-
-```
-
-```
