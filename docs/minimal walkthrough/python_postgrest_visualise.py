@@ -14,14 +14,14 @@ def fetch_data():
 def plot_data(data):
     df = pd.DataFrame(data)
     
-    df_fossil = df[df['technology'] == 'Total']
+    df_total = df[df['technology'] == 'Total']
     
     plt.figure(figsize=(10, 6))
-    for country in df_fossil['country'].unique():
-        country_data = df_fossil[df_fossil['country'] == country]
+    for country in df_total['country'].unique():
+        country_data = df_total[df_total['country'] == country]
         plt.plot(country_data['year'], country_data['total_production'], label=country)
     
-    plt.title('Total National Production reported by OPSD by Country')
+    plt.title('Total National Production by Country')
     plt.xlabel('Year')
     plt.ylabel('Total Production (MW)')
     plt.legend()
