@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 POSTGREST_URL = 'http://localhost:3001/rpc/opsd_national_generation_year_country'
 POSTGREST_URL_SCHEMA = 'http://localhost:3001/national_generation_capacity?limit=10'
-# POSTGREST_URL = 'https://timescale.nowum.fh-aachen.de/oeds/rpc/opsd_national_generation_year_country'
+# POSTGREST_URL = 'https://monitor.nowum.fh-aachen.de/oeds/rpc/opsd_national_generation_year_country'
 
 def fetch_data():
     response = requests.get(POSTGREST_URL, headers={'Accept-Profile': 'public'})  
