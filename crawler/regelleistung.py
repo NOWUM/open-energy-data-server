@@ -596,18 +596,22 @@ def get_df_for_date(url, date_to_get, table_name):
     # unify country representation to NUTS standard
     if "area" in df.columns or "country" in df.columns:
         df.rename(columns={"country": "area"}, inplace=True)
-        df["area"] = df["area"].replace(
-            {
-                "germany": "DE",
-                "netherlands": "NL",
-                "belgium": "BE",
-                "austria": "AT",
-                "slovenia": "SI",
-                "czech_republic": "CZ",
-                "denmark": "DK",
-                "france": "FR",
-                "switzerland": "CH",
-            }
+        df["area"] = (
+            df["area"]
+            .replace(
+                {
+                    "germany": "DE",
+                    "netherlands": "NL",
+                    "belgium": "BE",
+                    "austria": "AT",
+                    "slovenia": "SI",
+                    "czech_republic": "CZ",
+                    "denmark": "DK",
+                    "france": "FR",
+                    "switzerland": "CH",
+                }
+            )
+            .str.upper()
         )
 
     return df
