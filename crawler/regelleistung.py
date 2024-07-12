@@ -15,7 +15,7 @@ from datetime import date, datetime, timedelta
 import numpy as np
 import pandas as pd
 import sqlalchemy
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 
 from .config import db_uri
 
@@ -656,7 +656,7 @@ def create_hypertable(engine, table_name):
         date_col = get_date_column_from_table_name(table_name)
         query_create_hypertable = f"SELECT public.create_hypertable('{table_name}', '{date_col}', if_not_exists => TRUE, migrate_data => TRUE);"
         with engine.begin() as conn:
-            conn.execute(query_create_hypertable)
+            conn.execute(text(query_create_hypertable))
         log.info(f"created hypertable {table_name}")
     except Exception as e:
         log.error(f"could not create hypertable: {e}")
