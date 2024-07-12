@@ -104,13 +104,13 @@ def get_date_from_sql(engine, table_name, sql):
 
 def get_latest_date_if_table_exists(engine, table_name):
     date_col = get_date_column_from_table_name(table_name)
-    sql = f"SELECT {date_col} FROM {table_name} ORDER BY {date_col} DESC LIMIT 1"
+    sql = f"SELECT max({date_col}) AS {date_col} FROM {table_name}"
     return get_date_from_sql(engine, table_name, sql)
 
 
 def get_earliest_date_if_table_exists(engine, table_name):
     date_col = get_date_column_from_table_name(table_name)
-    sql = f"SELECT {date_col} FROM {table_name} ORDER BY {date_col} ASC LIMIT 1"
+    sql = f"SELECT min({date_col}) AS {date_col} FROM {table_name}"
     return get_date_from_sql(engine, table_name, sql)
 
 
