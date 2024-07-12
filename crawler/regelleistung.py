@@ -7,7 +7,9 @@ https://regelleistung.net/
 """
 
 import functools as ft
+import json
 import logging
+import os.path
 import sys
 import warnings
 from datetime import date, datetime, timedelta
@@ -22,7 +24,10 @@ from .config import db_uri
 log = logging.getLogger("regelleistung")
 log.setLevel(logging.INFO)
 
-EARLIEST_DATE_TO_WRITE = datetime.strptime("2020-01-01", "%Y-%m-%d").date()
+EARLIEST_DATE_TO_WRITE = datetime.strptime("2019-01-01", "%Y-%m-%d").date()
+
+DATES_IN_DB = {}
+FILE_PATH_DATE_IN_DB = "regelleistung_dates_written_in_db.json"
 
 # Regelleistungsmarkt
 TABLE_NAME_FCR_DEMANDS = "fcr_bedarfe"
@@ -70,6 +75,32 @@ TABLE_NAME_ABLA_ANONYM_RESULTS_ENERGY = "abla_anonyme_ergebnisse"
 URL_ABLA_ANONYM_RESULTS_ENERGY = "https://www.regelleistung.net/apps/cpp-publisher/api/v1/download/tenders/anonymousresults?date={date_str}&exportFormat=xlsx&market=CAPACITY&productTypes=ABLA"
 
 
+def add_latest_date_to_dict(date, table_name):
+    if date is not None:
+        if f"latest_date_in_db_{table_name}" in DATES_IN_DB.keys():
+            latest_date_str = DATES_IN_DB[f"latest_date_in_db_{table_name}"]
+            latest_date = datetime.strptime(latest_date_str, "%Y-%m-%d").date()
+            if latest_date < date:
+                DATES_IN_DB[f"latest_date_in_db_{table_name}"] = date.strftime(
+                    "%Y-%m-%d"
+                )
+        else:
+            DATES_IN_DB[f"latest_date_in_db_{table_name}"] = date.strftime("%Y-%m-%d")
+
+
+def add_earliest_date_to_dict(date, table_name):
+    if date is not None:
+        if f"earliest_date_in_db_{table_name}" in DATES_IN_DB.keys():
+            earliest_date_str = DATES_IN_DB[f"earliest_date_in_db_{table_name}"]
+            earliest_date = datetime.strptime(earliest_date_str, "%Y-%m-%d").date()
+            if earliest_date > date:
+                DATES_IN_DB[f"earliest_date_in_db_{table_name}"] = date.strftime(
+                    "%Y-%m-%d"
+                )
+        else:
+            DATES_IN_DB[f"earliest_date_in_db_{table_name}"] = date.strftime("%Y-%m-%d")
+
+
 def get_date_column_from_table_name(table_name):
     if "regelarbeit" in table_name:
         return "delivery_date"
@@ -100,6 +131,26 @@ def get_date_from_sql(engine, table_name, sql):
             log.error(e)
     except Exception as e:
         log.error(e)
+
+
+def get_latest_date(engine, table_name):
+    latest_date = get_latest_date_if_table_exists(engine, table_name)
+    if latest_date is None and f"latest_date_in_db_{table_name}" in DATES_IN_DB.keys():
+        latest_date_str = DATES_IN_DB[f"latest_date_in_db_{table_name}"]
+        latest_date = datetime.strptime(latest_date_str, "%Y-%m-%d").date()
+
+    return latest_date
+
+
+def get_earliest_date(engine, table_name):
+    earliest_date = get_earliest_date_if_table_exists(engine, table_name)
+    if (
+        earliest_date is None
+        and f"earliest_date_in_db_{table_name}" in DATES_IN_DB.keys()
+    ):
+        earliest_date_str = DATES_IN_DB[f"earliest_date_in_db_{table_name}"]
+        earliest_date = datetime.strptime(earliest_date_str, "%Y-%m-%d").date()
+    return earliest_date
 
 
 def get_latest_date_if_table_exists(engine, table_name):
@@ -541,6 +592,24 @@ def get_df_for_date(url, date_to_get, table_name):
         df = prepare_afrr_mfrr_results_df(df)
 
     df = df.dropna(axis="columns", how="all")
+
+    # unify country representation to NUTS standard
+    if "area" in df.columns or "country" in df.columns:
+        df.rename(columns={"country": "area"}, inplace=True)
+        df["area"] = df["area"].replace(
+            {
+                "germany": "DE",
+                "netherlands": "NL",
+                "belgium": "BE",
+                "austria": "AT",
+                "slovenia": "SI",
+                "czech_republic": "CZ",
+                "denmark": "DK",
+                "france": "FR",
+                "switzerland": "CH",
+            }
+        )
+
     return df
 
 
@@ -552,7 +621,8 @@ def write_concat_table(engine, table_name, new_data):
         removed_cols = set(prev.columns).difference(set(new_data.columns))
         log.info(f"New columns: {new_cols}")
         log.info(f"Removed columns: {removed_cols}")
-        log.info(new_data["date_from"])
+        date_col = get_date_column_from_table_name(table_name)
+        log.info(new_data[date_col])
         complete_data = pd.concat([prev, new_data])
         complete_data.to_sql(table_name, conn, if_exists="replace", index=False)
 
@@ -566,6 +636,7 @@ def write_past_entries(
 ):
     data_for_date_exists = True
     wrote_data = False
+    start_date = earliest_date - timedelta(days=1)
 
     while data_for_date_exists and (earliest_date_to_write < earliest_date):
         try:
@@ -588,16 +659,20 @@ def write_past_entries(
             log.info(
                 f"The earliest date for {table_name} is the date {earliest_date}. {e}"
             )
+            add_earliest_date_to_dict(earliest_date, table_name)
             data_for_date_exists = False
 
     if wrote_data:
         log.info(
             f"Finished writing {table_name} to Database with earliest date {earliest_date}"
         )
+        add_latest_date_to_dict(start_date, table_name)
+        add_earliest_date_to_dict(earliest_date, table_name)
     elif not wrote_data and data_for_date_exists:
         log.info(
             f"The defined date for the earliest entry was already reached in {table_name}. If you want to have more data, simply adjust the earliest date to write parameter."
         )
+        add_earliest_date_to_dict(earliest_date, table_name)
     else:
         log.info(f"No past data was written for {table_name}")
 
@@ -614,7 +689,7 @@ def add_additional_past_entries(
     engine, table_name, url, earliest_date_to_write=EARLIEST_DATE_TO_WRITE
 ):
     log.info(f"Start writing missing past entries in table {table_name} if any")
-    earliest_date = get_earliest_date_if_table_exists(engine, table_name)
+    earliest_date = get_earliest_date(engine, table_name)
     write_past_entries(engine, table_name, url, earliest_date, earliest_date_to_write)
 
 
@@ -646,6 +721,9 @@ def write_new_data_from_latest_date_to_today(engine, url, table_name, latest_dat
             except Exception:
                 encountered_problem = True
 
+        if not encountered_problem:
+            add_latest_date_to_dict(latest_data_date - timedelta(days=1), table_name)
+
         log.info(
             f"Finished writing new data to {table_name} with newest date being yesterday {(latest_data_date - timedelta(days=1))}"
         )
@@ -669,7 +747,13 @@ def write_data_in_table(
     earliest_date_to_write=EARLIEST_DATE_TO_WRITE,
     write_additional_past_entries_if_any=True,
 ):
-    latest_date = get_latest_date_if_table_exists(engine, table_name)
+    if os.path.isfile(FILE_PATH_DATE_IN_DB):
+        f = open(FILE_PATH_DATE_IN_DB)
+        global DATES_IN_DB
+        DATES_IN_DB = json.load(f)
+
+    latest_date = get_latest_date(engine, table_name)
+    add_latest_date_to_dict(latest_date, table_name)
     if latest_date is not None:
         write_new_data_from_latest_date_to_today(engine, url, table_name, latest_date)
         if write_additional_past_entries_if_any:
@@ -679,6 +763,9 @@ def write_data_in_table(
             engine, url, table_name, earliest_date_to_write
         )
     create_hypertable(engine, table_name)
+
+    with open(FILE_PATH_DATE_IN_DB, "w") as outfile:
+        json.dump(DATES_IN_DB, outfile)
 
 
 def write_all_tables(engine):
@@ -733,8 +820,14 @@ def write_all_tables(engine):
 
 
 def main(db_uri):
+    if os.path.isfile(FILE_PATH_DATE_IN_DB):
+        f = open(FILE_PATH_DATE_IN_DB)
+        global DATES_IN_DB
+        DATES_IN_DB = json.load(f)
     engine = create_engine(db_uri)
     write_all_tables(engine)
+    with open(FILE_PATH_DATE_IN_DB, "w") as outfile:
+        json.dump(DATES_IN_DB, outfile)
 
 
 if __name__ == "__main__":
