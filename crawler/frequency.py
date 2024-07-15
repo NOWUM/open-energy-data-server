@@ -19,7 +19,7 @@ metadata_info = {
     "schema_name": "frequency",
     "data_date": "2019-09-01",
     "data_source": "https://www.50hertz.com/Portals/1/Dokumente/Transparenz/Regelenergie/Archiv%20Netzfrequenz/Netzfrequenz%20{year}.zip",
-    "licence": "© 50 hertz",
+    "license": "© 50 hertz",
     "description": "Electricity net frequency for germany. Time indexed.",
     "contact": "",
     "temporal_start": "2011-01-01 00:00:00",

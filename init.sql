@@ -12,7 +12,7 @@ CREATE TABLE public.metadata (
     crawl_date DATE,
     data_date DATE,
     data_source TEXT,
-    licence TEXT,
+    license TEXT,
     description TEXT,
     contact TEXT,
     tables INTEGER,

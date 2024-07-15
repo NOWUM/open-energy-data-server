@@ -30,7 +30,7 @@ metadata_info = {
     "schema_name": "entsoe",
     "data_date": "2020-10-01",
     "data_source": "https://data.open-power-system-data.org/conventional_power_plants/latest/conventional_power_plants_EU.csv",
-    "licence": "CC BY 4.0.",
+    "license": "CC BY 4.0.",
     "description": "ENTSOE transparency energy. Country specific load and generation of energy sources.",
     "contact": "",
     "temporal_start": "2014-12-31 22:00:00",

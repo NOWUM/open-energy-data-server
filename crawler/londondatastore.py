@@ -29,7 +29,7 @@ metadata_info = {
     "schema_name": "londondatastore",
     "data_date": "2014-02-28",
     "data_source": "https://data.london.gov.uk/download/smartmeter-energy-use-data-in-london-households/3527bf39-d93e-4071-8451-df2ade1ea4f2/LCL-FullData.zip",
-    "licence": "CC BY 4.0",
+    "license": "CC BY 4.0",
     "description": "London energy consumption data. Real consumption data from london, timestamped.",
     "contact": "",
     "temporal_start": "2011-11-23 09:00:00",

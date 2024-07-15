@@ -23,7 +23,7 @@ metadata_info = {
     "schema_name": "mastr",
     "data_date": "2024-06-12",
     "data_source": "https://download.marktstammdatenregister.de/Gesamtdatenexport",
-    "licence": "DL-DE/BY-2-0",
+    "license": "DL-DE/BY-2-0",
     "description": "Marktstammdatenregistrer. Registration data for energy users in germany by energy type and usage.",
     "contact": "",
     "temporal_start": None,

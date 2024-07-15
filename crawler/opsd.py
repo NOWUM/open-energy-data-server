@@ -21,7 +21,7 @@ metadata_info = {
     "schema_name": "opsd",
     "data_date": "2020-12-31",
     "data_source": "https://data.open-power-system-data.org/when2heat/latest/when2heat.sqlite",
-    "licence": "CC BY 4.0",
+    "license": "CC BY 4.0",
     "description": "Open Power System Data. When to heat dataset, heating profiles for differenz countries & systems.",
     "contact": "",
     "temporal_start": "2007-12-31 22:00:00",

@@ -19,7 +19,7 @@ metadata_info = {
     "schema_name": "e2watch",
     "data_date": "2024-06-12",
     "data_source": "https://stadt-aachen.e2watch.de/",
-    "licence": "© Stadt Aachen",
+    "license": "© Stadt Aachen",
     "description": "Aachen energy. Water, heat and power by building.",
     "contact": "",
     "temporal_start": "2022-01-01 07:00:00",

@@ -6,7 +6,7 @@
 This crawler downloads all the data of the GIE transparency platform. (https://agsi.gie.eu/, https://alsi.gie.eu/)
 The resulting data is not available under an open-source license and should not be reshared but is available for crawling yourself.
 
-Licence Information from Websire:
+license Information from Websire:
 Data usage
     It is mandatory to credit or mention to GIE (Gas Infrastructure Europe), AGSI or ALSI as data source when using or repackaging this data.
 Contact
@@ -39,7 +39,7 @@ metadata_info = {
     "schema_name": "gie",
     "data_date": "2024-06-12",
     "data_source": "https://agsi.gie.eu/",
-    "licence": "© GIE",
+    "license": "© GIE",
     "description": "Gas Inventory Transparency. Time and country indexed capacity and consumption of gas.",
     "contact": "",
     "temporal_start": "2012-01-01 00:00:00",

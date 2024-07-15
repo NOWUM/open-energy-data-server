@@ -26,7 +26,7 @@ metadata_info = {
     "schema_name": "smard",
     "data_date": "2024-06-12",
     "data_source": "https://www.smard.de/",
-    "licence": "CC BY 4.0",
+    "license": "CC BY 4.0",
     "description": "Open access ENTSOE  Germany. Production of energy by good and timestamp",
     "contact": "",
     "temporal_start": "2023-01-01 23:00:00",
