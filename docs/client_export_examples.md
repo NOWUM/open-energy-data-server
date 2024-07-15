@@ -43,10 +43,9 @@ http://localhost:3006/
 Username: opendata
 Password: opendata
 
-Pgadmin is provisioned using information from data/provisioning/grafana
-For database connection /datasources/datasource.yml 
-For example dashboards /datasources/dashboardproviders & /datasources/dashboards
+Grafana is provisioned [here](/data/provisioning/pgadmin/servers.json).
 
+Grafana dashboards are provisioned [here](/data/provisioning/grafana/dashboards/) and the dashboard provider [here](/data/provisioning/grafana/dashboardproviders/opendata.yml)
 
 ![Grafana Export](./media/grafana_export.png)
 
@@ -63,6 +62,6 @@ http://localhost:8080/
 Username: admin@admin.admin
 Password: admin
 
-Pgadmin is provisioned using information from data/provisioning/pgadmin/servers.json
+Pgadmin is provisioned [here](/data/provisioning/pgadmin/servers.json)
 
 ![pgAdmin Export](./media/pgadmin_export.png)
