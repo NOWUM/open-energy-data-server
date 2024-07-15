@@ -5,6 +5,8 @@
 import logging
 import os.path as osp
 from glob import glob
+import sys
+from pathlib import Path
 
 log = logging.getLogger("crawler")
 log.setLevel(logging.INFO)
@@ -23,7 +25,7 @@ def import_and_exec(module, schema_name):
     except AttributeError as e:
         log.error(repr(e))
     except Exception as e:
-        log.error(f"could not execute main of crawler: {module} - {e}")
+        log.error(f"could not import/execute main of crawler: {module} - {e}")
 
 
 def get_available_crawlers():
@@ -47,6 +49,8 @@ def get_available_crawlers():
 
 
 if __name__ == "__main__":
+    sys.path.append(str(Path().absolute())+ "/crawler")
+
     logging.basicConfig()
     # remove crawlers without publicly available data
     available_crawlers = get_available_crawlers()
