@@ -8,19 +8,31 @@ import zipfile
 
 import pandas as pd
 import requests
-from sqlalchemy import create_engine
 
-from config import db_uri
+from common.base_crawler import BaseCrawler
+
 
 log = logging.getLogger("iwu")
 log.setLevel(logging.INFO)
 
 
-class IwuCrawler:
-    def __init__(self, db_uri):
-        self.engine = create_engine(db_uri)
+metadata_info = {
+    "schema_name": "iwugebaeudetypen",
+    "data_date": "2015-02-10",
+    "data_source": "https://www.iwu.de/fileadmin/tools/tabula/TABULA-Analyses_DE-Typology_DataTables.zip",
+    "licence": "© Institut Wohnen und Umwelt GmbH",
+    "description": "IWU German building types. Building types with energy and sanitation metrics attached.",
+    "contact": "",
+    "concave_hull_geometry": None,
+    "temporal_start": None,
+    "temporal_end": None,
+}
 
-    def pullData(self):
+class IwuCrawler(BaseCrawler):
+    def __init__(self, schema_name):
+        super().__init__(schema_name)
+
+    def pull_data(self):
         url = "https://www.iwu.de/fileadmin/tools/tabula/TABULA-Analyses_DE-Typology_DataTables.zip"
         response = requests.get(url)
         if response.status_code == 200:
@@ -43,7 +55,8 @@ class IwuCrawler:
             iwu_data["Sanierungsstand"] = iwu_data.apply(
                 self.set_sanierungsstand, axis=1
             )
-            iwu_data["Heizklasse"] = iwu_data.apply(self.set_heizmittel, axis=1)
+            iwu_data["Heizklasse"] = iwu_data.apply(
+                self.set_heizmittel, axis=1)
             iwu_data["IWU_ID"] = iwu_data.apply(self.create_identifier, axis=1)
 
             self.handle_dates(iwu_data)
@@ -122,7 +135,7 @@ class IwuCrawler:
 
         return identifier
 
-    def sendData(self, data):
+    def send_data(self, data):
         with self.engine.begin() as conn:
             tbl_name = "IWU_Typgebäude"
             data.to_sql(tbl_name, conn, if_exists="replace")
@@ -156,11 +169,12 @@ class IwuCrawler:
         ]
 
 
-def main(db_uri):
+def main(schema_name):
     logging.basicConfig()
-    craw = IwuCrawler(db_uri)
-    data = craw.pullData()
-    craw.sendData(data)
+    craw = IwuCrawler(schema_name)
+    data = craw.pull_data()
+    craw.send_data(data)
+    craw.set_metadata(metadata_info)
 
 if __name__ == "__main__":
-    main(db_uri("iwugebaeudetypen"))
+    main("iwugebaeudetypen")
