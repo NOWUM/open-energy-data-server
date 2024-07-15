@@ -49,7 +49,7 @@ class E2WatchCrawler(BaseCrawler):
                         "PRIMARY KEY (timestamp , bilanzkreis_id));"
                     )
                 )
-                conn.execute(text(query_create_hypertable))
+                conn.execute(query_create_hypertable)
             log.info("created hypertable e2watch")
         except Exception as e:
             log.error(f"could not create hypertable: {e}")

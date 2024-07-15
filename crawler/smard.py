@@ -15,7 +15,7 @@ import pandas as pd
 import requests
 from sqlalchemy import  text
 
-from crawler.common.base_crawler import BaseCrawler
+from common.base_crawler import BaseCrawler
 
 
 log = logging.getLogger("smard")
