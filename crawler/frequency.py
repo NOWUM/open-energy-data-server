@@ -8,13 +8,24 @@ import zipfile
 
 import pandas as pd
 import requests
-from sqlalchemy import create_engine
+from common.base_crawler import BaseCrawler
 
-from config import db_uri
+from common.config import db_uri
 
 log = logging.getLogger("frequency")
 log.setLevel(logging.INFO)
 
+metadata_info = {
+    "schema_name": "frequency",
+    "data_date": "2019-09-01",
+    "data_source": "https://www.50hertz.com/Portals/1/Dokumente/Transparenz/Regelenergie/Archiv%20Netzfrequenz/Netzfrequenz%20{year}.zip",
+    "licence": "© 50 hertz",
+    "description": "Electricity net frequency for germany. Time indexed.",
+    "contact": "",
+    "temporal_start": "2011-01-01 00:00:00",
+    "temporal_end": "2019-09-01 00:00:00",
+    "concave_hull_geometry": None,
+}
 
 def download_extract_zip(url):
     """
@@ -28,9 +39,10 @@ def download_extract_zip(url):
                 yield zipinfo.filename, thefile, len(thezip.infolist())
 
 
-class FrequencyCrawler:
-    def __init__(self, db_uri):
-        self.engine = create_engine(db_uri)
+class FrequencyCrawler(BaseCrawler):
+    def __init__(self, schema_name):
+        super().__init__(schema_name)
+
 
     def crawl_year_by_url(self, url):
         for name, thefile, count in download_extract_zip(url):
@@ -97,8 +109,9 @@ if __name__ == "__main__":
 
     conn_uri = db_uri("frequency")
     log.info(f"connect to {conn_uri}")
-    fc = FrequencyCrawler(conn_uri)
+    fc = FrequencyCrawler("frequency")
     # fc.crawl_frequency(first=2014)
     year = 2015
     url = f"https://www.50hertz.com/Portals/1/Dokumente/Transparenz/Regelenergie/Archiv%20Netzfrequenz/Netzfrequenz%20{year}.zip"
     fc.crawl_year_by_url(url)
+

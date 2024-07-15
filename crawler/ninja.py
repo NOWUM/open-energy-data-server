@@ -3,8 +3,22 @@ import pandas as pd
 import requests
 import zipfile
 from io import BytesIO
-from config import db_uri
+from common.config import db_uri
+from common.base_crawler import create_schema_only, set_metadata_only
+
 from sqlalchemy import create_engine
+
+metadata_info = {
+    "schema_name": "ninja",
+    "data_date": "2016-12-31",
+    "data_source": "https://www.renewables.ninja/downloads",
+    "licence": "CC BY 4.0",
+    "description": "NINJA renewables capacity. Country specific capacities for wind and solar.",
+    "contact": "",
+    "temporal_start": "1980-01-01 00:00:00",
+    "temporal_end": "2016-12-31 23:00:00",
+    "concave_hull_geometry": None,
+}
 
 
 def download_and_extract(url, extract_to):
@@ -38,9 +52,10 @@ def write_solar_capacity_factors(engine, solar_path):
     data.to_sql("capacity_solar_merra2", engine, if_exists="replace")
 
 
-def main(db_uri):
-    engine = create_engine(db_uri("ninja"))
+def main(schema_name):
+    engine = create_engine(db_uri(schema_name))
 
+    create_schema_only(engine, schema_name)
     base_path = osp.join(osp.dirname(__file__), "data")
     wind_url = "https://www.renewables.ninja/downloads/ninja_europe_wind_v1.1.zip"
     solar_url = "https://www.renewables.ninja/downloads/ninja_europe_pv_v1.1.zip"
@@ -53,7 +68,8 @@ def main(db_uri):
     solar_path = osp.join(base_path, "ninja_pv_europe_v1.1_merra2.csv")
     write_wind_capacity_factors(engine, wind_path)
     write_solar_capacity_factors(engine, solar_path)
+    set_metadata_only(engine, metadata_info)
 
 
 if __name__ == "__main__":
-    main(db_uri)
+    main("ninja")

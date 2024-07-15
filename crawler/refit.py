@@ -18,21 +18,36 @@ import py7zr
 import requests
 from sqlalchemy import create_engine, text
 
-from config import db_uri
+from common.config import db_uri
+from common.base_crawler import create_schema_only, set_metadata_only
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)
+
+
+metadata_info = {
+    "schema_name": "refit",
+    "data_date": "2024-06-12",
+    "data_source": "https://pure.strath.ac.uk/ws/portalfiles/portal/52873459/Processed_Data_CSV.7z",
+    "licence": "CC BY 4.0",
+    "description": "University of Strathclyde household energy usage. Time-stamped data on various household appliances' energy consumption, detailing usage patterns across different homes.",
+    "contact": "",
+    "temporal_start": "2013-10-09 13:06:17",
+    "temporal_end": "2015-07-10 11:56:32",
+    "concave_hull_geometry": None,
+}
+
 
 REFIT_URL = (
     "https://pure.strath.ac.uk/ws/portalfiles/portal/52873459/Processed_Data_CSV.7z"
 )
 
 
-def main(db_uri):
+def main(schema_name):
     log.info("Download refit dataset")
     response = requests.get(REFIT_URL)
     log.info("Write refit to database")
-    engine = create_engine(db_uri)
+    engine = create_engine(db_uri(schema_name))
     with py7zr.SevenZipFile(io.BytesIO(response.content), mode="r") as z:
         names = z.getnames()
         # files = z.readall()
@@ -60,4 +75,4 @@ def main(db_uri):
 
 if __name__ == "__main__":
     logging.basicConfig()
-    main(db_uri("refit"))
+    main("refit")

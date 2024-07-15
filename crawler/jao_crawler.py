@@ -14,9 +14,22 @@ from jao import JaoAPIClient
 from sqlalchemy import MetaData, create_engine, text
 from sqlalchemy.exc import OperationalError
 
-from config import db_uri
+from common.base_crawler import BaseCrawler
+from common.config import db_uri
 
 log = logging.getLogger("jao")
+
+metadata_info = {
+    "schema_name": "jao",
+    "data_date": "2024-04-30",
+    "data_source": "https://www.jao.eu/auctions#/",
+    "licence": "© JAO",
+    "description": "JAO energy auction. Energy bids by country and timestamp.",
+    "contact": "",
+    "temporal_start": "2019-01-01 00:00:00",
+    "temporal_end": "2024-04-30 00:00:00",
+    "concave_hull_geometry": None,
+}
 
 MIN_WEEKLY_DATE = datetime(2023, 1, 1)
 
@@ -58,9 +71,9 @@ def string_to_timestamp(*dates):
     return timestamps if len(timestamps) > 1 else timestamps[0]
 
 
-class DatabaseManager:
-    def __init__(self, db_uri: str):
-        self.engine = create_engine(db_uri)
+class DatabaseManager(BaseCrawler):
+    def __init__(self, schema_name):
+        super().__init__(schema_name)
 
     def execute(self, query: text):
         with self.engine.begin() as connection:
@@ -258,8 +271,8 @@ def run_data_crawling(
     log.info(f"finished run_data_crawling from {from_date} to {to_date}")
 
 
-def main(connection_string, from_date_string="2023-01-01-00:00:00"):
-    db_manager = DatabaseManager(connection_string)
+def main(schema_name, from_date_string="2023-01-01-00:00:00"):
+    db_manager = DatabaseManager(schema_name)
     jao_client = JaoClientWrapper("1ba7533c-e5d1-4fc1-8c28-cf51d77c91f6")
 
     now = datetime.now()
@@ -270,8 +283,10 @@ def main(connection_string, from_date_string="2023-01-01-00:00:00"):
 
     run_data_crawling(jao_client, from_date, to_date, db_manager)
     db_manager.create_hypertables()
+    db_manager.set_metadata(metadata_info)
 
 
 if __name__ == "__main__":
     logging.basicConfig(level="INFO")
-    main(connection_string=db_uri("jao"), from_date_string="2019-01-01-00:00:00")
+    main(schema_name="jao", from_date_string="2019-01-01-00:00:00")
+

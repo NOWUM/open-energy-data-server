@@ -20,12 +20,23 @@ import pathlib
 from glob import glob
 
 import pandas as pd
-from sqlalchemy import create_engine
 
-from config import db_uri
+from common.base_crawler import BaseCrawler
 
 log = logging.getLogger("eex")
 log.setLevel(logging.INFO)
+
+metadata_info = {
+    "schema_name": "eex_prices",
+    "data_date": "2024-06-12",
+    "data_source": "https://www.eex.com/en/access/admission",
+    "licence": "© EEX",
+    "description": "EEX energy. Goods by market type with trade volumes and timestamps for eu countries",
+    "contact": "",
+    "temporal_start": "2017-12-31 15:44:00",
+    "temporal_end": "2031-12-10 00:00:00",
+    "concave_hull_geometry": None,
+}
 
 eex_data_path = str(pathlib.Path.home()) + "/eex"
 # eex_data_path = '/mnt/eex'
@@ -60,9 +71,9 @@ No further parsing is needed else.
 """
 
 
-class EEXCrawler:
-    def __init__(self, db_uri):
-        self.engine = create_engine(db_uri)
+class EEXCrawler(BaseCrawler):
+    def __init__(self, schema_name):
+        super().__init__(schema_name)
 
     def read_eex_trade_spot_file(self, filename):
         df = pd.read_csv(filename, skiprows=1, index_col="Trade ID")
@@ -139,7 +150,8 @@ class EEXCrawler:
                     except Exception:
                         log.error(f"error writing {file} to db")
                 else:
-                    log.error(f"file does not contain intraday_transactions: {file}")
+                    log.error(
+                        f"file does not contain intraday_transactions: {file}")
 
             else:
                 self.read_eex_market_file(file, name)
@@ -157,7 +169,8 @@ class EEXCrawler:
                 if "archive" in market.name.lower():
                     continue
                 data_path = osp.join(path, market.name, "csv")
-                self.get_trade_data_per_year(data_path, f"{name}_{market.name}")
+                self.get_trade_data_per_year(
+                    data_path, f"{name}_{market.name}")
                 # market_data/power/de/spot/csv
 
     def download_with_country(self, foldername):
@@ -168,7 +181,8 @@ class EEXCrawler:
                 if "archive" in country.name.lower():
                     continue
                 path = osp.join(foldername, country.name)
-                self.get_trade_data_per_market(path, f"{product}_{country.name}")
+                self.get_trade_data_per_market(
+                    path, f"{product}_{country.name}")
 
     def download_without_country(self, foldername):
         product = osp.basename(foldername)
@@ -187,18 +201,20 @@ market_data/power/at/spot
 """
 
 
-def main(db_uri):
-    crawler = EEXCrawler(db_uri)
+def main(schema_name):
+    crawler = EEXCrawler(schema_name)
     crawler.download_with_country(eex_data_path + "/trade_data/power")
-    crawler.download_without_country(eex_data_path + "/market_data/environmental")
+    crawler.download_without_country(
+        eex_data_path + "/market_data/environmental")
     crawler.download_with_country(eex_data_path + "/market_data/power")
     crawler.download_with_country(eex_data_path + "/market_data/natgas")
+    crawler.set_metadata(metadata_info)
 
 
 if __name__ == "__main__":
     logging.basicConfig()
     # db_uri = './data/eex.db'
-    main(db_uri("eex-pricit"))
+    main("eex-pricit")
     # crawler = EEXCrawler(db_uri)
     # path_xx = '~/eex/trade_data/power/de/spot/csv/2021/20210909/intraday_transactions_germany_2021-09-09.csv'
     # df = crawler.read_eex_trade_spot_file(path_xx)

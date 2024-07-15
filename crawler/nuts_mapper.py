@@ -12,8 +12,10 @@ import requests
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import ProgrammingError
 
+from common.config import db_uri
 
-def main(db_uri):
+
+def main(schema_name):
     # Download shp zip for EU NUTS here:
     # https://ec.europa.eu/eurostat/web/gisco/geodata/statistical-units/territorial-units-statistics
     download_url = "https://gisco-services.ec.europa.eu/distribution/v2/nuts/shp/NUTS_RG_01M_2021_4326.shp.zip"
@@ -27,7 +29,7 @@ def main(db_uri):
     geo_information = gpd.read_file(geo_path)
     geo_information = geo_information.to_crs(4326)
 
-    connection = create_engine(db_uri)
+    connection = create_engine(db_uri(schema_name))
     query = text("CREATE EXTENSION postgis;")
     try:
         with connection.connect() as conn:
@@ -71,6 +73,5 @@ def main(db_uri):
 
 
 if __name__ == "__main__":
-    from config import db_uri
 
-    main(db_uri("public"))
+    main("public")

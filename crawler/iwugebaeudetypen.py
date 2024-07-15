@@ -23,9 +23,9 @@ metadata_info = {
     "licence": "© Institut Wohnen und Umwelt GmbH",
     "description": "IWU German building types. Building types with energy and sanitation metrics attached.",
     "contact": "",
-    "concave_hull_geometry": None,
     "temporal_start": None,
     "temporal_end": None,
+    "concave_hull_geometry": None,
 }
 
 class IwuCrawler(BaseCrawler):
@@ -178,3 +178,5 @@ def main(schema_name):
 
 if __name__ == "__main__":
     main("iwugebaeudetypen")
+
+

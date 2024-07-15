@@ -8,20 +8,33 @@ from datetime import date, datetime, timedelta
 
 import pandas as pd
 import requests
-from sqlalchemy import create_engine, text
+from sqlalchemy import  text
+from common.base_crawler import BaseCrawler
+from common.config import db_uri
 
-from config import db_uri
 
 log = logging.getLogger("eview")
 log.setLevel(logging.INFO)
+
+metadata_info = {
+    "schema_name": "eview",
+    "data_date": "2024-06-12",
+    "data_source": "http://www.eview.de/solarstromdaten/login.php",
+    "licence": "© Eview",
+    "description": "Eview solar energy. Plan specific time indexed performance.",
+    "contact": "",
+    "temporal_start": "2009-01-02 08:15:00",
+    "temporal_end": "2024-06-10 21:45:00",
+    "concave_hull_geometry": None,
+}
 
 default_start_date = date(2022, 11, 1)
 # using http instead of https to be faster
 
 
-class EViewCrawler:
-    def __init__(self, db_uri):
-        self.engine = create_engine(db_uri)
+class EViewCrawler(BaseCrawler):
+    def __init__(self, schema_name):
+        super().__init__(schema_name)
 
     def get_solar_units(self):
         # crawl available pv units
@@ -88,8 +101,8 @@ class EViewCrawler:
             log.error(f"could not create hypertable: {e}")
 
 
-def main(db_uri):
-    ec = EViewCrawler(db_uri)
+def main(schema_name):
+    ec = EViewCrawler(schema_name)
     solar_plants = ec.get_solar_units()
 
     for plant in solar_plants:
@@ -101,6 +114,7 @@ def main(db_uri):
             log.exception(f"Error with {plant}")
 
     ec.create_hypertable()
+    ec.set_metadata(metadata_info)
 
 if __name__ == "__main__":
     logging.basicConfig()
