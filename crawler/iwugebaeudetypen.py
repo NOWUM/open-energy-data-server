@@ -23,8 +23,8 @@ metadata_info = {
     "license": "© Institut Wohnen und Umwelt GmbH",
     "description": "IWU German building types. Building types with energy and sanitation metrics attached.",
     "contact": "",
-    "temporal_start": None,
-    "temporal_end": None,
+    "temporal_start": "1800-01-01 00:00:00",
+    "temporal_end": "2023-01-01 00:00:00",
     "concave_hull_geometry": None,
 }
 
