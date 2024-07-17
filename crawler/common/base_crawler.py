@@ -25,13 +25,13 @@ def set_metadata_only(engine, metadata_info):
         conn.execute(
             text("""
             INSERT INTO public.metadata 
-            (schema_name, data_date, data_source, licence, description, contact, concave_hull_geometry, temporal_start, temporal_end)
+            (schema_name, data_date, data_source, license, description, contact, concave_hull_geometry, temporal_start, temporal_end)
             VALUES 
-            (:schema_name, :data_date, :data_source, :licence, :description, :contact, :concave_hull_geometry, :temporal_start, :temporal_end)
+            (:schema_name, :data_date, :data_source, :license, :description, :contact, :concave_hull_geometry, :temporal_start, :temporal_end)
             ON CONFLICT (schema_name) DO UPDATE SET
                 data_date = EXCLUDED.data_date,
                 data_source = EXCLUDED.data_source,
-                licence = EXCLUDED.licence,
+                license = EXCLUDED.license,
                 description = EXCLUDED.description,
                 contact = EXCLUDED.contact,
                 concave_hull_geometry = EXCLUDED.concave_hull_geometry,

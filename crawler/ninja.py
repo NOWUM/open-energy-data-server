@@ -12,7 +12,7 @@ metadata_info = {
     "schema_name": "ninja",
     "data_date": "2016-12-31",
     "data_source": "https://www.renewables.ninja/downloads",
-    "licence": "CC BY 4.0",
+    "license": "CC BY 4.0",
     "description": "NINJA renewables capacity. Country specific capacities for wind and solar.",
     "contact": "",
     "temporal_start": "1980-01-01 00:00:00",

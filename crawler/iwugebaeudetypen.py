@@ -20,11 +20,11 @@ metadata_info = {
     "schema_name": "iwugebaeudetypen",
     "data_date": "2015-02-10",
     "data_source": "https://www.iwu.de/fileadmin/tools/tabula/TABULA-Analyses_DE-Typology_DataTables.zip",
-    "licence": "© Institut Wohnen und Umwelt GmbH",
+    "license": "© Institut Wohnen und Umwelt GmbH",
     "description": "IWU German building types. Building types with energy and sanitation metrics attached.",
     "contact": "",
-    "temporal_start": None,
-    "temporal_end": None,
+    "temporal_start": "1800-01-01 00:00:00",
+    "temporal_end": "2023-01-01 00:00:00",
     "concave_hull_geometry": None,
 }
 

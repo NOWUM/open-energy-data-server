@@ -33,8 +33,8 @@ csv_date_format = "%Y-%m-%d %H:%M %Z"
 metadata_info = {
     "schema_name": "netztransparenz",
     "data_date": "2015-02-10",
-    "data_source": "https://www.iwu.de/fileadmin/tools/tabula/TABULA-Analyses_DE-Typology_DataTables.zip",
-    "licence": "© Netztransparenz",
+    "data_source": "https://ds.netztransparenz.de/api/",
+    "license": "© Netztransparenz",
     "description": "German Energy Network Operations. Activated minimum and secondary reserve levels, forecasted solar and wind energy outputs, net reserve power balance, and redispatch measures.",
     "contact": "",
     "temporal_start": "2011-03-31 00:00:00",

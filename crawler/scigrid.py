@@ -22,8 +22,8 @@ from common.base_crawler import create_schema_only, set_metadata_only
 metadata_info = {
     "schema_name": "scigrid",
     "data_date": "2024-06-12",
-    "data_source": "https://www.iwu.de/fileadmin/tools/tabula/TABULA-Analyses_DE-Typology_DataTables.zip",
-    "licence": "Apache-2.0",
+    "data_source": "https://www.power.scigrid.de/releases_archive/scigrid-conference-eu-data-only.zip",
+    "license": "Apache-2.0",
     "description": "EU network simulation. Automatic energy grid model creation.",
     "contact": "",
     "temporal_start": None,

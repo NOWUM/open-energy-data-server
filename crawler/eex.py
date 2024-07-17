@@ -30,7 +30,7 @@ metadata_info = {
     "schema_name": "eex_prices",
     "data_date": "2024-06-12",
     "data_source": "https://www.eex.com/en/access/admission",
-    "licence": "© EEX",
+    "license": "© EEX",
     "description": "EEX energy. Goods by market type with trade volumes and timestamps for eu countries",
     "contact": "",
     "temporal_start": "2017-12-31 15:44:00",

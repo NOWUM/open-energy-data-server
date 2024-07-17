@@ -23,7 +23,7 @@ metadata_info = {
     "schema_name": "jao",
     "data_date": "2024-04-30",
     "data_source": "https://www.jao.eu/auctions#/",
-    "licence": "© JAO",
+    "license": "© JAO",
     "description": "JAO energy auction. Energy bids by country and timestamp.",
     "contact": "",
     "temporal_start": "2019-01-01 00:00:00",

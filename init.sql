@@ -1,4 +1,4 @@
--- SPDX-FileCopyrightText: Florian Maurer, Christian Rieke
+-- SPDX-FileCopyrightText: Florian Maurer, Christian Rieke, Vassily Aliseyko
 --
 -- SPDX-License-Identifier: AGPL-3.0-or-later
 CREATE EXTENSION postgis;
@@ -12,14 +12,14 @@ CREATE TABLE public.metadata (
     crawl_date DATE,
     data_date DATE,
     data_source TEXT,
-    licence TEXT,
+    license TEXT,
     description TEXT,
     contact TEXT,
     tables INTEGER,
-    size BIGINT
+    size BIGINT,
     temporal_start TIMESTAMP,
     temporal_end TIMESTAMP,
-    concave_hull_geometry GEOMETRY,
+    concave_hull_geometry GEOMETRY
 );
 create or replace function postgrest.pre_config()
 returns void as $$

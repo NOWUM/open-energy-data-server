@@ -18,7 +18,7 @@ metadata_info = {
     "schema_name": "opsd_national_capacity",
     "data_date": "2020-10-01",
     "data_source": "https://data.open-power-system-data.org/national_generation_capacity/2020-10-01/national_generation_capacity_stacked.csv",
-    "licence": "Attribution required",
+    "license": "Attribution required",
     "description": "National generation capacity from opsd. European nation generation by energy source in MW.",
     "contact": "",
     "temporal_start": "1990-01-01",

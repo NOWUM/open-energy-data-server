@@ -19,7 +19,7 @@ metadata_info = {
     "schema_name": "e2watch",
     "data_date": "2024-06-12",
     "data_source": "https://stadt-aachen.e2watch.de/",
-    "licence": "© Stadt Aachen",
+    "license": "© Stadt Aachen",
     "description": "Aachen energy. Water, heat and power by building.",
     "contact": "",
     "temporal_start": "2022-01-01 07:00:00",
@@ -49,7 +49,7 @@ class E2WatchCrawler(BaseCrawler):
                         "PRIMARY KEY (timestamp , bilanzkreis_id));"
                     )
                 )
-                conn.execute(text(query_create_hypertable))
+                conn.execute(query_create_hypertable)
             log.info("created hypertable e2watch")
         except Exception as e:
             log.error(f"could not create hypertable: {e}")
