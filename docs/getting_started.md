@@ -26,7 +26,7 @@ This will start:
 To verify a successful start, you can check the logs of the services by running:
 
 ```bash
-docker -ps
+docker ps
 ```
 
 If everything went well, you should see four services running at the previously mentioned ports.
