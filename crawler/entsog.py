@@ -28,7 +28,7 @@ metadata_info = {
     "schema_name": "entsog",
     "data_date": "2024-06-12",
     "data_source": "https://transparency.entsog.eu/api/v1/",
-    "license": "© Entsog",
+    "license": "https://www.entsog.eu/privacy-policy-and-terms-use",
     "description": "ENTSOG transparency energy. Country specific flows of energy sources.",
     "contact": "",
     "temporal_start": "2017-07-10 02:00:00",

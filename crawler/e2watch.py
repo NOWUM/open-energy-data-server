@@ -19,7 +19,7 @@ metadata_info = {
     "schema_name": "e2watch",
     "data_date": "2024-06-12",
     "data_source": "https://stadt-aachen.e2watch.de/",
-    "license": "© Stadt Aachen",
+    "license": "https://www.aachen.de/DE/stadt_buerger/planen_bauen/gebaeudemanagement/SERVICE/2_energieanzeiger/e2watch_Informationen-zum-System.html",
     "description": "Aachen energy. Water, heat and power by building.",
     "contact": "",
     "temporal_start": "2022-01-01 07:00:00",

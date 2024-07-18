@@ -34,7 +34,7 @@ metadata_info = {
     "schema_name": "netztransparenz",
     "data_date": "2015-02-10",
     "data_source": "https://ds.netztransparenz.de/api/",
-    "license": "© Netztransparenz",
+    "license": "https://www.netztransparenz.de/en/About-us/Information-platforms/Disclosure-obligations-in-accordance-with-the-EU-Transparency-Regulation",
     "description": "German Energy Network Operations. Activated minimum and secondary reserve levels, forecasted solar and wind energy outputs, net reserve power balance, and redispatch measures.",
     "contact": "",
     "temporal_start": "2011-03-31 00:00:00",

@@ -20,7 +20,7 @@ metadata_info = {
     "schema_name": "eview",
     "data_date": "2024-06-12",
     "data_source": "http://www.eview.de/solarstromdaten/login.php",
-    "license": "© Eview",
+    "license": "https://www.eview.de/solarstromdaten/anb.html",
     "description": "Eview solar energy. Plan specific time indexed performance.",
     "contact": "",
     "temporal_start": "2009-01-02 08:15:00",

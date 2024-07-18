@@ -29,7 +29,7 @@ log.setLevel(logging.INFO)
 metadata_info = {
     "schema_name": "eex_prices",
     "data_date": "2024-06-12",
-    "data_source": "https://www.eex.com/en/access/admission",
+    "data_source": "https://www.eex.com/en/market-data/eex-group-datasource/general-terms-of-contract",
     "license": "© EEX",
     "description": "EEX energy. Goods by market type with trade volumes and timestamps for eu countries",
     "contact": "",

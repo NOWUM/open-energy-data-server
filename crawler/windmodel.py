@@ -40,7 +40,7 @@ metadata_info = {
     "schema_name": "windmodel",
     "data_date": "2024-06-12",
     "data_source": "https://www.wind-turbine-models.com/powercurves",
-    "license": "© 2011 - 2024 Lucas Bauer & Silvio Matysik",
+    "license": "https://www.wind-turbine-models.com/terms",
     "description": "Wind turbine performance. Wind turbine test performance data by model.",
     "contact": "",
     "temporal_start": None,

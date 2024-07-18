@@ -39,7 +39,7 @@ metadata_info = {
     "schema_name": "gie",
     "data_date": "2024-06-12",
     "data_source": "https://agsi.gie.eu/",
-    "license": "© GIE",
+    "license": "https://www.gie.eu/privacy-policy/",
     "description": "Gas Inventory Transparency. Time and country indexed capacity and consumption of gas.",
     "contact": "",
     "temporal_start": "2012-01-01 00:00:00",
