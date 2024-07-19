@@ -56,7 +56,10 @@ def main(schema_name):
 
                 df.columns = [col.strip() for col in df.columns]
                 df.rename(
-                    columns={"KWH/hh (per half hour)": "power", "stdorToU": "tariff"},
+                    columns={
+                        "KWH/hh (per half hour)": "power",
+                        "stdorToU": "tariff",
+                    },
                     inplace=True,
                 )
                 with engine.begin() as conn:

@@ -11,7 +11,6 @@ import requests
 
 from common.base_crawler import BaseCrawler
 
-
 log = logging.getLogger("iwu")
 log.setLevel(logging.INFO)
 
@@ -30,6 +29,7 @@ https://www.iwu.de/forschung/gebaeudebestand/tabula/?mkt=&cHash=3d0c076745af29f7
     "temporal_end": "2023-01-01 00:00:00",
     "concave_hull_geometry": None,
 }
+
 
 class IwuCrawler(BaseCrawler):
     def __init__(self, schema_name):
@@ -58,8 +58,7 @@ class IwuCrawler(BaseCrawler):
             iwu_data["Sanierungsstand"] = iwu_data.apply(
                 self.set_sanierungsstand, axis=1
             )
-            iwu_data["Heizklasse"] = iwu_data.apply(
-                self.set_heizmittel, axis=1)
+            iwu_data["Heizklasse"] = iwu_data.apply(self.set_heizmittel, axis=1)
             iwu_data["IWU_ID"] = iwu_data.apply(self.create_identifier, axis=1)
 
             self.handle_dates(iwu_data)
@@ -179,7 +178,6 @@ def main(schema_name):
     craw.send_data(data)
     craw.set_metadata(metadata_info)
 
+
 if __name__ == "__main__":
     main("iwugebaeudetypen")
-
-

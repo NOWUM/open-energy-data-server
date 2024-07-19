@@ -10,14 +10,12 @@ import io
 import pandas as pd
 import requests
 import geopandas
-from sqlalchemy import  text
+from sqlalchemy import text
 from common.base_crawler import BaseCrawler
-
 
 
 log = logging.getLogger("iwu")
 log.setLevel(logging.INFO)
-
 
 
 metadata_info = {
@@ -68,7 +66,8 @@ class DataCrawler(BaseCrawler):
         end_i = 1000
         while end_i < 12710309:
             data = geopandas.read_file(
-                os.path.join(os.path.dirname(__file__)) + "\data\kwp_nrw\Waermebedarf_NRW.gdb",
+                os.path.join(os.path.dirname(__file__))
+                + "\data\kwp_nrw\Waermebedarf_NRW.gdb",
                 rows=slice(start_i, end_i, None),
             )
 
@@ -78,7 +77,7 @@ class DataCrawler(BaseCrawler):
                 end_i = 12710308
             with self.engine.begin() as conn:
                 data.to_postgis("waermedichte", conn, if_exists="append")
-        
+
         with self.engine.begin() as conn:
             conn.execute(
                 text(
@@ -87,16 +86,31 @@ class DataCrawler(BaseCrawler):
             )
 
     def clean(self):
-        file_list = os.listdir(os.path.join(os.path.dirname(__file__)) + "\data\kwp_nrw\Waermebedarf_NRW.gdb")
+        file_list = os.listdir(
+            os.path.join(os.path.dirname(__file__))
+            + "\data\kwp_nrw\Waermebedarf_NRW.gdb"
+        )
         for file_name in file_list:
-            file_path = os.path.join(os.path.join(os.path.dirname(__file__)) + "\data\kwp_nrw\Waermebedarf_NRW.gdb", file_name)
+            file_path = os.path.join(
+                os.path.join(os.path.dirname(__file__))
+                + "\data\kwp_nrw\Waermebedarf_NRW.gdb",
+                file_name,
+            )
             if os.path.isfile(file_path):
                 os.remove(file_path)
-        os.rmdir(os.path.join(os.path.dirname(__file__)) + "\data\kwp_nrw\Waermebedarf_NRW.gdb")
+        os.rmdir(
+            os.path.join(os.path.dirname(__file__))
+            + "\data\kwp_nrw\Waermebedarf_NRW.gdb"
+        )
 
-        file_list = os.listdir(os.path.join(os.path.dirname(__file__)) + "\data\kwp_nrw")
+        file_list = os.listdir(
+            os.path.join(os.path.dirname(__file__)) + "\data\kwp_nrw"
+        )
         for file_name in file_list:
-            file_path = os.path.join(os.path.join(os.path.dirname(__file__)) + "\data\kwp_nrw", file_name)
+            file_path = os.path.join(
+                os.path.join(os.path.dirname(__file__)) + "\data\kwp_nrw",
+                file_name,
+            )
             if os.path.isfile(file_path):
                 os.remove(file_path)
 

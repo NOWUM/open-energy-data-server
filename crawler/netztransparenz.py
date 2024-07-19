@@ -42,10 +42,10 @@ metadata_info = {
     "concave_hull_geometry": None,
 }
 
+
 class NetztransparenzCrawler(BaseCrawler):
     def __init__(self, schema_name):
         super().__init__(schema_name)
-
 
         # add your Client-ID and Client-secret from the API Client configuration GUI to
         # your environment variable first
@@ -159,7 +159,9 @@ class NetztransparenzCrawler(BaseCrawler):
                 na_values=["N.A."],
             )
             df.rename(
-                mapper=lambda x: database_friendly(x), axis="columns", inplace=True
+                mapper=lambda x: database_friendly(x),
+                axis="columns",
+                inplace=True,
             )
             df["von"] = pd.to_datetime(
                 df["datum"] + " " + df["von"] + " " + df["zeitzone_von"],
@@ -199,7 +201,9 @@ class NetztransparenzCrawler(BaseCrawler):
                 na_values=["N.A."],
             )
             df.rename(
-                mapper=lambda x: database_friendly(x), axis="columns", inplace=True
+                mapper=lambda x: database_friendly(x),
+                axis="columns",
+                inplace=True,
             )
             df["von"] = pd.to_datetime(
                 df["datum"] + " " + df["von"] + " " + df["zeitzone_von"],
@@ -239,7 +243,9 @@ class NetztransparenzCrawler(BaseCrawler):
                 na_values=["N.A."],
             )
             df.rename(
-                mapper=lambda x: database_friendly(x), axis="columns", inplace=True
+                mapper=lambda x: database_friendly(x),
+                axis="columns",
+                inplace=True,
             )
             df["von"] = pd.to_datetime(
                 df["datum"] + " " + df["von"] + " " + df["zeitzone_von"],
@@ -537,7 +543,7 @@ def main(schema_name):
     crawler.activated_manual_balancing_capacity()
     crawler.value_of_avoided_activation()
     crawler.create_hypertable()
-    
+
     crawler.set_metadata(metadata_info)
 
 

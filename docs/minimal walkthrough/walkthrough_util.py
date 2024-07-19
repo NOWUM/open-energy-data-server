@@ -11,16 +11,15 @@ def db_uri_local_default(db_name):
         + db_name
     )
 
-db_uri = db_uri_local_default
 
+db_uri = db_uri_local_default
 
 
 def create_schema_only(engine, schema_name):
     with engine.begin() as conn:
-        conn.execute(
-            text(f"CREATE SCHEMA IF NOT EXISTS {schema_name}")
-        )
-        
+        conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {schema_name}"))
+
+
 def set_metadata_only(engine, metadata_info):
     with engine.begin() as conn:
         conn.execute(
@@ -39,7 +38,7 @@ def set_metadata_only(engine, metadata_info):
                 temporal_start = EXCLUDED.temporal_start,
                 temporal_end = EXCLUDED.temporal_end
             """),
-            metadata_info
+            metadata_info,
         )
         conn.execute(
             text("""
@@ -49,5 +48,5 @@ def set_metadata_only(engine, metadata_info):
                 crawl_date = NOW()
             WHERE schema_name = :schema_name
             """),
-            {"schema_name": metadata_info["schema_name"]}
+            {"schema_name": metadata_info["schema_name"]},
         )

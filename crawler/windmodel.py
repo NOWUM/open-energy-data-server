@@ -103,7 +103,6 @@ def download_all_turbines():
 
 
 def main(schema_name):
-
     engine = create_engine(db_uri(schema_name))
     create_schema_only(engine, schema_name)
     turbine_data = download_all_turbines()

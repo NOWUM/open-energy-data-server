@@ -191,7 +191,9 @@ class EntsogCrawler(BaseCrawler):
 
             try:
                 with self.engine.begin() as conn:
-                    query_create_hypertable = text(f"SELECT public.create_hypertable('{tbl_name}', 'periodfrom', if_not_exists => TRUE, migrate_data => TRUE);")
+                    query_create_hypertable = text(
+                        f"SELECT public.create_hypertable('{tbl_name}', 'periodfrom', if_not_exists => TRUE, migrate_data => TRUE);"
+                    )
                     conn.execute(query_create_hypertable)
                     log.info(f"created hypertable {tbl_name}")
             except Exception as e:
@@ -280,5 +282,3 @@ if __name__ == "__main__":
 
     indicators = ["Physical Flow", "Allocation", "Firm Technical"]
     craw.pullOperationalData(indicators)
-
-

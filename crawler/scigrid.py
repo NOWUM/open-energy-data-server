@@ -18,7 +18,6 @@ from common.config import db_uri
 from common.base_crawler import create_schema_only, set_metadata_only
 
 
-
 metadata_info = {
     "schema_name": "scigrid",
     "data_date": "2024-06-12",
@@ -109,7 +108,6 @@ def scigrid_links_and_nodes():
 
 
 def main(schema_name):
-
     engine = create_engine(db_uri(schema_name))
     create_schema_only(engine, schema_name)
     links, nodes = scigrid_links_and_nodes()

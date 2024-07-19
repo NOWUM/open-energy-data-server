@@ -30,6 +30,7 @@ No license given, usage is desirable but without any liability: https://www.50he
     "concave_hull_geometry": None,
 }
 
+
 def download_extract_zip(url):
     """
     Download a ZIP file and extract its contents in memory
@@ -45,7 +46,6 @@ def download_extract_zip(url):
 class FrequencyCrawler(BaseCrawler):
     def __init__(self, schema_name):
         super().__init__(schema_name)
-
 
     def crawl_year_by_url(self, url):
         for name, thefile, count in download_extract_zip(url):
@@ -89,7 +89,9 @@ class FrequencyCrawler(BaseCrawler):
     def create_hypertable(self):
         try:
             with self.engine.begin() as conn:
-                query = text("SELECT public.create_hypertable('frequency', 'date_time', if_not_exists => TRUE, migrate_data => TRUE);")
+                query = text(
+                    "SELECT public.create_hypertable('frequency', 'date_time', if_not_exists => TRUE, migrate_data => TRUE);"
+                )
                 conn.execute(query)
             log.info("created hypertable frequency")
         except Exception as e:
@@ -127,4 +129,3 @@ if __name__ == "__main__":
     year = 2015
     url = f"https://www.50hertz.com/Portals/1/Dokumente/Transparenz/Regelenergie/Archiv%20Netzfrequenz/Netzfrequenz%20{year}.zip"
     fc.crawl_year_by_url(url)
-

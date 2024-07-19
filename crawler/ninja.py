@@ -1,12 +1,13 @@
 import os.path as osp
-import pandas as pd
-import requests
 import zipfile
 from io import BytesIO
-from common.config import db_uri
-from common.base_crawler import create_schema_only, set_metadata_only
 
+import pandas as pd
+import requests
 from sqlalchemy import create_engine
+
+from common.base_crawler import create_schema_only, set_metadata_only
+from common.config import db_uri
 
 metadata_info = {
     "schema_name": "ninja",
@@ -24,6 +25,7 @@ def download_and_extract(url, extract_to):
     response = requests.get(url)
     with zipfile.ZipFile(BytesIO(response.content)) as z_file:
         z_file.extractall(extract_to)
+
 
 def write_wind_capacity_factors(engine, wind_path):
     data = pd.read_csv(wind_path, index_col=0)
@@ -62,8 +64,7 @@ def main(schema_name):
     download_and_extract(wind_url, base_path)
     download_and_extract(solar_url, base_path)
 
-    wind_path = osp.join(
-        base_path, "ninja_wind_europe_v1.1_current_on-offshore.csv")
+    wind_path = osp.join(base_path, "ninja_wind_europe_v1.1_current_on-offshore.csv")
     solar_path = osp.join(base_path, "ninja_pv_europe_v1.1_merra2.csv")
     write_wind_capacity_factors(engine, wind_path)
     write_solar_capacity_factors(engine, solar_path)

@@ -10,9 +10,8 @@ import pandas as pd
 import requests
 from sqlalchemy import create_engine
 
-
-from common.config import db_uri
 from common.base_crawler import create_schema_only, set_metadata_only
+from common.config import db_uri
 
 log = logging.getLogger("opsd")
 log.setLevel(logging.INFO)

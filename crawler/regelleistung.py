@@ -335,7 +335,10 @@ def prepare_fcr_results_df(df):
         else:
             id_vars.append(col_name)
     df_melted_demand = df.melt(
-        id_vars=id_vars, value_vars=demand_cols, var_name="area", value_name="demand_mw"
+        id_vars=id_vars,
+        value_vars=demand_cols,
+        var_name="area",
+        value_name="demand_mw",
     )
     df_melted_demand["area"] = df_melted_demand["area"].replace(col_mapping)
     df_melted_settlementcapacity = df.melt(
@@ -357,12 +360,20 @@ def prepare_fcr_results_df(df):
         col_mapping
     )
 
-    dfs = [df_melted_demand, df_melted_settlementcapacity, df_melted_deficit_surplus]
+    dfs = [
+        df_melted_demand,
+        df_melted_settlementcapacity,
+        df_melted_deficit_surplus,
+    ]
     dfs = [df.set_index([*id_vars, "area"]) for df in dfs]
     df_final = ft.reduce(lambda left, right: left.join(right, how="outer"), dfs)
 
     df_final = df_final.dropna(
-        subset=["demand_mw", "settlementcapacity_price_eur_mw", "deficit_surplus_mw"],
+        subset=[
+            "demand_mw",
+            "settlementcapacity_price_eur_mw",
+            "deficit_surplus_mw",
+        ],
         how="all",
     )
     return df_final.reset_index()
@@ -806,20 +817,26 @@ def write_all_tables(engine):
     write_data_in_table(engine, TABLE_NAME_AFRR_DEMANDS_ENERGY, URL_AFRR_DEMANDS_ENERGY)
     write_data_in_table(engine, TABLE_NAME_AFRR_RESULTS_ENERGY, URL_AFRR_RESULTS_ENERGY)
     write_data_in_table(
-        engine, TABLE_NAME_AFRR_ANONYM_RESULTS_ENERGY, URL_AFRR_ANONYM_RESULTS_ENERGY
+        engine,
+        TABLE_NAME_AFRR_ANONYM_RESULTS_ENERGY,
+        URL_AFRR_ANONYM_RESULTS_ENERGY,
     )
 
     write_data_in_table(engine, TABLE_NAME_MFRR_DEMANDS_ENERGY, URL_MFRR_DEMANDS_ENERGY)
     write_data_in_table(engine, TABLE_NAME_MFRR_RESULTS_ENERGY, URL_MFRR_RESULTS_ENERGY)
     write_data_in_table(
-        engine, TABLE_NAME_MFRR_ANONYM_RESULTS_ENERGY, URL_MFRR_ANONYM_RESULTS_ENERGY
+        engine,
+        TABLE_NAME_MFRR_ANONYM_RESULTS_ENERGY,
+        URL_MFRR_ANONYM_RESULTS_ENERGY,
     )
 
     # Abschaltbare Lasten
     write_data_in_table(engine, TABLE_NAME_ABLA_DEMANDS_ENERGY, URL_ABLA_DEMANDS_ENERGY)
     write_data_in_table(engine, TABLE_NAME_ABLA_RESULTS_ENERGY, URL_ABLA_RESULTS_ENERGY)
     write_data_in_table(
-        engine, TABLE_NAME_ABLA_ANONYM_RESULTS_ENERGY, URL_ABLA_ANONYM_RESULTS_ENERGY
+        engine,
+        TABLE_NAME_ABLA_ANONYM_RESULTS_ENERGY,
+        URL_ABLA_ANONYM_RESULTS_ENERGY,
     )
 
 
