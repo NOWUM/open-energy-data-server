@@ -30,12 +30,12 @@ metadata_info = {
     "schema_name": "eex_prices",
     "data_date": "2024-06-12",
     "data_source": "https://www.eex.com/en/market-data/eex-group-datasource/general-terms-of-contract",
-    "license": "© EEX",
-    "description": "EEX energy. Goods by market type with trade volumes and timestamps for eu countries",
-    "contact": "",
+    "license": "subscription-based internal usage license available",
+    "description": """EEX market results. Includes order books and environmental market results if bought. Goods by market type with trade volumes and timestamps for eu countries - see here for license information:
+https://www.eex.com/en/market-data/eex-group-datasource/market-data-vendors
+    
+    """,
     "temporal_start": "2017-12-31 15:44:00",
-    "temporal_end": "2031-12-10 00:00:00",
-    "concave_hull_geometry": None,
 }
 
 eex_data_path = str(pathlib.Path.home()) + "/eex"

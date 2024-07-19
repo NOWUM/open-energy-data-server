@@ -24,7 +24,7 @@ metadata_info = {
     "schema_name": "nrw_kwp_waermedichte",
     "data_date": "2024-01-23",
     "data_source": "https://www.opengeodata.nrw.de/produkte/umwelt_klima/klima/kwp/",
-    "license": "DL-DE->Zero-2.0",
+    "license": "DL-DE-ZERO-2.0",
     "description": "NRW Building stats. Building specific information regarding buildings and heating, modelled",
     "contact": "",
     "temporal_start": None,

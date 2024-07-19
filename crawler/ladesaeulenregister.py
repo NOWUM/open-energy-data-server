@@ -24,7 +24,7 @@ metadata_info = {
     "schema_name": "ladesaeulenregister",
     "data_date": "2014-02-28",
     "data_source": "https://data.bundesnetzagentur.de/Bundesnetzagentur/SharedDocs/Downloads/DE/Sachgebiete/Energie/Unternehmen_Institutionen/E_Mobilitaet/Ladesaeulenregister.csv",
-    "license": "CC BY 4.0",
+    "license": "CC-BY-4.0",
     "description": "Charging stations for EV. Coordinate referenced power usage of individual chargers.",
     "contact": "",
     "temporal_start": None,

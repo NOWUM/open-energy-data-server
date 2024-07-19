@@ -29,12 +29,11 @@ metadata_info = {
     "schema_name": "refit",
     "data_date": "2024-06-12",
     "data_source": "https://pure.strath.ac.uk/ws/portalfiles/portal/52873459/Processed_Data_CSV.7z",
-    "license": "CC BY 4.0",
+    "license": "CC-BY-4.0",
     "description": "University of Strathclyde household energy usage. Time-stamped data on various household appliances' energy consumption, detailing usage patterns across different homes.",
     "contact": "",
     "temporal_start": "2013-10-09 13:06:17",
     "temporal_end": "2015-07-10 11:56:32",
-    "concave_hull_geometry": None,
 }
 
 

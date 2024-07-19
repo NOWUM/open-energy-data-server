@@ -42,10 +42,6 @@ metadata_info = {
     "data_source": "https://www.wind-turbine-models.com/powercurves",
     "license": "https://www.wind-turbine-models.com/terms",
     "description": "Wind turbine performance. Wind turbine test performance data by model.",
-    "contact": "",
-    "temporal_start": None,
-    "temporal_end": None,
-    "concave_hull_geometry": None,
 }
 
 
