@@ -8,8 +8,9 @@ import zipfile
 
 import pandas as pd
 import requests
-from common.base_crawler import BaseCrawler
+from sqlalchemy import text
 
+from common.base_crawler import BaseCrawler
 from common.config import db_uri
 
 log = logging.getLogger("frequency")
@@ -83,10 +84,20 @@ class FrequencyCrawler(BaseCrawler):
             url = f"https://www.50hertz.com/Portals/1/Dokumente/Transparenz/Regelenergie/Archiv%20Netzfrequenz/Netzfrequenz%20{year}.zip"
             self.crawl_year_by_url(url)
 
+    def create_hypertable(self):
+        try:
+            with self.engine.begin() as conn:
+                query = text("SELECT public.create_hypertable('frequency', 'date_time', if_not_exists => TRUE, migrate_data => TRUE);")
+                conn.execute(query)
+            log.info("created hypertable frequency")
+        except Exception as e:
+            log.error(f"could not create hypertable: {e}")
+
 
 def main(db_uri):
     fc = FrequencyCrawler(db_uri)
     fc.crawl_frequency(first=2014)
+    fc.create_hypertable()
 
 
 if __name__ == "__main__":
