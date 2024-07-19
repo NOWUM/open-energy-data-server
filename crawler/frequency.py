@@ -74,7 +74,9 @@ class FrequencyCrawler:
     def create_hypertable(self):
         try:
             with self.engine.begin() as conn:
-                query = text("SELECT public.create_hypertable('frequency', 'date_time', if_not_exists => TRUE, migrate_data => TRUE);")
+                query = text(
+                    "SELECT public.create_hypertable('frequency', 'date_time', if_not_exists => TRUE, migrate_data => TRUE);"
+                )
                 conn.execute(query)
             log.info("created hypertable frequency")
         except Exception as e:
