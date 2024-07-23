@@ -122,7 +122,11 @@ class JaoClientWrapper:
             return pd.DataFrame()
 
     def get_auctions(
-        self, corridor: str, from_date: datetime, to_date: datetime, horizon="Monthly"
+        self,
+        corridor: str,
+        from_date: datetime,
+        to_date: datetime,
+        horizon="Monthly",
     ) -> pd.DataFrame:
         from_date, to_date = string_to_timestamp(from_date, to_date)
         try:
@@ -258,14 +262,24 @@ def run_data_crawling(
             if from_date < first_date:
                 log.info(f"crawling before {from_date} until {first_date}")
                 crawl_single_horizon(
-                    jao_client, db_manager, from_date, first_date, corridor, horizon
+                    jao_client,
+                    db_manager,
+                    from_date,
+                    first_date,
+                    corridor,
+                    horizon,
                 )
             delta = DELTAS.get(horizon.lower(), timedelta(days=1))
             if last_date and to_date - delta > last_date:
                 # must be at least one horizon ahead, otherwise we are crawling duplicates
                 log.info(f"crawling before {last_date} until {to_date}")
                 crawl_single_horizon(
-                    jao_client, db_manager, last_date, to_date, corridor, horizon
+                    jao_client,
+                    db_manager,
+                    last_date,
+                    to_date,
+                    corridor,
+                    horizon,
                 )
             log.info(f"finished crawling bids of {corridor} - {horizon}")
     log.info(f"finished run_data_crawling from {from_date} to {to_date}")
@@ -289,4 +303,3 @@ def main(schema_name, from_date_string="2023-01-01-00:00:00"):
 if __name__ == "__main__":
     logging.basicConfig(level="INFO")
     main(schema_name="jao", from_date_string="2019-01-01-00:00:00")
-

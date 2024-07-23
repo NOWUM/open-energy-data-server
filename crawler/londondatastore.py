@@ -29,12 +29,11 @@ metadata_info = {
     "schema_name": "londondatastore",
     "data_date": "2014-02-28",
     "data_source": "https://data.london.gov.uk/download/smartmeter-energy-use-data-in-london-households/3527bf39-d93e-4071-8451-df2ade1ea4f2/LCL-FullData.zip",
-    "license": "CC BY 4.0",
+    "license": "CC-BY-4.0",
     "description": "London energy consumption data. Real consumption data from london, timestamped.",
     "contact": "",
     "temporal_start": "2011-11-23 09:00:00",
     "temporal_end": "2014-02-28 00:00:00",
-    "concave_hull_geometry": None,
 }
 
 LONDON_FULL_URL = "https://data.london.gov.uk/download/smartmeter-energy-use-data-in-london-households/3527bf39-d93e-4071-8451-df2ade1ea4f2/LCL-FullData.zip"
@@ -57,7 +56,10 @@ def main(schema_name):
 
                 df.columns = [col.strip() for col in df.columns]
                 df.rename(
-                    columns={"KWH/hh (per half hour)": "power", "stdorToU": "tariff"},
+                    columns={
+                        "KWH/hh (per half hour)": "power",
+                        "stdorToU": "tariff",
+                    },
                     inplace=True,
                 )
                 with engine.begin() as conn:

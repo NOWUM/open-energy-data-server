@@ -8,8 +8,7 @@ ENV TZ="Europe/Berlin"
 RUN mkdir /src
 RUN chown -R admin /src
 
-COPY ./crawler/__init__.py /src/__init__.py
-COPY ./crawler/mastr.py /src/mastr.py
+COPY ./crawler/mastr.py ./crawler/common ./crawler/__init__.py /src/
 
 USER admin
 WORKDIR /src

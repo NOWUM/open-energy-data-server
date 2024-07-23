@@ -15,7 +15,7 @@ ENV TZ="Europe/Berlin"
 RUN mkdir /src
 RUN mkdir /src/grb_files
 
-COPY ./crawler/nuts_mapper.py ./crawler/dwd.py ./crawler/base_crawler.py ./crawler/__init__.py /src/
+COPY ./crawler/nuts_mapper.py ./crawler/dwd.py ./crawler/common ./crawler/__init__.py /src/
 COPY ./crawler/data/lat_coordinates.npy /src/data/
 COPY ./crawler/data/lon_coordinates.npy /src/data/
 COPY ./crawler/data/plz_matrix.npy /src/data/

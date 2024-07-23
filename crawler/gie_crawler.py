@@ -24,10 +24,10 @@ import time
 from datetime import date, datetime, timedelta
 
 import pandas as pd
-from common.base_crawler import BaseCrawler
 from roiti.gie import GiePandasClient
 from sqlalchemy import create_engine, text
 
+from common.base_crawler import BaseCrawler
 from common.config import db_uri
 
 log = logging.getLogger("gie")
@@ -80,7 +80,7 @@ async def async_main(schema_name):
         await pandas_client.close_session()
 
     create_hypertable(engine)
-    base.set_metadata( metadata_info)
+    base.set_metadata(metadata_info)
 
 
 async def collect_Date(date, pandas_client: GiePandasClient, engine):
@@ -157,4 +157,3 @@ def main(schema_name):
 
 if __name__ == "__main__":
     main("gie")
-

@@ -56,18 +56,18 @@ ticket_types = {
 def create_table(engine):
     with engine.begin() as conn:
         conn.execute(
-        text(
-            "CREATE TABLE IF NOT EXISTS parking_data( "
-            "time timestamp without time zone NOT NULL, "
-            "ticket_id integer, "
-            "card_type text, "
-            "entry_time timestamp without time zone NOT NULL, "
-            "exit_time timestamp without time zone NOT NULL, "
-            "park_duration integer, "
-            "name text, "
-            "PRIMARY KEY (time , ticket_id));"
+            text(
+                "CREATE TABLE IF NOT EXISTS parking_data( "
+                "time timestamp without time zone NOT NULL, "
+                "ticket_id integer, "
+                "card_type text, "
+                "entry_time timestamp without time zone NOT NULL, "
+                "exit_time timestamp without time zone NOT NULL, "
+                "park_duration integer, "
+                "name text, "
+                "PRIMARY KEY (time , ticket_id));"
+            )
         )
-    )
 
     try:
         query_create_hypertable = text(

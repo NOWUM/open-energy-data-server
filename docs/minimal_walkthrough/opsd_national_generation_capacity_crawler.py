@@ -2,13 +2,13 @@
 
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
-from io import StringIO
 import logging
+from io import StringIO
+
 import pandas as pd
 import requests
 from sqlalchemy import create_engine
-
-from walkthrough_util import db_uri, create_schema_only, set_metadata_only
+from walkthrough_util import create_schema_only, db_uri, set_metadata_only
 
 log = logging.getLogger("opsd")
 log.setLevel(logging.INFO)
@@ -27,21 +27,25 @@ metadata_info = {
 }
 
 
-national_generation_capacity_url = (
-    "https://data.open-power-system-data.org/national_generation_capacity/2020-10-01/national_generation_capacity_stacked.csv"
-)
+national_generation_capacity_url = "https://data.open-power-system-data.org/national_generation_capacity/2020-10-01/national_generation_capacity_stacked.csv"
+
 
 def national_generation_capacity(engine):
     log.info("Fetching data from %s", national_generation_capacity_url)
     response = requests.get(national_generation_capacity_url)
-    response.raise_for_status()  
+    response.raise_for_status()
 
     log.info("Loading data into DataFrame")
     data = pd.read_csv(StringIO(response.text))
 
     log.info("Writing data to the database")
-    data.to_sql("national_generation_capacity", engine, if_exists="replace",)
+    data.to_sql(
+        "national_generation_capacity",
+        engine,
+        if_exists="replace",
+    )
     log.info("Data written successfully")
+
 
 def main(schema_name):
     engine = create_engine(db_uri(schema_name))
@@ -49,6 +53,6 @@ def main(schema_name):
     national_generation_capacity(engine)
     set_metadata_only(engine, metadata_info)
 
+
 if __name__ == "__main__":
-    
     main("opsd_national_capacity")

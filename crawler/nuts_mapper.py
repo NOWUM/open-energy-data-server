@@ -73,5 +73,4 @@ def main(schema_name):
 
 
 if __name__ == "__main__":
-
     main("public")

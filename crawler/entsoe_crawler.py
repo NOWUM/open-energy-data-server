@@ -28,9 +28,8 @@ log.setLevel(logging.INFO)
 
 metadata_info = {
     "schema_name": "entsoe",
-    "data_date": "2020-10-01",
     "data_source": "https://data.open-power-system-data.org/conventional_power_plants/latest/conventional_power_plants_EU.csv",
-    "license": "CC BY 4.0.",
+    "license": "CC-BY-4.0.",
     "description": "ENTSOE transparency energy. Country specific load and generation of energy sources.",
     "contact": "",
     "temporal_start": "2014-12-31 22:00:00",
@@ -97,8 +96,7 @@ def calculate_nett_generation(df):
         new = str.replace(c, "_actual_aggregated", "")
         dif = list(
             filter(
-                lambda x: x.endswith(
-                    "_actual_consumption") and x.startswith(new),
+                lambda x: x.endswith("_actual_consumption") and x.startswith(new),
                 dat.columns,
             )
         )
@@ -200,7 +198,9 @@ class EntsoeCrawler(BaseCrawler):
                     log.info(f"handling {repr(e)} by concat")
                     # merge old data with new data
                     prev = pd.read_sql_query(
-                        f"select * from {proc.__name__}", conn, index_col="index"
+                        f"select * from {proc.__name__}",
+                        conn,
+                        index_col="index",
                     )
                     dat = pd.concat([prev, data])
                     # convert type as pandas needs it
@@ -208,8 +208,7 @@ class EntsoeCrawler(BaseCrawler):
                     dat.to_sql(proc.__name__, conn, if_exists="replace")
                     log.info(f"replaced table {proc.__name__}")
         except NoMatchingDataError:
-            log.error(
-                f"no data found for {proc.__name__}, {country}, {start}, {end}")
+            log.error(f"no data found for {proc.__name__}, {country}, {start}, {end}")
         except Exception as e:
             log.error(
                 f"error downloading {proc.__name__}, {country}, {start}, {end}: {e}"
@@ -294,11 +293,9 @@ class EntsoeCrawler(BaseCrawler):
             # daten für jedes Land runterladen
             pbar = tqdm(countries)
             for country in pbar:
-                pbar.set_description(
-                    f"{country} {start_:%Y-%m-%d} to {end_:%Y-%m-%d}")
+                pbar.set_description(f"{country} {start_:%Y-%m-%d} to {end_:%Y-%m-%d}")
 
-                self.fetch_and_write_entsoe_df_to_db(
-                    country, proc, start_, end_)
+                self.fetch_and_write_entsoe_df_to_db(country, proc, start_, end_)
 
         # indexe anlegen für schnelles suchen
         try:
@@ -346,8 +343,7 @@ class EntsoeCrawler(BaseCrawler):
         -------
 
         """
-        start, delta = self.get_latest_crawled_timestamp(
-            start, delta, proc.__name__)
+        start, delta = self.get_latest_crawled_timestamp(start, delta, proc.__name__)
         log.info(f"****** {proc.__name__} *******")
 
         if (times * delta).days < 2:
@@ -381,7 +377,9 @@ class EntsoeCrawler(BaseCrawler):
                 log.error(f"error saving crossboarders {e}")
                 with self.engine.begin() as conn:
                     prev = pd.read_sql_query(
-                        f"select * from {proc.__name__}", conn, index_col="index"
+                        f"select * from {proc.__name__}",
+                        conn,
+                        index_col="index",
                     )
 
                     ges = pd.concat([prev, data])
@@ -473,11 +471,12 @@ class EntsoeCrawler(BaseCrawler):
             -------
 
             """
-            ppp = client.query_generation_per_plant(
-                country, start=start, end=end)
+            ppp = client.query_generation_per_plant(country, start=start, end=end)
             # convert multiindex into second column
             pp = ppp.melt(
-                var_name=["name", "type"], value_name="value", ignore_index=False
+                var_name=["name", "type"],
+                value_name="value",
+                ignore_index=False,
             )
             return pp
 
@@ -562,8 +561,7 @@ class EntsoeCrawler(BaseCrawler):
         )
 
         if delta_.days > 365:
-            self.download_entsoe(countries, proc_cap,
-                                 start_, delta=delta_, times=1)
+            self.download_entsoe(countries, proc_cap, start_, delta=delta_, times=1)
 
         # timeseries
         ts_procs = [
@@ -623,8 +621,7 @@ class EntsoeCrawler(BaseCrawler):
 
 
 def main(schema_name):
-    api_key = os.getenv(
-        "ENTSOE_API_KEY", "ae2ed060-c25c-4eea-8ae4-007712f95375")
+    api_key = os.getenv("ENTSOE_API_KEY", "ae2ed060-c25c-4eea-8ae4-007712f95375")
     client = EntsoePandasClient(api_key=api_key)
     crawler = EntsoeCrawler(schema_name)
 
@@ -685,10 +682,6 @@ if __name__ == "__main__":
     crawler = EntsoeCrawler(schema_name)
 
     # 2017-12-16 bis 2018-03-15 runterladen
-    crawler.download_entsoe_plant_data(
-        plant_countries[:], client, start, delta, times)
+    crawler.download_entsoe_plant_data(plant_countries[:], client, start, delta, times)
 
     # create indices if not existing
-
-
-

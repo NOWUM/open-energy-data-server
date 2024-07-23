@@ -13,7 +13,7 @@ from datetime import timedelta
 
 import pandas as pd
 import requests
-from sqlalchemy import  text
+from sqlalchemy import text
 
 from common.base_crawler import BaseCrawler
 
@@ -26,13 +26,15 @@ metadata_info = {
     "schema_name": "smard",
     "data_date": "2024-06-12",
     "data_source": "https://www.smard.de/",
-    "license": "CC BY 4.0",
+    "license": "CC-BY-4.0",
     "description": "Open access ENTSOE  Germany. Production of energy by good and timestamp",
     "contact": "",
     "temporal_start": "2023-01-01 23:00:00",
     "temporal_end": "2024-06-09 21:45:00",
     "concave_hull_geometry": None,
 }
+
+
 class SmardCrawler(BaseCrawler):
     def __init__(self, schema_name):
         super().__init__(schema_name)
@@ -127,7 +129,9 @@ class SmardCrawler(BaseCrawler):
                     f"Could not get data for commodity, will retry: {commodity_id} {e}"
                 )
                 self.select_latest(
-                    commodity_id, delete=True, prev_latest=latest - timedelta(days=1)
+                    commodity_id,
+                    delete=True,
+                    prev_latest=latest - timedelta(days=1),
                 )
             return latest
         except Exception as e:

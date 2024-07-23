@@ -4,8 +4,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 import logging
 import os.path as osp
-from glob import glob
 import sys
+from glob import glob
 from pathlib import Path
 
 log = logging.getLogger("crawler")
@@ -18,8 +18,7 @@ def import_and_exec(module, schema_name):
     A module must reside in the crawler folder.
     """
     try:
-        imported_module = __import__(
-            f"crawler.{module}", fromlist=["eex.main"])
+        imported_module = __import__(f"crawler.{module}", fromlist=["eex.main"])
         imported_module.main(schema_name)
         log.info(f"executed main from {module}")
     except AttributeError as e:
@@ -49,7 +48,7 @@ def get_available_crawlers():
 
 
 if __name__ == "__main__":
-    sys.path.append(str(Path().absolute())+ "/crawler")
+    sys.path.append(str(Path().absolute()) + "/crawler")
 
     logging.basicConfig()
     # remove crawlers without publicly available data
