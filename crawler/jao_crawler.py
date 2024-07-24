@@ -11,11 +11,10 @@ from dateutil.relativedelta import relativedelta
 from jao import JaoAPIClient
 
 # pip install git+https://github.com/maurerle/jao-py@improve_horizon_support
-from sqlalchemy import MetaData, create_engine, text
+from sqlalchemy import MetaData, text
 from sqlalchemy.exc import OperationalError
 
 from common.base_crawler import BaseCrawler
-from common.config import db_uri
 
 log = logging.getLogger("jao")
 

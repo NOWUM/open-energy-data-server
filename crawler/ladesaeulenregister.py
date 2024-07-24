@@ -14,8 +14,8 @@ import logging
 import pandas as pd
 from sqlalchemy import create_engine
 
-from common.config import db_uri
 from common.base_crawler import create_schema_only, set_metadata_only
+from common.config import db_uri
 
 log = logging.getLogger("ladesaeulenregister")
 log.setLevel(logging.INFO)

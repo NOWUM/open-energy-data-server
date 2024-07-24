@@ -24,9 +24,9 @@ def set_metadata_only(engine, metadata_info):
     with engine.begin() as conn:
         conn.execute(
             text("""
-            INSERT INTO public.metadata 
+            INSERT INTO public.metadata
             (schema_name, data_date, data_source, license, description, contact, concave_hull_geometry, temporal_start, temporal_end)
-            VALUES 
+            VALUES
             (:schema_name, :data_date, :data_source, :license, :description, :contact, :concave_hull_geometry, :temporal_start, :temporal_end)
             ON CONFLICT (schema_name) DO UPDATE SET
                 data_date = EXCLUDED.data_date,

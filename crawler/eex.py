@@ -20,6 +20,7 @@ import pathlib
 from glob import glob
 
 import pandas as pd
+
 from common.base_crawler import BaseCrawler
 
 log = logging.getLogger("eex")

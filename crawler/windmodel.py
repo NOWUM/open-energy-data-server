@@ -12,9 +12,8 @@ from bs4 import BeautifulSoup  # parse html
 from sqlalchemy import create_engine
 from tqdm import tqdm  # fancy for loop
 
-
-from common.config import db_uri
 from common.base_crawler import create_schema_only, set_metadata_only
+from common.config import db_uri
 
 """
 Downloads the available powercurve data from https://www.wind-turbine-models.com/ to a csv file

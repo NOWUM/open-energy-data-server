@@ -1,29 +1,29 @@
-from sqlalchemy import create_engine, text
-
 from datetime import date
 
+from sqlalchemy import create_engine, text
+
 from .config import db_uri
+
 
 class BaseCrawler:
     def __init__(self, schema_name: str):
         self.engine = create_engine(db_uri(schema_name))
         self.create_schema(schema_name)
-        
+
     def create_schema(self, schema_name: str) -> str:
         create_schema_only(self.engine, schema_name)
 
     def set_metadata(self, metadata_info: dict[str, str]) -> None:
         set_metadata_only(self.engine, metadata_info)
 
+
 def create_schema_only(engine, schema_name: str) -> None:
     with engine.begin() as conn:
-        conn.execute(
-            text(f"CREATE SCHEMA IF NOT EXISTS {schema_name}")
-        )
+        conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {schema_name}"))
 
-        
+
 def set_metadata_only(engine, metadata_info: dict[str, str]):
-    for key in ["concave_hull_geometry", "temporal_start", "temporal_end", "contact"]
+    for key in ["concave_hull_geometry", "temporal_start", "temporal_end", "contact"]:
         if key not in metadata_info.keys():
             metadata_info[key] = None
     if "data_date" not in metadata_info.keys():
@@ -31,9 +31,9 @@ def set_metadata_only(engine, metadata_info: dict[str, str]):
     with engine.begin() as conn:
         conn.execute(
             text("""
-            INSERT INTO public.metadata 
+            INSERT INTO public.metadata
             (schema_name, data_date, data_source, license, description, contact, concave_hull_geometry, temporal_start, temporal_end)
-            VALUES 
+            VALUES
             (:schema_name, :data_date, :data_source, :license, :description, :contact, :concave_hull_geometry, :temporal_start, :temporal_end)
             ON CONFLICT (schema_name) DO UPDATE SET
                 data_date = EXCLUDED.data_date,
@@ -45,7 +45,7 @@ def set_metadata_only(engine, metadata_info: dict[str, str]):
                 temporal_start = EXCLUDED.temporal_start,
                 temporal_end = EXCLUDED.temporal_end
             """),
-            metadata_info
+            metadata_info,
         )
         conn.execute(
             text("""
@@ -55,5 +55,5 @@ def set_metadata_only(engine, metadata_info: dict[str, str]):
                 crawl_date = NOW()
             WHERE schema_name = :schema_name
             """),
-            {"schema_name": metadata_info["schema_name"]}
+            {"schema_name": metadata_info["schema_name"]},
         )

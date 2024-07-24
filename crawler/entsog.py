@@ -20,7 +20,6 @@ from tqdm import tqdm
 
 from common.base_crawler import BaseCrawler
 
-
 log = logging.getLogger("entsog")
 log.setLevel(logging.INFO)
 

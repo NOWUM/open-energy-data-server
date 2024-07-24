@@ -20,7 +20,6 @@ import requests
 from sqlalchemy import create_engine, text
 
 from common.config import db_uri
-from common.base_crawler import create_schema_only, set_metadata_only
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.INFO)

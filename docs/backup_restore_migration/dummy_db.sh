@@ -2,7 +2,7 @@
 
 # Define database connection details
 export PGPASSWORD=""
-ADMIN_DB="postgres" 
+ADMIN_DB="postgres"
 HOST=""
 PORT=""
 USER="opendata"

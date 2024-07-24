@@ -102,5 +102,3 @@ A complete walkthrough with a new crawler, PostgREST usage and data exporting ca
 Further documentation & examples exists regarding [http export](/docs/http_export_examples.md) and [client export](/docs/client_export_examples.md).
 
 Example projects can be found in the [OEDS-Examples github](https://github.com/NOWUM/OEDS-Examples).
-
-

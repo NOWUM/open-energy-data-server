@@ -9,9 +9,9 @@ from datetime import date, datetime, timedelta
 import pandas as pd
 import requests
 from sqlalchemy import text
+
 from common.base_crawler import BaseCrawler
 from common.config import db_uri
-
 
 log = logging.getLogger("eview")
 log.setLevel(logging.INFO)

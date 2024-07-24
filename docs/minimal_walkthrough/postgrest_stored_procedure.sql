@@ -18,7 +18,7 @@ BEGIN
         country,
         technology,
         SUM(capacity) AS total_production
-    FROM 
+    FROM
         opsd.national_generation_capacity
     GROUP BY
         year,

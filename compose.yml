@@ -34,7 +34,7 @@ services:
       - "8080:80"
     depends_on:
       - open-data-16
-      
+
   open-postgrest:
     image: postgrest/postgrest:latest
     container_name: postgrest

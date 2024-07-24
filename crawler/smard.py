@@ -17,7 +17,6 @@ from sqlalchemy import text
 
 from common.base_crawler import BaseCrawler
 
-
 log = logging.getLogger("smard")
 default_start_date = "2023-01-01 22:45:00"  # "2023-11-26 22:45:00"
 

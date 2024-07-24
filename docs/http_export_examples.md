@@ -57,4 +57,3 @@ fetch(url, { headers, params })
         fs.writeFileSync("londondatastore_pgrst.csv", df);
     });
 ```
-    

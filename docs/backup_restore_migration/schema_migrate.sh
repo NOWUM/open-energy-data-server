@@ -59,4 +59,3 @@ EOF
   psql -U $SOURCE_USER -h $SOURCE_HOST -p $SOURCE_PORT -d $SOURCE_DB  -c "COPY (SELECT * FROM $TARGET_SCHEMA.$hypertable) TO STDOUT WITH CSV HEADER;" > ${hypertable}_data.csv
   psql -h $DEST_HOST -p $DEST_PORT -U $DEST_USER -d $DEST_DB -c "COPY $TARGET_SCHEMA.$hypertable FROM STDIN WITH CSV HEADER;" < ${hypertable}_data.csv
 done
-

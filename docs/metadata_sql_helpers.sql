@@ -20,7 +20,7 @@ BEGIN
     );
 
     -- Loop over schemas
-    FOR s IN 
+    FOR s IN
         SELECT schema_name
         FROM information_schema.schemata
         WHERE schema_name NOT IN ('information_schema', 'pg_catalog', 'pg_toast', 'postgrest')
@@ -30,7 +30,7 @@ BEGIN
         overall_max_date := NULL;
 
         -- Loop over timestamp columns in the current schema
-        FOR r IN 
+        FOR r IN
             SELECT table_name, column_name
             FROM information_schema.columns
             WHERE table_schema = s.schema_name
@@ -51,7 +51,7 @@ BEGIN
             VALUES (s.schema_name, r.table_name, r.column_name, min_date, max_date);
         END LOOP;
 
-        -- overall min/max 
+        -- overall min/max
         IF overall_min_date IS NOT NULL AND overall_max_date IS NOT NULL THEN
             INSERT INTO temp_date_ranges(schema_name, table_name, column_name, min_date, max_date)
             VALUES (s.schema_name, 'OVERALL', 'OVERALL', overall_min_date, overall_max_date);
@@ -72,11 +72,11 @@ WHERE ((column_name LIKE 'lat%')
     OR (column_name LIKE 'län%')
 	OR (column_name LIKE 'Län%')
 	OR (column_name LIKE 'Geo%')
-	OR (column_name LIKE 'geo%')	
-	OR (column_name LIKE 'Land%')	
-	OR (column_name LIKE 'land%')	
-	OR (column_name LIKE 'Country%')	
-	OR (column_name LIKE 'country%')	
+	OR (column_name LIKE 'geo%')
+	OR (column_name LIKE 'Land%')
+	OR (column_name LIKE 'land%')
+	OR (column_name LIKE 'Country%')
+	OR (column_name LIKE 'country%')
     )
 	and table_schema = 'mastr';
 
@@ -173,4 +173,3 @@ FROM
 ORDER BY
     nuts_id IS NULL,
     country_code;
-

@@ -7,8 +7,8 @@ Average data from london smartmeter measurements.
 
 ```
 echo >londondatastore.csv
-psql postgresql://opendata:opendata@localhost:6432  
-\copy (SELECT * FROM londondatastore.consumption LIMIT 20) TO './londondatastore.csv' WITH CSV HEADER; 
+psql postgresql://opendata:opendata@localhost:6432
+\copy (SELECT * FROM londondatastore.consumption LIMIT 20) TO './londondatastore.csv' WITH CSV HEADER;
 ```
 
 ## SQL using Python
@@ -31,7 +31,7 @@ df.to_csv("londondatastore_pgrst.csv")
 
 ## Grafana
 
-Using the Graph from this dashboard: 
+Using the Graph from this dashboard:
 http://localhost:3006/d/edn5t9gi0wyrke/refit-load-profile?orgId=1
 https://monitor.nowum.fh-aachen.de/d/edn5t9gi0wyrke/refit-load-profile?orgId=1
 
