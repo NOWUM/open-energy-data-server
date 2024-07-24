@@ -13,17 +13,31 @@ from datetime import timedelta
 
 import pandas as pd
 import requests
-from sqlalchemy import create_engine, text
+from sqlalchemy import text
 
-from crawler.config import db_uri
+from common.base_crawler import BaseCrawler
+
 
 log = logging.getLogger("smard")
 default_start_date = "2023-01-01 22:45:00"  # "2023-11-26 22:45:00"
 
 
-class SmardCrawler:
-    def __init__(self, db_uri):
-        self.engine = create_engine(db_uri)
+metadata_info = {
+    "schema_name": "smard",
+    "data_date": "2024-06-12",
+    "data_source": "https://www.smard.de/",
+    "license": "CC-BY-4.0",
+    "description": "Open access ENTSOE  Germany. Production of energy by good and timestamp",
+    "contact": "",
+    "temporal_start": "2023-01-01 23:00:00",
+    "temporal_end": "2024-06-09 21:45:00",
+    "concave_hull_geometry": None,
+}
+
+
+class SmardCrawler(BaseCrawler):
+    def __init__(self, schema_name):
+        super().__init__(schema_name)
 
     def create_table(self):
         try:
@@ -115,7 +129,9 @@ class SmardCrawler:
                     f"Could not get data for commodity, will retry: {commodity_id} {e}"
                 )
                 self.select_latest(
-                    commodity_id, delete=True, prev_latest=latest - timedelta(days=1)
+                    commodity_id,
+                    delete=True,
+                    prev_latest=latest - timedelta(days=1),
                 )
             return latest
         except Exception as e:
@@ -140,13 +156,14 @@ class SmardCrawler:
                 df_for_commodity.to_sql("smard", con=conn, if_exists="append")
 
 
-def main(db_uri):
-    ec = SmardCrawler(db_uri)
+def main(schema_name):
+    ec = SmardCrawler(schema_name)
     ec.create_table()
     ec.feed()
+    ec.set_metadata(metadata_info)
 
 
 if __name__ == "__main__":
     logging.basicConfig(filename="smard.log", encoding="utf-8", level=logging.INFO)
     # db_uri = 'sqlite:///./data/smard.db'
-    main(db_uri("smard"))
+    main("smard")

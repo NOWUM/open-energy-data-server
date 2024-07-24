@@ -15,13 +15,26 @@ from datetime import date, timedelta
 
 import pandas as pd
 import requests
-from sqlalchemy import create_engine, text
+from sqlalchemy import text
 from tqdm import tqdm
 
-from crawler.config import db_uri
+from common.base_crawler import BaseCrawler
+
 
 log = logging.getLogger("entsog")
 log.setLevel(logging.INFO)
+
+metadata_info = {
+    "schema_name": "entsog",
+    "data_date": "2024-06-12",
+    "data_source": "https://transparency.entsog.eu/api/v1/",
+    "license": "https://www.entsog.eu/privacy-policy-and-terms-use",
+    "description": "ENTSOG transparency energy. Country specific flows of energy sources.",
+    "contact": "",
+    "temporal_start": "2017-07-10 02:00:00",
+    "temporal_end": "2024-06-10 09:00:00",
+    "concave_hull_geometry": None,
+}
 
 api_endpoint = "https://transparency.entsog.eu/api/v1/"
 
@@ -81,9 +94,9 @@ def getDataFrame(name, params=["limit=10000"], useJson=False):
     return data
 
 
-class EntsogCrawler:
-    def __init__(self, database):
-        self.engine = create_engine(database)
+class EntsogCrawler(BaseCrawler):
+    def __init__(self, schema_name):
+        super().__init__(schema_name)
 
     def pullData(self, names):
         pbar = tqdm(names)
@@ -178,7 +191,9 @@ class EntsogCrawler:
 
             try:
                 with self.engine.begin() as conn:
-                    query_create_hypertable = f"SELECT public.create_hypertable('{tbl_name}', 'periodfrom', if_not_exists => TRUE, migrate_data => TRUE);"
+                    query_create_hypertable = text(
+                        f"SELECT public.create_hypertable('{tbl_name}', 'periodfrom', if_not_exists => TRUE, migrate_data => TRUE);"
+                    )
                     conn.execute(query_create_hypertable)
                     log.info(f"created hypertable {tbl_name}")
             except Exception as e:
@@ -223,8 +238,8 @@ class EntsogCrawler:
                 conn.execute(query)
 
 
-def main(db_uri):
-    crawler = EntsogCrawler(db_uri)
+def main(schema_name):
+    crawler = EntsogCrawler(schema_name)
 
     names = [
         "cmpUnsuccessfulRequests",
@@ -239,13 +254,13 @@ def main(db_uri):
 
     indicators = ["Physical Flow", "Allocation", "Firm Technical"]
     crawler.pullOperationalData(indicators)
+    crawler.set_metadata(metadata_info)
 
 
 if __name__ == "__main__":
     logging.basicConfig()
     # database = 'sqlite:///data/entsog.db'
-    database = db_uri("entsog")
-    craw = EntsogCrawler(database)
+    craw = EntsogCrawler("entsog")
 
     names = [  # 'cmpUnsuccessfulRequests', # dataset already present
         # 'operationaldata',

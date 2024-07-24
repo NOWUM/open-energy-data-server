@@ -14,4 +14,6 @@ ninja_*
 config.py
 .env
 .venv
+crawler/data/Waermebedarf_NRW.gdb/
+data/pgadmin
 /dashboard/node_modules

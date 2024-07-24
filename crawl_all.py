@@ -2,30 +2,29 @@
 # SPDX-FileCopyrightText: Florian Maurer, Christian Rieke
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
-
 import logging
 import os.path as osp
+import sys
 from glob import glob
-
-from crawler.config import db_uri
+from pathlib import Path
 
 log = logging.getLogger("crawler")
 log.setLevel(logging.INFO)
 
 
-def import_and_exec(module, db_uri):
+def import_and_exec(module, schema_name):
     """
     imports and executes the main(db_uri) method of each module.
     A module must reside in the crawler folder.
     """
     try:
         imported_module = __import__(f"crawler.{module}", fromlist=["eex.main"])
-        imported_module.main(db_uri)
+        imported_module.main(schema_name)
         log.info(f"executed main from {module}")
     except AttributeError as e:
         log.error(repr(e))
     except Exception as e:
-        log.error(f"could not execute main of crawler: {module} - {e}")
+        log.error(f"could not import/execute main of crawler: {module} - {e}")
 
 
 def get_available_crawlers():
@@ -49,6 +48,8 @@ def get_available_crawlers():
 
 
 if __name__ == "__main__":
+    sys.path.append(str(Path().absolute()) + "/crawler")
+
     logging.basicConfig()
     # remove crawlers without publicly available data
     available_crawlers = get_available_crawlers()
@@ -56,9 +57,9 @@ if __name__ == "__main__":
     for crawler_name in crawlers:
         if crawler_name in available_crawlers:
             log.info(f"executing crawler {crawler_name}")
-            dbname = crawler_name.replace("_crawler", "")
+            schema_name = crawler_name.replace("_crawler", "")
             # the move to schemas does not allow to have multiple gis based databases
             # all gis based databases now have to write into the public schema
-            if dbname == "nuts_mapper":
-                dbname == "public"
-            import_and_exec(crawler_name, db_uri(dbname))
+            if schema_name == "nuts_mapper":
+                schema_name == "public"
+            import_and_exec(crawler_name, schema_name)

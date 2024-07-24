@@ -4,6 +4,7 @@ default:
 
 stages:
 - build
+- deploy
 
 build-docker:
   image: docker:dind

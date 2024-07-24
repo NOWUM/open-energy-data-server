@@ -8,19 +8,34 @@ import zipfile
 
 import pandas as pd
 import requests
-from sqlalchemy import create_engine
 
-from .config import db_uri
+from common.base_crawler import BaseCrawler
 
 log = logging.getLogger("iwu")
 log.setLevel(logging.INFO)
 
 
-class IwuCrawler:
-    def __init__(self, db_uri):
-        self.engine = create_engine(db_uri)
+metadata_info = {
+    "schema_name": "iwugebaeudetypen",
+    "data_date": "2015-02-10",
+    "data_source": "https://www.iwu.de/fileadmin/tools/tabula/TABULA-Analyses_DE-Typology_DataTables.zip",
+    "license": "third party usage allowed",
+    "description": """IWU German building types. Building types with energy and sanitation metrics attached. 
+"The usage of the TABULA approach, data and tools in research projects, theses and software applications by third parties is intended and desirable. Only non-exclusive utilisations are possible. A condition for usages of any kind (files, datasets, pictures, ...) is that 'IEE Projects TABULA + EPISCOPE (www.episcope.eu)' is visibly mentioned as the source."
+https://www.iwu.de/forschung/gebaeudebestand/tabula/?mkt=&cHash=3d0c076745af29f744b9b8455ea95dee
+    """,
+    "contact": "",
+    "temporal_start": "1800-01-01 00:00:00",
+    "temporal_end": "2023-01-01 00:00:00",
+    "concave_hull_geometry": None,
+}
 
-    def pullData(self):
+
+class IwuCrawler(BaseCrawler):
+    def __init__(self, schema_name):
+        super().__init__(schema_name)
+
+    def pull_data(self):
         url = "https://www.iwu.de/fileadmin/tools/tabula/TABULA-Analyses_DE-Typology_DataTables.zip"
         response = requests.get(url)
         if response.status_code == 200:
@@ -122,7 +137,7 @@ class IwuCrawler:
 
         return identifier
 
-    def sendData(self, data):
+    def send_data(self, data):
         with self.engine.begin() as conn:
             tbl_name = "IWU_Typgebäude"
             data.to_sql(tbl_name, conn, if_exists="replace")
@@ -139,28 +154,30 @@ class IwuCrawler:
             "Heiz_klasse",
             "Tabula EBZ_m2",
             "Wohnfläche_m2",
-            "Wärmetransferkoeffizient_Hüllfläche_W/(m2K)",
-            "Wärmetransferkoeffizient_Wohnfläche_W/(m2K)",
-            "Nutzwärme_Nettoheizwärmebedarf_kWh/(m2a)",
-            "Nutzwärme_Warmwasser_kWh/(m2a)",
-            "Warmwassererzeugung_Heizung_kWh/(m2a)",
-            "Warmwassererzeugung_Warmwasser_kWh/(m2a)",
-            "Endenergiebedarf_fossil_kWh/(m2a)",
-            "Endenergiebedarf_holz_bio_kWh/(m2a)",
-            "Endenergiebedarf_strom_kWh/(m2a)",
-            "Endenergiebedarf_strom_erzeugung_kWh/(m2a)",
-            "Primärenergiebedarf_gesamt_kWh/(m2a)",
-            "Primärenergiebedarf_nicht_erneuerbar_kWh/(m2a)",
-            "Co2_Heizung_ww_kg/(m2a)",
-            "Energiekosten_Heizung_ww_€/(m2a)",
+            "Wärmetransferkoeffizient_Hüllfläche_W_div_(m2K)",
+            "Wärmetransferkoeffizient_Wohnfläche_W_div_(m2K)",
+            "Nutzwärme_Nettoheizwärmebedarf_kWh_div_(m2a)",
+            "Nutzwärme_Warmwasser_kWh_div_(m2a)",
+            "Warmwassererzeugung_Heizung_kWh_div_(m2a)",
+            "Warmwassererzeugung_Warmwasser_kWh_div_(m2a)",
+            "Endenergiebedarf_fossil_kWh_div_(m2a)",
+            "Endenergiebedarf_holz_bio_kWh_div_(m2a)",
+            "Endenergiebedarf_strom_kWh_div_(m2a)",
+            "Endenergiebedarf_strom_erzeugung_kWh_div_(m2a)",
+            "Primärenergiebedarf_gesamt_kWh_div_(m2a)",
+            "Primärenergiebedarf_nicht_erneuerbar_kWh_div_(m2a)",
+            "Co2_Heizung_ww_kg_div_(m2a)",
+            "Energiekosten_Heizung_ww_€_div_(m2a)",
         ]
 
 
-if __name__ == "__main__":
+def main(schema_name):
     logging.basicConfig()
-    database = db_uri("iwu_gebaeudetypen")
-    craw = IwuCrawler(database)
-    data = craw.pullData()
-    craw.sendData(data)
-    log.info("Done")
-    log.info(data)
+    craw = IwuCrawler(schema_name)
+    data = craw.pull_data()
+    craw.send_data(data)
+    craw.set_metadata(metadata_info)
+
+
+if __name__ == "__main__":
+    main("iwugebaeudetypen")

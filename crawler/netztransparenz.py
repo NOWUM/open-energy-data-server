@@ -23,17 +23,29 @@ import pandas as pd
 import requests
 import sqlalchemy as sql
 
-from crawler.config import db_uri
+from common.base_crawler import BaseCrawler
 
 log = logging.getLogger("netztransparenz")
 log.setLevel(logging.INFO)
 api_date_format = "%Y-%m-%dT%H:%M:%S"
 csv_date_format = "%Y-%m-%d %H:%M %Z"
 
+metadata_info = {
+    "schema_name": "netztransparenz",
+    "data_date": "2015-02-10",
+    "data_source": "https://ds.netztransparenz.de/api/",
+    "license": "https://www.netztransparenz.de/en/About-us/Information-platforms/Disclosure-obligations-in-accordance-with-the-EU-Transparency-Regulation",
+    "description": "German Energy Network Operations. Activated minimum and secondary reserve levels, forecasted solar and wind energy outputs, net reserve power balance, and redispatch measures.",
+    "contact": "",
+    "temporal_start": "2011-03-31 00:00:00",
+    "temporal_end": "2024-05-22 16:00:00",
+    "concave_hull_geometry": None,
+}
 
-class NetztransparenzCrawler:
-    def __init__(self, db_uri_str):
-        self.engine = sql.create_engine(db_uri_str)
+
+class NetztransparenzCrawler(BaseCrawler):
+    def __init__(self, schema_name):
+        super().__init__(schema_name)
 
         # add your Client-ID and Client-secret from the API Client configuration GUI to
         # your environment variable first
@@ -147,7 +159,9 @@ class NetztransparenzCrawler:
                 na_values=["N.A."],
             )
             df.rename(
-                mapper=lambda x: database_friendly(x), axis="columns", inplace=True
+                mapper=lambda x: database_friendly(x),
+                axis="columns",
+                inplace=True,
             )
             df["von"] = pd.to_datetime(
                 df["datum"] + " " + df["von"] + " " + df["zeitzone_von"],
@@ -187,7 +201,9 @@ class NetztransparenzCrawler:
                 na_values=["N.A."],
             )
             df.rename(
-                mapper=lambda x: database_friendly(x), axis="columns", inplace=True
+                mapper=lambda x: database_friendly(x),
+                axis="columns",
+                inplace=True,
             )
             df["von"] = pd.to_datetime(
                 df["datum"] + " " + df["von"] + " " + df["zeitzone_von"],
@@ -227,7 +243,9 @@ class NetztransparenzCrawler:
                 na_values=["N.A."],
             )
             df.rename(
-                mapper=lambda x: database_friendly(x), axis="columns", inplace=True
+                mapper=lambda x: database_friendly(x),
+                axis="columns",
+                inplace=True,
             )
             df["von"] = pd.to_datetime(
                 df["datum"] + " " + df["von"] + " " + df["zeitzone_von"],
@@ -505,8 +523,8 @@ def database_friendly(string):
     return string.lower().replace("(", "").replace(")", "").replace(" ", "_")
 
 
-def main(db_uri_str):
-    crawler = NetztransparenzCrawler(db_uri(db_uri_str))
+def main(schema_name):
+    crawler = NetztransparenzCrawler(schema_name)
 
     # crawler.check_health()
     if not crawler.check_table_exists("prognose_solar"):
@@ -525,6 +543,8 @@ def main(db_uri_str):
     crawler.activated_manual_balancing_capacity()
     crawler.value_of_avoided_activation()
     crawler.create_hypertable()
+
+    crawler.set_metadata(metadata_info)
 
 
 if __name__ == "__main__":

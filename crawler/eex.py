@@ -20,12 +20,20 @@ import pathlib
 from glob import glob
 
 import pandas as pd
-from sqlalchemy import create_engine
-
-from crawler.config import db_uri
+from common.base_crawler import BaseCrawler
 
 log = logging.getLogger("eex")
 log.setLevel(logging.INFO)
+
+metadata_info = {
+    "schema_name": "eex_prices",
+    "data_source": "https://www.eex.com/en/market-data/eex-group-datasource/general-terms-of-contract",
+    "license": "subscription-based internal usage license available",
+    "description": """EEX market results. Includes order books and environmental market results if bought. Goods by market type with trade volumes and timestamps for eu countries - see here for license information:
+https://www.eex.com/en/market-data/eex-group-datasource/market-data-vendors
+    """,
+    "temporal_start": "2017-12-31 15:44:00",
+}
 
 eex_data_path = str(pathlib.Path.home()) + "/eex"
 # eex_data_path = '/mnt/eex'
@@ -60,9 +68,9 @@ No further parsing is needed else.
 """
 
 
-class EEXCrawler:
-    def __init__(self, db_uri):
-        self.engine = create_engine(db_uri)
+class EEXCrawler(BaseCrawler):
+    def __init__(self, schema_name):
+        super().__init__(schema_name)
 
     def read_eex_trade_spot_file(self, filename):
         df = pd.read_csv(filename, skiprows=1, index_col="Trade ID")
@@ -187,18 +195,19 @@ market_data/power/at/spot
 """
 
 
-def main(db_uri):
-    crawler = EEXCrawler(db_uri)
+def main(schema_name):
+    crawler = EEXCrawler(schema_name)
     crawler.download_with_country(eex_data_path + "/trade_data/power")
     crawler.download_without_country(eex_data_path + "/market_data/environmental")
     crawler.download_with_country(eex_data_path + "/market_data/power")
     crawler.download_with_country(eex_data_path + "/market_data/natgas")
+    crawler.set_metadata(metadata_info)
 
 
 if __name__ == "__main__":
     logging.basicConfig()
     # db_uri = './data/eex.db'
-    main(db_uri("eex-pricit"))
+    main("eex-pricit")
     # crawler = EEXCrawler(db_uri)
     # path_xx = '~/eex/trade_data/power/de/spot/csv/2021/20210909/intraday_transactions_germany_2021-09-09.csv'
     # df = crawler.read_eex_trade_spot_file(path_xx)

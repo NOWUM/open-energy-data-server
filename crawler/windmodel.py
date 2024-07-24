@@ -9,9 +9,12 @@ import numpy as np
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup  # parse html
+from sqlalchemy import create_engine
 from tqdm import tqdm  # fancy for loop
 
-from crawler.config import db_uri
+
+from common.config import db_uri
+from common.base_crawler import create_schema_only, set_metadata_only
 
 """
 Downloads the available powercurve data from https://www.wind-turbine-models.com/ to a csv file
@@ -28,8 +31,18 @@ For the given model, this interpolation is not good, as it produces negative val
 The resulting data is not available under an open-source license and should not be reshared but is available for crawling yourself.
 """
 
+
 log = logging.getLogger("windmodel")
 log.setLevel(logging.INFO)
+
+
+metadata_info = {
+    "schema_name": "windmodel",
+    "data_date": "2024-06-12",
+    "data_source": "https://www.wind-turbine-models.com/powercurves",
+    "license": "https://www.wind-turbine-models.com/terms",
+    "description": "Wind turbine performance. Wind turbine test performance data by model.",
+}
 
 
 def get_turbines_with_power_curve():
@@ -89,19 +102,19 @@ def download_all_turbines():
     return df
 
 
-def main(db_uri):
-    from sqlalchemy import create_engine
-
-    engine = create_engine(db_uri)
+def main(schema_name):
+    engine = create_engine(db_uri(schema_name))
+    create_schema_only(engine, schema_name)
     turbine_data = download_all_turbines()
     turbine_data.to_sql("turbine_data", engine, if_exists="replace")
+    set_metadata_only(engine, metadata_info)
     return turbine_data
 
 
 if __name__ == "__main__":
     logging.basicConfig()
     wind_turbines = get_turbines_with_power_curve()
-    turbine_data = main(db_uri("windmodel"))
+    turbine_data = main("windmodel")
 
     with open("turbine_data.csv", "w") as f:
         turbine_data.to_csv(f)
