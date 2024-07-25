@@ -14,6 +14,8 @@ The main target is to create an institute-wide available database that can be se
 
 Allowing native access through PostgreSQL allows any easy integration of different software which can access data from a SQL database.
 
+For an interactive Documentation, please visit the [Read the Docs Page](https://open-energy-data-server.readthedocs.io/en/latest/index.html).
+
 ![Basic outline of the architecture and included services](docs/source/media/oeds-architecture.png)
 
 

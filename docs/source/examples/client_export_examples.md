@@ -47,7 +47,7 @@ Grafana is provisioned [here](https://github.com/NOWUM/open-energy-data-server/b
 
 Grafana dashboards are provisioned [here](https://github.com/NOWUM/open-energy-data-server/tree/main/data/provisioning/grafana/dashboards) and the dashboard provider [here](https://github.com/NOWUM/open-energy-data-server/blob/main/data/provisioning/grafana/dashboardproviders/opendata.yml)
 
-![Grafana Export](https://github.com/NOWUM/open-energy-data-server/blob/main/docs/source/media/grafana_export.png)
+![Grafana Export](grafana_export.png)
 
 
 ## PgAdmin4
@@ -62,6 +62,6 @@ http://localhost:8080/
 Username: admin@admin.admin
 Password: admin
 
-Pgadmin is provisioned [here]((https://github.com/NOWUM/open-energy-data-server/blob/main/data/provisioning/pgadmin/servers.json))
+Pgadmin is provisioned [here](https://github.com/NOWUM/open-energy-data-server/blob/main/data/provisioning/pgadmin/servers.json)
 
-![pgAdmin Export](https://github.com/NOWUM/open-energy-data-server/blob/main/docs/source/media/pgadmin_export.png)
+![pgAdmin Export](pgadmin_export.png)

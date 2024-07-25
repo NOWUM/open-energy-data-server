@@ -8,7 +8,7 @@ These extensions need to be considered when migrating the database.
 
 If using the docker-compose setup, the target server should already have timescaledb installed.
 
-Postgis is automatically installed by the init.sql script.
+Postgis is automatically installed by the [Database Init](https://github.com/NOWUM/open-energy-data-server/blob/main/init.sql) script.
 
 Postgis can be manually installed using the following statement:
 ```sql

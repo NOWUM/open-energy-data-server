@@ -6,7 +6,8 @@ A map of the nrw_kwp_waermedichte dataset, with export options and filtering.
 JS, React, Leaflet.
 
 [IPKW Map](https://ipkw.nowum.fh-aachen.de)
-[GitHub Repository](https://github.com/NOWUM/OEDS-Examples/tree/main/NRW_KWP_map)
+
+[GitHub Repository](https://github.com/NOWUM/oeds-examples/tree/main/nrw_kwp_map)
 
 ## Metadata Dashboard
 A viewer for the swagger ui from PostgREST and the metadata table using an availability map and timeline.
@@ -14,4 +15,5 @@ A viewer for the swagger ui from PostgREST and the metadata table using an avail
 JS, React, Leaflet, Recharts, Swagger UI.
 
 [Metadata Dashboard](https://metadata.nowum.fh-aachen.de)
-[GitHub Repository](https://github.com/NOWUM/OEDS-Examples/tree/main/OEDS_explorer)
+
+[GitHub Repository](https://github.com/NOWUM/oeds-examples/tree/main/oeds_explorer)

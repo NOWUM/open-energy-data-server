@@ -86,7 +86,7 @@ PostgREST can be used to query the database using a RESTful API. The API is avai
 
 Any table in any schema can be read from, but tables outisde the "public" schema require setting of additional header parameters to function.
 
-For examples see: [http export examples](https://github.com/NOWUM/open-energy-data-server/blob/main/docs/http_export_examples.md) or [Example Projects](https://github.com/NOWUM/OEDS-Examples).
+For examples see: [http export examples](https://github.com/NOWUM/open-energy-data-server/blob/main/docs/source/examples/http_export_examples.md) or [Example Projects](https://github.com/NOWUM/OEDS-Examples).
 
 ### Grafana
 Grafana is provisioned using this [configuration](https://github.com/NOWUM/open-energy-data-server/blob/main/data/provisioning/grafana/datasources/datasource.yml) and these [dashboards](https://github.com/NOWUM/open-energy-data-server/tree/main/data/provisioning/grafana/dashboards).
