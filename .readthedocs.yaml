@@ -3,7 +3,6 @@
 # Required fields
 version: 2
 
-
 build:
   os: "ubuntu-22.04"
   tools:
@@ -13,9 +12,7 @@ build:
 sphinx:
   configuration: docs/source/conf.py
 
-# Optionally set the Python version and other settings
 python:
-  version: "3.8"
   install:
     - requirements: docs/requirements.txt
 
