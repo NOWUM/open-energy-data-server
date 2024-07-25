@@ -37,7 +37,3 @@ OEDS Workflow
     * [dummy_db.sh](https://github.com/NOWUM/open-energy-data-server/blob/main/docs/source/backup_restore_migration/dummy_db.sh) - Script for dummy database setup.
     * [db_migrate.sh](https://github.com/NOWUM/open-energy-data-server/blob/main/docs/source/backup_restore_migration/db_migrate.sh) - Script for whole database migration.
     * [schema_migrate.sh](https://github.com/NOWUM/open-energy-data-server/blob/main/docs/source/backup_restore_migration/schema_migrate.sh) - Script for individual schema migration.
-
-## Index
-
-* [Index](genindex)
