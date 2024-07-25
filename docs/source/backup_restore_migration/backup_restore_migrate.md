@@ -15,14 +15,14 @@ Postgis can be manually installed using the following statement:
 CREATE EXTENSION postgis;
 ```
 ## Test environment
-If you want to test the migration, dummy databses can be created using this script [create_dummy_databases.sh](create_dummy_databases.sh).
+If you want to test the migration, dummy databses can be created using this script [dummy_db.sh](https://github.com/NOWUM/open-energy-data-server/blob/main/docs/source/backup_restore_migration/dummy_db.sh).
 
 ## Backup & restore whole server
 Backing up and restoring the whole database is straightforward.
 
-The script in [schema_migrate.sh](schema_migrate.sh) can be used to backup and restore the database.
+The script in [schema_migrate.sh](https://github.com/NOWUM/open-energy-data-server/blob/main/docs/source/backup_restore_migration/schema_migrate.sh) can be used to backup and restore the database.
 
 ## Backup & restore specific schemas (datasets) of the OEDS
 Backing up and restoring specific schemas is a bit more complicated, because timescaledb stores its data in chunks.
 
-The script in [schema_migrate.sh](schema_migrate.sh) can be used to backup and restore specific schemas.
+The script in [db_migrate.sh](https://github.com/NOWUM/open-energy-data-server/blob/main/docs/source/backup_restore_migration/db_migrate.sh) can be used to backup and restore specific schemas.

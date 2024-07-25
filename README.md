@@ -14,7 +14,7 @@ The main target is to create an institute-wide available database that can be se
 
 Allowing native access through PostgreSQL allows any easy integration of different software which can access data from a SQL database.
 
-![Basic outline of the architecture and included services](docs/media/oeds-architecture.png)
+![Basic outline of the architecture and included services](docs/source/media/oeds-architecture.png)
 
 
 ## Getting started
@@ -24,7 +24,7 @@ And start the `compose.yml` with `docker compose up -d`.
 
 Then you have a running TimescaleDB server listening on postgresql default port `5432`.
 
-![Visualization of OEDS Usage Workflow](docs/media/oeds-workflow.png)
+![Visualization of OEDS Usage Workflow](docs/source/media/oeds-workflow.png)
 
 As seen in the above workflow outline, the data is inserted by scripts which retrieve the data from a source API.
 This is the core part, afterwards, everything is basically usable.

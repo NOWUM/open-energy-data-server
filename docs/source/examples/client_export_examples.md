@@ -32,8 +32,8 @@ df.to_csv("londondatastore_pgrst.csv")
 ## Grafana
 
 Using the Graph from this dashboard:
-http://localhost:3006/d/edn5t9gi0wyrke/refit-load-profile?orgId=1
-https://monitor.nowum.fh-aachen.de/d/edn5t9gi0wyrke/refit-load-profile?orgId=1
+[Locally](http://localhost:3006/d/edn5t9gi0wyrke/refit-load-profile?orgId=1)
+[Remotely](https://monitor.nowum.fh-aachen.de/d/edn5t9gi0wyrke/refit-load-profile?orgId=1)
 
 One can inspect to see the data (or the query) of the graph easily as shown below:
 
@@ -43,11 +43,11 @@ http://localhost:3006/
 Username: opendata
 Password: opendata
 
-Grafana is provisioned [here](/data/provisioning/pgadmin/servers.json).
+Grafana is provisioned [here](https://github.com/NOWUM/open-energy-data-server/blob/main/data/provisioning/grafana/datasource.yml).
 
-Grafana dashboards are provisioned [here](/data/provisioning/grafana/dashboards/) and the dashboard provider [here](/data/provisioning/grafana/dashboardproviders/opendata.yml)
+Grafana dashboards are provisioned [here](https://github.com/NOWUM/open-energy-data-server/tree/main/data/provisioning/grafana/dashboards) and the dashboard provider [here](https://github.com/NOWUM/open-energy-data-server/blob/main/data/provisioning/grafana/dashboardproviders/opendata.yml)
 
-![Grafana Export](./media/grafana_export.png)
+![Grafana Export](https://github.com/NOWUM/open-energy-data-server/blob/main/docs/source/media/grafana_export.png)
 
 
 ## PgAdmin4
@@ -62,6 +62,6 @@ http://localhost:8080/
 Username: admin@admin.admin
 Password: admin
 
-Pgadmin is provisioned [here](/data/provisioning/pgadmin/servers.json)
+Pgadmin is provisioned [here]((https://github.com/NOWUM/open-energy-data-server/blob/main/data/provisioning/pgadmin/servers.json))
 
-![pgAdmin Export](./media/pgadmin_export.png)
+![pgAdmin Export](https://github.com/NOWUM/open-energy-data-server/blob/main/docs/source/media/pgadmin_export.png)
