@@ -37,3 +37,8 @@ html_theme = 'sphinx_rtd_theme'
 epub_show_urls = 'footnote'
 
 source_suffix = ['.rst', '.md']
+
+# Path setup for including parent directory markdown files
+import os
+import sys
+sys.path.insert(0, os.path.abspath('../..'))
