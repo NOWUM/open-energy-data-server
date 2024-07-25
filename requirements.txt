@@ -25,8 +25,5 @@ cdsapi
 cfgrib
 eccodes
 pyarrow
-sphinx
-recommonmark
-sphinx_rtd_theme
 git+https://github.com/maurerle/roiti-gie@maurerle
 git+https://github.com/maurerle/jao-py@improve_horizon_support
