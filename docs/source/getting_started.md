@@ -11,7 +11,7 @@ To execute crawlers and minimal walkthrough:
 
 ## Setting up the server
 
-Open the terminal at the root of the project and run the following command to start all services in the [docker compose file](/compose.yml):
+Open the terminal at the root of the project and run the following command to start all services in the [docker compose file](https://github.com/NOWUM/open-energy-data-server/blob/main/compose.yml):
 
 ```bash
 docker-compose up -d
@@ -75,7 +75,7 @@ python -m <crawler_name>
 ## Usage
 
 ### PgAdmin
-PgAdmin is provisioned using this [configuration](/data/provisioning/pgadmin/servers.json)
+PgAdmin is provisioned using this [configuration](https://github.com/NOWUM/open-energy-data-server/blob/main/data/provisioning/pgadmin/servers.json)
 
 If there are no servers shown upon startup, you can manually add the server using the same credentials as the provisioning, by right clicking the servers list in the "Object Explorer" of the PgAdmin tool and selecting "Register" -> "Server".
 
@@ -86,10 +86,10 @@ PostgREST can be used to query the database using a RESTful API. The API is avai
 
 Any table in any schema can be read from, but tables outisde the "public" schema require setting of additional header parameters to function.
 
-For examples see: [http export examples](/docs/http_export_examples.md) or [Example Projects](https://github.com/NOWUM/OEDS-Examples).
+For examples see: [http export examples](https://github.com/NOWUM/open-energy-data-server/blob/main/docs/http_export_examples.md) or [Example Projects](https://github.com/NOWUM/OEDS-Examples).
 
 ### Grafana
-Grafana is provisioned using this [configuration](/data/provisioning/grafana/provisioning/datasources/datasource.yml) and this [dashboard](/data/provisioning/grafana/provisioning/dashboards/dashboard.yml).
+Grafana is provisioned using this [configuration](https://github.com/NOWUM/open-energy-data-server/blob/main/data/provisioning/grafana/datasources/datasource.yml) and these [dashboards](https://github.com/NOWUM/open-energy-data-server/tree/main/data/provisioning/grafana/dashboards).
 
 If there are no datasources and dashboards shown upon startup, you can manually add the datasource and dashboard using the same configuration as the provisioning.
 
@@ -97,8 +97,8 @@ The provided dashboards will be empty until the related crawlers are executed.
 
 ## More resources
 
-A complete walkthrough with a new crawler, PostgREST usage and data exporting can be found [here](/docs/minimal%20walkthrough/).
+A complete walkthrough with a new crawler, PostgREST usage and data exporting can be found [here](https://github.com/NOWUM/open-energy-data-server/blob/main/docs/source/minimal_walkthrough/minimal_example_walkthrough.md).
 
-Further documentation & examples exists regarding [http export](/docs/http_export_examples.md) and [client export](/docs/client_export_examples.md).
+Further documentation & examples exists regarding [http export](https://github.com/NOWUM/open-energy-data-server/blob/main/docs/source/examples/http_export_examples.md) and [client export](https://github.com/NOWUM/open-energy-data-server/blob/main/docs/source/examples/client_export_examples.md).
 
 Example projects can be found in the [OEDS-Examples github](https://github.com/NOWUM/OEDS-Examples).
