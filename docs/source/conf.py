@@ -18,8 +18,10 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
     'recommonmark',
-    'sphinx_rtd_theme',
+    'sphinx_rtd_theme'
+    'myst_parser'
 ]
+
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None),
