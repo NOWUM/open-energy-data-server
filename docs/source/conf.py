@@ -18,7 +18,7 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
     'recommonmark',
-    'sphinx_rtd_theme'
+    'sphinx_rtd_theme',
     'myst_parser'
 ]
 
