@@ -38,7 +38,7 @@ html_theme = 'sphinx_rtd_theme'
 # -- Options for EPUB output
 epub_show_urls = 'footnote'
 
-source_suffix = ['.rst', '.md']
+source_suffix = ['.rst']
 
 # Path setup for including parent directory markdown files
 import os
