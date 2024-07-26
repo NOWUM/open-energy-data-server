@@ -70,6 +70,17 @@ This only works for timeseries tables and is not compatible with non-timeseries 
 Therefore to increase replication of other tables (like the Marktstammdatenregister), one still needs to have manual replication or use something like [Patroni](https://patroni.readthedocs.io/en/latest/).
 
 
+
+
+## PostGIS
+The database server also includes the [PostGIS](https://postgis.net/) extension which allows for spatial queries and storage of geospatial data.
+PostGIS is installed once per database and can be used by every schema afterwards.
+
+### What is a geospatial database?
+Geospatial databases are optimized for storing and querying geospatial data.
+They can store points, lines, polygons, and other geospatial data types and can perform spatial queries like finding all points within a certain distance of a given point.
+Coordinate transformations and other geospatial operations are also possible with PostGIS.
+
 ## Contributing
 
 Do you know of other interesting open-access databases which are worth mentioning here?

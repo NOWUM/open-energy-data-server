@@ -17,34 +17,9 @@ Allowing native access through PostgreSQL allows any easy integration of differe
 ![Basic outline of the architecture and included services](media/oeds-architecture.png)
 
 
-## Getting started
-
-To set up your institutes new open-data server, you can [install docker](https://docs.docker.com/engine/install/) or [podman](https://podman.io/).
-And start the `compose.yml` with `docker compose up -d`.
-
-Then you have a running TimescaleDB server listening on postgresql default port `5432`.
-
-![Visualization of OEDS Usage Workflow](media/oeds-workflow.png)
-
-As seen in the above workflow outline, the data is inserted by scripts which retrieve the data from a source API.
-This is the core part, afterwards, everything is basically usable.
-
-To execute the scripts, you need a python environment.
-As of June 2024 - this works with Python versions 3.9 up to 3.12
-You can install all python dependencies:
-
-`pip install -r requirements.txt`
-
-And finally run the main crawling script `python crawl_all.py` to download all available sources into the database.
-
-## Using the ECMWF crawler
-
-If you want to use the ECMWF crawler you need to create an account at [copernicus](https://cds.climate.copernicus.eu) to get an API key which allows you to query the API of copernicus. Follow the [instructions](https://cds.climate.copernicus.eu/api-how-to) of copernicus for that.
-
 ## TimeScaleDB
 
 The used database technology for the database server is [TimescaleDB](https://timescale.com/) which is an extension for PostgreSQL (just like PostGIS but for timeseries databases).
-
 
 ### What is a time-series database?
 Normal SQL tables can get quite slow if millions of entries are stored in them.
@@ -67,6 +42,14 @@ On a high level this can be imagined that for a query spanning a year, each of t
 This only works for timeseries tables and is not compatible with non-timeseries data.
 Therefore to increase replication of other tables (like the Marktstammdatenregister), one still needs to have manual replication or use something like [Patroni](https://patroni.readthedocs.io/en/latest/).
 
+## PostGIS
+The database server also includes the [PostGIS](https://postgis.net/) extension which allows for spatial queries and storage of geospatial data.
+PostGIS is installed once per database and can be used by every schema afterwards.
+
+### What is a geospatial database?
+Geospatial databases are optimized for storing and querying geospatial data.
+They can store points, lines, polygons, and other geospatial data types and can perform spatial queries like finding all points within a certain distance of a given point.
+Coordinate transformations and other geospatial operations are also possible with PostGIS.
 
 ## Contributing
 
@@ -88,3 +71,7 @@ If your tables should be stored in a new database, you have to add your database
 You can cite the `open-energy-data-server` through the Conference proceedings:
 
 > Maurer, F., Sejdija, J., & Sander, V. (2024, February 2). Decentralized energy data storages through an Open Energy Database Server. 1st NFDI4Energy Conference (NFDI4Energy), Hanover, Germany. https://doi.org/10.5281/zenodo.10607895
+
+## Using the ECMWF crawler
+
+If you want to use the ECMWF crawler you need to create an account at [copernicus](https://cds.climate.copernicus.eu) to get an API key which allows you to query the API of copernicus. Follow the [instructions](https://cds.climate.copernicus.eu/api-how-to) of copernicus for that.

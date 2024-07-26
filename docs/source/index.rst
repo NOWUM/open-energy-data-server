@@ -10,8 +10,8 @@ Welcome to the official documentation for OEDS! This guide will help you get sta
    :maxdepth: 2
    :caption: Contents:
 
-   getting_started
    README
+   getting_started
 
 OEDS Architecture
 -----------------
