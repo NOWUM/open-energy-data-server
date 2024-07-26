@@ -18,8 +18,7 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
     'recommonmark',
-    'sphinx_rtd_theme',
-    'myst_parser'
+    'sphinx_rtd_theme'
 ]
 
 
@@ -38,7 +37,7 @@ html_theme = 'sphinx_rtd_theme'
 # -- Options for EPUB output
 epub_show_urls = 'footnote'
 
-source_suffix = ['.rst']
+source_suffix = ['.rst', '.md']
 
 # Path setup for including parent directory markdown files
 import os
