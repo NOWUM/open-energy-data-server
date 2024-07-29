@@ -28,7 +28,7 @@ OEDS Workflow
 Mini Walkthrough
 ================
 
-* `Minimal Example Walkthrough <minimal_walkthrough/minimal_example_walkthrough.md>`_ - Step-by-step walkthrough of a minimal example using Open Power System Data (OPSD) national energy generation dataset.
+* `Minimal Example Walkthrough <https://github.com/NOWUM/open-energy-data-server/blob/main/docs/source/minimal_walkthrough/minimal_example_walkthrough.md>`_ - Step-by-step walkthrough of a minimal example using Open Power System Data (OPSD) national energy generation dataset.
     * `opsd_national_generation_capacity_crawler.py <https://github.com/NOWUM/open-energy-data-server/blob/main/docs/source/minimal_walkthrough/opsd_national_generation_capacity_crawler.py>`_ - Python crawler for national generation capacity.
     * `postgrest_stored_procedure.sql <https://github.com/NOWUM/open-energy-data-server/blob/main/docs/source/minimal_walkthrough/postgrest_stored_procedure.sql>`_ - Stored procedure for PostgREST.
     * `python_postgrest_visualise.py <https://github.com/NOWUM/open-energy-data-server/blob/main/docs/source/minimal_walkthrough/python_postgrest_visualise.py>`_ - Python script for PostgREST visualization.
@@ -37,15 +37,15 @@ Mini Walkthrough
 Usage Examples
 ==============
 
-* `Application Examples <examples/application_examples.md>`_ - Application examples.
-* `Client Export Examples <examples/client_export_examples.md>`_ - Export examples for SQL clients.
-* `HTTP Export Examples <examples/http_export_examples.md>`_ - Examples for exporting via HTTP.
+* `Application Examples <https://github.com/NOWUM/open-energy-data-server/blob/main/docs/source/examples/application_examples.md>`_ - Application examples.
+* `Client Export Examples <https://github.com/NOWUM/open-energy-data-server/blob/main/docs/source/examples/client_export_examples.md>`_ - Export examples for SQL clients.
+* `HTTP Export Examples <https://github.com/NOWUM/open-energy-data-server/blob/main/docs/source/examples/http_export_examples.md>`_ - Examples for exporting via HTTP.
 * `SQL Helpers <https://github.com/NOWUM/open-energy-data-server/blob/main/docs/source/examples/metadata_sql_helpers.sql>`_ - SQL helpers for metadata operations.
 
 Backup and Migration
 ====================
 
-* `Backup, Restore, and Migration <backup_restore_migration/backup_restore_migrate.md>`_ - Comprehensive guide for backup, restore, and migration.
+* `Backup, Restore, and Migration <https://github.com/NOWUM/open-energy-data-server/blob/main/docs/source/backup_restore_migration/backup_restore_migrate.md>`_ - Comprehensive guide for backup, restore, and migration.
     * `dummy_db.sh <https://github.com/NOWUM/open-energy-data-server/blob/main/docs/source/backup_restore_migration/dummy_db.sh>`_ - Script for dummy database setup.
     * `db_migrate.sh <https://github.com/NOWUM/open-energy-data-server/blob/main/docs/source/backup_restore_migration/db_migrate.sh>`_ - Script for whole database migration.
     * `schema_migrate.sh <https://github.com/NOWUM/open-energy-data-server/blob/main/docs/source/backup_restore_migration/schema_migrate.sh>`_ - Script for individual schema migration.
