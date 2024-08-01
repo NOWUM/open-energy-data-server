@@ -57,3 +57,8 @@ def set_metadata_only(engine, metadata_info: dict[str, str]):
             """),
             {"schema_name": metadata_info["schema_name"]},
         )
+        conn.execute(
+            text("""
+            NOTIFY pgrst, 'reload schema';
+            """)
+        )
