@@ -4,7 +4,7 @@ In this document you will find the necessary steps to set up the server and exec
 ## Requirements
 
 To set up the server itself:
-- [Docker](https://docs.docker.com/engine/install/) or [Podman](https://podman.io/).
+- [Docker](https://docs.docker.com/engine/install/) and [Docker Compose ](https://docs.docker.com/compose/) or [Podman](https://podman.io/).
 
 To execute crawlers and minimal walkthrough:
 - [Python](https://www.python.org/downloads/release/python-390/ ) (tested with version 3.9.0).
@@ -23,7 +23,7 @@ This will start:
 - The PostgREST server, found at port [3001](http://localhost:3001/).
 - The Grafana monitoring tool, found at port [3006](http://localhost:3006/).
 
-To verify a successful start, you can check the logs of the services by running:
+To verify a successful start, you can check the currently running services by running:
 
 ```bash
 docker ps
@@ -44,6 +44,8 @@ Once again using a terminal at the root of the project, install the required pyt
 ```bash
 pip install -r requirements.txt
 ```
+The crawlers need a config file to run. On the default setup this can be done by renaming the config_example.py file in the /crawler/config directory to config.py.
+
 Next, you can run all crawlers by running:
 
 WARNING: This will take a long time and consume a lot of resources. It is recommended to run over the weekend or indivudually.
@@ -52,7 +54,7 @@ WARNING: This will take a long time and consume a lot of resources. It is recomm
 python crawl_all.py
 ```
 
-or as a module:
+or
 
 ```bash
 python -m crawl_all
@@ -66,7 +68,7 @@ To run a single crawler, navigate to the /crawler directory and run:
 python <crawler_name>.py
 ```
 
-or as a module:
+or 
 
 ```bash
 python -m <crawler_name>
@@ -81,6 +83,13 @@ If there are no servers shown upon startup, you can manually add the server usin
 
 By default, the database is empty except for admnistration tables. You can add your own data or use the provided crawlers to populate the database.
 
+The default credentials are:
+
+Username: admin@admin.admin
+
+Password: admin
+
+
 ### PostgREST
 PostgREST can be used to query the database using a RESTful API. The API is available at [http://localhost:3001/](http://localhost:3001/).
 
@@ -94,6 +103,13 @@ Grafana is provisioned using this [configuration](https://github.com/NOWUM/open-
 If there are no datasources and dashboards shown upon startup, you can manually add the datasource and dashboard using the same configuration as the provisioning.
 
 The provided dashboards will be empty until the related crawlers are executed.
+
+The default admin credentials are:
+
+Username: opendata
+
+Password: opendata
+
 
 ## More resources
 
