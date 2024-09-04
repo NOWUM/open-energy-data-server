@@ -27,7 +27,7 @@ def set_metadata_only(engine, metadata_info: dict[str, str]):
         if key not in metadata_info.keys():
             metadata_info[key] = None
     if "data_date" not in metadata_info.keys():
-        metadata_info["data_date":] = date.today()
+        metadata_info["data_date"] = date.today()
     with engine.begin() as conn:
         conn.execute(
             text("""

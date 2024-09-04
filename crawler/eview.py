@@ -125,7 +125,7 @@ if __name__ == "__main__":
     # db_conn = 'sqlite:///./data/eview.db'
     db_conn = db_uri("eview")
     log.info(f"connect to {db_conn}")
-    ec = EViewCrawler(db_conn)
+    ec = EViewCrawler("eview")
     plant = "FI"
     begin_date = ec.select_latest(plant)
     ec.crawl_unit(plant, begin_date)

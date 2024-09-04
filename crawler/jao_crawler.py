@@ -14,7 +14,7 @@ from jao import JaoAPIClient
 from sqlalchemy import MetaData, text
 from sqlalchemy.exc import OperationalError
 
-from common.base_crawler import BaseCrawler
+from .common.base_crawler import BaseCrawler
 
 log = logging.getLogger("jao")
 

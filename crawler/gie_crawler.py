@@ -53,7 +53,6 @@ data_hierachy = ["country", "company", "location"]
 async def async_main(schema_name):
     engine = create_engine(db_uri(schema_name))
     base = BaseCrawler(schema_name)
-    base.create_schema()
     API_KEY = os.getenv("GIE_API_KEY")
     if not API_KEY:
         raise Exception("GIE_API_KEY is not defined")
