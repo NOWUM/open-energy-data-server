@@ -18,7 +18,7 @@ from sqlalchemy import text
 from common.base_crawler import BaseCrawler
 
 log = logging.getLogger("smard")
-default_start_date = "2023-01-01 22:45:00"  # "2023-11-26 22:45:00"
+default_start_date = "2024-06-02 22:00:00"  # "2023-11-26 22:45:00"
 
 
 metadata_info = {
@@ -76,7 +76,7 @@ class SmardCrawler(BaseCrawler):
         }
 
         for commodity_id, commodity_name in keys.items():
-            start_date = self.select_latest(commodity_id) + timedelta(minutes=15)
+            start_date = self.select_latest(commodity_id)
             # start_date_tz to unix time
             start_date_unix = int(start_date.timestamp() * 1000)
             url = f"https://www.smard.de/app/chart_data/{commodity_id}/DE/{commodity_id}_DE_quarterhour_{start_date_unix}.json"
@@ -109,29 +109,17 @@ class SmardCrawler(BaseCrawler):
         sql = f"select timestamp from smard where commodity_id='{commodity_id}' order by timestamp desc limit 1"
         try:
             with self.engine.begin() as conn:
-                if delete:
-                    print(prev_latest)
-                    sql_delete = f"delete from smard where timestamp > '{prev_latest.replace(hour=22, minute=45, second=0)}' AND commodity_id='{commodity_id}'"
-                    conn.execute(text(sql_delete))
-                    log.info(f"Deleted data from {prev_latest} to now")
                 latest = pd.read_sql(sql, conn, parse_dates=["timestamp"]).values[0][0]
-            latest = pd.to_datetime(latest, unit="ns")
+            latest = pd.to_datetime(latest, unit="ns", utc=True)
             log.info(f"The latest date in the database is {latest}")
-            start_date_unix = int((latest + timedelta(minutes=15)).timestamp() * 1000)
-            response = requests.get(
-                f"https://www.smard.de/app/chart_data/{commodity_id}/DE/{commodity_id}_DE_quarterhour_{start_date_unix}.json"
-            )
-            try:
-                response.raise_for_status()
-            except requests.exceptions.HTTPError as e:
-                log.error(
-                    f"Could not get data for commodity, will retry: {commodity_id} {e}"
-                )
-                self.select_latest(
-                    commodity_id,
-                    delete=True,
-                    prev_latest=latest - timedelta(days=1),
-                )
+            if latest.weekday() != 6 or (latest.hour < 21 and latest.minute == 45):
+                last_sunday = latest - timedelta(days=latest.weekday() + 1)
+                last_sunday_22 = last_sunday.replace(hour=22, minute=0, second=0, microsecond=0)
+                log.info(f"the latest date in the database is not a sunday after 22:00, taking last week sunday 22:00 as start date to fill the missing data: {latest} -> {last_sunday_22}")
+                latest = last_sunday_22
+            else:
+                log.info("the latest date in the database is a sunday 21:45, taking this sunday 22:00 as start date")
+                latest = latest.replace(hour=22, minute=0, second=0, microsecond=0)
             return latest
         except Exception as e:
             log.info(f"Using the default start date {e}")
