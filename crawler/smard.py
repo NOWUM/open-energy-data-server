@@ -14,7 +14,7 @@ from datetime import timedelta
 import pandas as pd
 import requests
 from sqlalchemy import text
-
+from typing import Optional
 from common.base_crawler import BaseCrawler
 
 log = logging.getLogger("smard")
@@ -76,7 +76,7 @@ class SmardCrawler(BaseCrawler):
         }
 
         for commodity_id, commodity_name in keys.items():
-            start_date = self.select_latest(commodity_id)
+            start_date, latest = self.select_latest(commodity_id)
             # start_date_tz to unix time
             start_date_unix = int(start_date.timestamp() * 1000)
             url = f"https://www.smard.de/app/chart_data/{commodity_id}/DE/{commodity_id}_DE_quarterhour_{start_date_unix}.json"
@@ -97,12 +97,14 @@ class SmardCrawler(BaseCrawler):
             timeseries["commodity_id"] = commodity_id
             timeseries["commodity_name"] = commodity_name
             timeseries = timeseries.dropna(subset="mwh")
+            if latest is not None:
+                timeseries = timeseries[timeseries["timestamp"] > latest]
 
             yield timeseries
 
     def select_latest(
         self, commodity_id, delete=False, prev_latest=None
-    ) -> pd.Timestamp:
+    ) -> tuple[pd.Timestamp, Optional[pd.Timestamp]]:
         # day = default_start_date
         # today = date.today().strftime('%d.%m.%Y')
         # sql = f"select timestamp from smard where timestamp > '{day}' and timestamp < '{today}' order by timestamp desc limit 1"
@@ -116,14 +118,14 @@ class SmardCrawler(BaseCrawler):
                 last_sunday = latest - timedelta(days=latest.weekday() + 1)
                 last_sunday_22 = last_sunday.replace(hour=22, minute=0, second=0, microsecond=0)
                 log.info(f"the latest date in the database is not a sunday after 22:00, taking last week sunday 22:00 as start date to fill the missing data: {latest} -> {last_sunday_22}")
-                latest = last_sunday_22
+                start_date = last_sunday_22
             else:
                 log.info("the latest date in the database is a sunday 21:45, taking this sunday 22:00 as start date")
-                latest = latest.replace(hour=22, minute=0, second=0, microsecond=0)
-            return latest
+                start_date = latest.replace(hour=22, minute=0, second=0, microsecond=0)
+            return start_date, latest
         except Exception as e:
             log.info(f"Using the default start date {e}")
-            return pd.to_datetime(default_start_date)
+            return pd.to_datetime(default_start_date), None
 
     def feed(self):
         for data_for_commodity in self.get_data_per_commodity():
