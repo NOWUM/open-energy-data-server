@@ -14,7 +14,7 @@ from datetime import timedelta
 import pandas as pd
 import requests
 from sqlalchemy import text
-from typing import Optional
+
 from common.base_crawler import BaseCrawler
 
 log = logging.getLogger("smard")
@@ -104,7 +104,7 @@ class SmardCrawler(BaseCrawler):
 
     def select_latest(
         self, commodity_id, delete=False, prev_latest=None
-    ) -> tuple[pd.Timestamp, Optional[pd.Timestamp]]:
+    ) -> tuple[pd.Timestamp, pd.Timestamp | None]:
         # day = default_start_date
         # today = date.today().strftime('%d.%m.%Y')
         # sql = f"select timestamp from smard where timestamp > '{day}' and timestamp < '{today}' order by timestamp desc limit 1"
@@ -116,11 +116,17 @@ class SmardCrawler(BaseCrawler):
             log.info(f"The latest date in the database is {latest}")
             if latest.weekday() != 6 or (latest.hour < 21 and latest.minute == 45):
                 last_sunday = latest - timedelta(days=latest.weekday() + 1)
-                last_sunday_22 = last_sunday.replace(hour=22, minute=0, second=0, microsecond=0)
-                log.info(f"the latest date in the database is not a sunday after 22:00, taking last week sunday 22:00 as start date to fill the missing data: {latest} -> {last_sunday_22}")
+                last_sunday_22 = last_sunday.replace(
+                    hour=22, minute=0, second=0, microsecond=0
+                )
+                log.info(
+                    f"the latest date in the database is not a sunday after 22:00, taking last week sunday 22:00 as start date to fill the missing data: {latest} -> {last_sunday_22}"
+                )
                 start_date = last_sunday_22
             else:
-                log.info("the latest date in the database is a sunday 21:45, taking this sunday 22:00 as start date")
+                log.info(
+                    "the latest date in the database is a sunday 21:45, taking this sunday 22:00 as start date"
+                )
                 start_date = latest.replace(hour=22, minute=0, second=0, microsecond=0)
             return start_date, latest
         except Exception as e:
