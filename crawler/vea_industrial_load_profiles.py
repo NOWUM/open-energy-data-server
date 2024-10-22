@@ -112,7 +112,7 @@ def create_timestep_datetime_dict(columns: list[str]) -> dict[str: pd.Timestamp]
 
     log.info("Creating dictionary for timesteps mapping")
 
-    timesteps = list(columns.columns.difference(["id", "Unnamed: 35137"]))
+    timesteps = list(columns.difference(["id", "Unnamed: 35137"]))
 
     timestamps = pd.date_range(
         start="2016-01-01 00:00:00",
