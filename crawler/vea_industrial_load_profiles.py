@@ -7,7 +7,6 @@ import pandas as pd
 from sqlalchemy import create_engine, text
 from tqdm import tqdm
 
-from common.base_crawler import BaseCrawler
 from common.config import db_uri
 
 log = logging.getLogger("vea-industrial-load-profiles")
