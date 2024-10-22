@@ -1,9 +1,9 @@
-import logging
 import io
-
+import logging
 import zipfile
-import requests
+
 import pandas as pd
+import requests
 from sqlalchemy import create_engine, text
 from tqdm import tqdm
 
@@ -76,10 +76,7 @@ def extract_files(response: requests.Response) -> tuple[zipfile.ZipExtFile]:
     return master_data_file, hlt_profiles_file, load_profiles_file
 
 
-
-def read_file(
-        file: zipfile.ZipExtFile,
-        filename: str | None = None) -> pd.DataFrame:
+def read_file(file: zipfile.ZipExtFile, filename: str | None = None) -> pd.DataFrame:
     """Reads the given file and returns contents as pd.DataFrame.
 
     Args:
@@ -100,7 +97,7 @@ def read_file(
     return df
 
 
-def create_timestep_datetime_dict(columns: list[str]) -> dict[str: pd.Timestamp]:
+def create_timestep_datetime_dict(columns: list[str]) -> dict[str : pd.Timestamp]:
     """Creates a dictionary mapping the timesteps (time0, time1, ...) to pd.Timestamp objects.
 
     Args:
@@ -118,7 +115,8 @@ def create_timestep_datetime_dict(columns: list[str]) -> dict[str: pd.Timestamp]
         start="2016-01-01 00:00:00",
         end="2016-12-31 23:45:00",
         freq="15min",
-        tz="Europe/Berlin")
+        tz="Europe/Berlin",
+    )
 
     timestamps = timestamps.tz_convert("UTC")
 
@@ -133,9 +131,8 @@ def create_timestep_datetime_dict(columns: list[str]) -> dict[str: pd.Timestamp]
 
 
 def transform_load_hlt_data(
-        df: pd.DataFrame,
-        timestep_datetime_map: dict,
-        name: str | None = None) -> pd.DataFrame:
+    df: pd.DataFrame, timestep_datetime_map: dict, name: str | None = None
+) -> pd.DataFrame:
     """Transform given dataframe of load or hlt profiles into long format.
 
     Args:
@@ -163,9 +160,7 @@ def transform_load_hlt_data(
     return df
 
 
-def write_to_database(
-        data: pd.DataFrame,
-        name: str) -> None:
+def write_to_database(data: pd.DataFrame, name: str) -> None:
     """Writes dataframe to database.
 
     Args:
@@ -179,7 +174,7 @@ def write_to_database(
     engine = create_engine(db_uri)
 
     rows = 200000
-    list_df = [data[i:i+rows] for i in range(0, data.shape[0], rows)]
+    list_df = [data[i : i + rows] for i in range(0, data.shape[0], rows)]
 
     for df in tqdm(list_df):
         df.to_sql(
@@ -187,13 +182,13 @@ def write_to_database(
             con=engine,
             if_exists="append",
             schema="vea-industrial-load-profiles",
-            index=False)
+            index=False,
+        )
 
     log.info("Succesfully inserted into databse")
 
 
 def create_schema():
-
     log.info("Trying to create schema")
 
     engine = create_engine(db_uri)
@@ -202,7 +197,8 @@ def create_schema():
         query = text(
             """
                 CREATE SCHEMA IF NOT EXISTS "vea-industrial-load-profiles"
-            """)
+            """
+        )
         conn.execute(query)
 
     log.info("Succesfully created schema")
@@ -250,19 +246,16 @@ def main():
 
     # transform and write load data
     load_data = transform_load_hlt_data(
-        df=load_data,
-        timestep_datetime_map=timestep_dt_map,
-        name="")
+        df=load_data, timestep_datetime_map=timestep_dt_map, name=""
+    )
     write_to_database(data=load_data, name="load")
     del load_data
-
 
     # read, transform and write hlt data
     hlt_data = read_file(hlt_file, filename="hlt")
     hlt_data = transform_load_hlt_data(
-        df=hlt_data,
-        timestep_datetime_map=timestep_dt_map,
-        name="")
+        df=hlt_data, timestep_datetime_map=timestep_dt_map, name=""
+    )
     write_to_database(data=hlt_data, name="high_load_times")
     del hlt_data
 
@@ -277,11 +270,10 @@ def main():
 
 
 if __name__ == "__main__":
-
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
-        datefmt='%d-%m-%Y %H:%M:%S')
+        format="%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s",
+        datefmt="%d-%m-%Y %H:%M:%S",
+    )
 
     main()
-
