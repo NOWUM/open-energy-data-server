@@ -77,17 +77,21 @@ def extract_files(response: requests.Response) -> tuple[zipfile.ZipExtFile]:
 
 
 
-def read_file(file: zipfile.ZipExtFile) -> pd.DataFrame:
+def read_file(
+        file: zipfile.ZipExtFile,
+        filename: str | None = None) -> pd.DataFrame:
     """Reads the given file and returns contents as pd.DataFrame.
 
     Args:
         load (zipfile.ZipExtFile): Original file from zip archive.
 
+        filename (str | None, default: None): The name of the file being read.
+
     Returns:
         pd.DataFrame: The data as pd.DataFrame.
     """
 
-    log.info("Trying to read file into pd.DataFrame")
+    log.info(f"Trying to read file {filename} into pd.DataFrame")
 
     df = pd.read_csv(file, sep="\t")
 
@@ -136,6 +140,8 @@ def transform_load_hlt_data(
     Args:
         df (pd.DataFrame): Original dataframe.
 
+        timestep_datetime_map (dict): Dictionary containing timestamp object for each string like timestamp.
+
     Returns:
         pd.DataFrame: The transformed dataframe.
     """
@@ -163,6 +169,8 @@ def write_to_database(
 
     Args:
         data (pd.DataFrame): The dataframe to write to database.
+
+        name (str): The name of the table to insert data to.
     """
 
     log.info("Trying to write to database")
@@ -197,7 +205,6 @@ def convert_to_hypertable(relation_name: str):
         conn.execute(query)
 
     log.info("Succesfully create hypertable")
-
 
 def main():
     # request zip archive
