@@ -32,4 +32,4 @@ Built in grafana visualisation is available on port 3008, the database connectio
 Javascript examples can be found in application_examples.md
 
 Example Python script in:
-[python_postgrest_visualise.py](https://github.com/NOWUM/open-energy-data-server/blob/main/docs/source/minimal_walkthrough/python_postgrest_visualise.py) 
+[python_postgrest_visualise.py](https://github.com/NOWUM/open-energy-data-server/blob/main/docs/source/minimal_walkthrough/python_postgrest_visualise.py)

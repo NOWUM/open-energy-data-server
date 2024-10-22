@@ -68,7 +68,7 @@ To run a single crawler, navigate to the /crawler directory and run:
 python <crawler_name>.py
 ```
 
-or 
+or
 
 ```bash
 python -m <crawler_name>
