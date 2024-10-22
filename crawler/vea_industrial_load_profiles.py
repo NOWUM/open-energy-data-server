@@ -193,6 +193,22 @@ def write_to_database(
     log.info("Succesfully inserted into databse")
 
 
+def create_schema():
+
+    log.info("Trying to create schema")
+
+    engine = create_engine(db_uri)
+
+    with engine.begin() as conn:
+        query = text(
+            """
+                CREATE SCHEMA IF NOT EXISTS "vea-industrial-load-profiles"
+            """)
+        conn.execute(query)
+
+    log.info("Succesfully created schema")
+
+
 def convert_to_hypertable(relation_name: str):
     """
     Converts table to hypertable.
