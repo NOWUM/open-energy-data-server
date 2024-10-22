@@ -120,7 +120,7 @@ def create_timestep_datetime_dict(columns: list[str]) -> dict[str: pd.Timestamp]
 
 def transform_load_hlt_data(
         df: pd.DataFrame,
-        timestep_timestamp_map: dict) -> pd.DataFrame:
+        timestep_datetime_map: dict) -> pd.DataFrame:
     """Transform given dataframe of load or hlt profiles into long format.
 
     Args:
@@ -139,7 +139,7 @@ def transform_load_hlt_data(
     df = df.melt(id_vars="id", var_name="timestamp")
 
     # map timestamps onto timestamp column
-    df["timestamp"] = df["timestamp"].map(timestep_timestamp_map)
+    df["timestamp"] = df["timestamp"].map(timestep_datetime_map)
 
     log.info("Succesfully converted hlt / load profil")
 
@@ -156,6 +156,9 @@ def main():
     # extract files from response
     master_file, hlt_file, load_file = extract_files(response=response)
 
+    # create timestamp dictionary to replace "timeX" with datetime object
+    timestep_dt_map = create_timestep_datetime_dict(load_file.columns)
+
     if master_file == -1:
         return
 
@@ -163,6 +166,10 @@ def main():
     master_data = read_file(master_file)
     hlt_data = read_file(hlt_file)
     load_data = read_file(load_file)
+
+    # transform files
+    hlt_data = transform_load_hlt_data(df=hlt_data, timestep_datetime_map=timestep_dt_map)
+    load_data = transform_load_hlt_data(df=load_data, timestep_datetime_map=timestep_dt_map)
 
 
 if __name__ == "__main__":
