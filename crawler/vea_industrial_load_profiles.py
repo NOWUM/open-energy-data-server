@@ -118,6 +118,33 @@ def create_timestep_datetime_dict(columns: list[str]) -> dict[str: pd.Timestamp]
         return -1
 
 
+def transform_load_hlt_data(
+        df: pd.DataFrame,
+        timestep_timestamp_map: dict) -> pd.DataFrame:
+    """Transform given dataframe of load or hlt profiles into long format.
+
+    Args:
+        df (pd.DataFrame): Original dataframe.
+
+    Returns:
+        pd.DataFrame: The transformed dataframe.
+    """
+
+    log.info("Trying to convert dataframe")
+
+    # remove unused column
+    df.drop(columns="Unnamed: 35137", inplace=True)
+
+    # change to wide format
+    df = df.melt(id_vars="id", var_name="timestamp")
+
+    # map timestamps onto timestamp column
+    df["timestamp"] = df["timestamp"].map(timestep_timestamp_map)
+
+    log.info("Succesfully converted hlt / load profil")
+
+    return df
+
 
 def main():
     # request zip archive
