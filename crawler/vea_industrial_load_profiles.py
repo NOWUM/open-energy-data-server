@@ -83,6 +83,43 @@ def read_file(file: zipfile.ZipExtFile) -> pd.DataFrame:
         return -1
 
 
+def create_timestep_datetime_dict(columns: list[str]) -> dict[str: pd.Timestamp]:
+    """Creates a dictionary mapping the timesteps (time0, time1, ...) to pd.Timestamp objects.
+
+    Args:
+        columns (list[str]): Columns of either the load or hlt profile dataframe (the timesteps).
+
+    Returns:
+        dict[str: pd.Timestamp]: Dictionary containing a pd.Timestamp for each timestep.
+    """
+
+    try:
+
+        log.info("Creating dictionary for timesteps mapping")
+
+        timesteps = list(columns.columns.difference(["id", "Unnamed: 35137"]))
+
+        timestamps = pd.date_range(
+            start="2016-01-01 00:00:00",
+            end="2016-12-31 23:45:00",
+            freq="15min",
+            tz="Europe/Berlin")
+
+        timestep_timestamp_map = {}
+        for timestep in timesteps:
+            idx = int(timestep.split("time")[1])
+            timestep_timestamp_map[timestep] = timestamps[idx]
+
+        log.info("Succesfully created dictionary")
+
+        return timestep_timestamp_map
+
+    except Exception as e:
+        log.error(f"Could not create dictionary: {e}")
+        return -1
+
+
+
 def main():
     # request zip archive
     response = request_zip_archive()
