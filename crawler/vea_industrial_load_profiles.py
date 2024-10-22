@@ -105,6 +105,8 @@ def create_timestep_datetime_dict(columns: list[str]) -> dict[str: pd.Timestamp]
             freq="15min",
             tz="Europe/Berlin")
 
+        timestamps = timestamps.tz_convert("UTC")
+
         timestep_timestamp_map = {}
         for timestep in timesteps:
             idx = int(timestep.split("time")[1])
