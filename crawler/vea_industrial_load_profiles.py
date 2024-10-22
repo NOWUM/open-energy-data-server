@@ -5,6 +5,7 @@ import zipfile
 import requests
 import pandas as pd
 from sqlalchemy import create_engine, text
+from tqdm import tqdm
 
 from common.base_crawler import BaseCrawler
 from common.config import db_uri
@@ -177,11 +178,16 @@ def write_to_database(
 
     engine = create_engine(db_uri)
 
-    data.to_sql(
-        name=name,
-        con=engine,
-        if_exists="append",
-        schema="vea-industrial-load-profiles")
+    rows = 200000
+    list_df = [data[i:i+rows] for i in range(0, data.shape[0], rows)]
+
+    for df in tqdm(list_df):
+        df.to_sql(
+            name=name,
+            con=engine,
+            if_exists="append",
+            schema="vea-industrial-load-profiles",
+            index=False)
 
     log.info("Succesfully inserted into databse")
 
