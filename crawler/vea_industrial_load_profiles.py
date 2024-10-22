@@ -14,9 +14,9 @@ log.setLevel(logging.INFO)
 metadata = {}
 
 
-def request_file() -> requests.Response:
+def request_zip_archive() -> requests.Response:
     """
-    Requests zipfile for industrial load profiles from zenodo.
+    Requests zip archive for industrial load profiles from zenodo.
 
     Returns:
         requests.Response: Response from server
