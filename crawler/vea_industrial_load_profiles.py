@@ -208,7 +208,8 @@ def main():
     write_to_database(data=load_data, name="load")
 
     # convert to hypertable
-    convert_to_hypertable()
+    convert_to_hypertable("high_load_times")
+    convert_to_hypertable("load")
 
 
 if __name__ == "__main__":
