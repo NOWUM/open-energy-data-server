@@ -59,6 +59,10 @@ def set_metadata_only(engine, metadata_info: dict[str, str]):
         )
         conn.execute(
             text("""
+            UPDATE postgrest.config
+            SET schemas = schemas || ',:schema_name';
+            NOTIFY pgrst, 'reload config';
             NOTIFY pgrst, 'reload schema';
-            """)
+            """),
+            {"schema_name": metadata_info["schema_name"]},
         )

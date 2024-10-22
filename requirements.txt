@@ -25,6 +25,5 @@ cdsapi
 cfgrib
 eccodes
 pyarrow
-typing
 git+https://github.com/maurerle/roiti-gie@maurerle
 git+https://github.com/maurerle/jao-py@improve_horizon_support
