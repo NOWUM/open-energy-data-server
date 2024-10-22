@@ -4,7 +4,7 @@ import io
 import zipfile
 import requests
 import pandas as pd
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 
 from common.base_crawler import BaseCrawler
 from common.config import db_uri
@@ -146,7 +146,7 @@ def write_to_database(
         data (pd.DataFrame): The dataframe to write to database.
     """
 
-    logging.info("Trying to write to database")
+    log.info("Trying to write to database")
 
     engine = create_engine(db_uri)
 
@@ -156,8 +156,28 @@ def write_to_database(
         if_exists="append",
         schema="vea-industrial-load-profiles")
 
-    logging.info("Succesfully inserted into databse")
+    log.info("Succesfully inserted into databse")
 
+
+def convert_to_hypertable(relation_name: str):
+    """
+    Converts table to hypertable.
+
+    Args:
+        relation_name (str): The relation to convert to hypertable.
+    """
+
+    log.info("Trying to create hypertable")
+
+    engine = create_engine(db_uri)
+
+    with engine.begin() as conn:
+        query = text(
+            f"SELECT public.create_hypertable('{relation_name}', 'timestamp', if_not_exists => TRUE, migrate_data => TRUE);"
+        )
+        conn.execute(query)
+
+    log.info("Succesfully create hypertable")
 
 
 def main():
@@ -186,6 +206,9 @@ def main():
     write_to_database(data=master_data, name="master")
     write_to_database(data=hlt_data, name="high_load_times")
     write_to_database(data=load_data, name="load")
+
+    # convert to hypertable
+    convert_to_hypertable()
 
 
 if __name__ == "__main__":
