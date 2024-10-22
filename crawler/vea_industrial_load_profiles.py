@@ -240,22 +240,37 @@ def main():
     # extract files from response
     master_file, hlt_file, load_file = extract_files(response=response)
 
-    # read in files
-    master_data = read_file(master_file)
-    hlt_data = read_file(hlt_file)
-    load_data = read_file(load_file)
+    # creat schema
+    create_schema()
+
+    # read load_data
+    load_data = read_file(load_file, filename="load")
 
     # create timestamp dictionary to replace "timeX" with datetime object
     timestep_dt_map = create_timestep_datetime_dict(load_data.columns)
 
-    # transform files
-    hlt_data = transform_load_hlt_data(df=hlt_data, timestep_datetime_map=timestep_dt_map)
-    load_data = transform_load_hlt_data(df=load_data, timestep_datetime_map=timestep_dt_map)
-
-    # write to database
-    write_to_database(data=master_data, name="master")
-    write_to_database(data=hlt_data, name="high_load_times")
+    # transform and write load data
+    load_data = transform_load_hlt_data(
+        df=load_data,
+        timestep_datetime_map=timestep_dt_map,
+        name="")
     write_to_database(data=load_data, name="load")
+    del load_data
+
+
+    # read, transform and write hlt data
+    hlt_data = read_file(hlt_file, filename="hlt")
+    hlt_data = transform_load_hlt_data(
+        df=hlt_data,
+        timestep_datetime_map=timestep_dt_map,
+        name="")
+    write_to_database(data=hlt_data, name="high_load_times")
+    del hlt_data
+
+    # read in master data and write to database
+    master_data = read_file(master_file, filename="master")
+    write_to_database(data=master_data, name="master")
+    del master_data
 
     # convert to hypertable
     convert_to_hypertable("high_load_times")
