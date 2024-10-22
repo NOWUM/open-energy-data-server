@@ -22,9 +22,9 @@ metadata_info = {
     Local electricity generation was excluded from the data as far as it could be discovered (no guarantee of completeness).
     Together with load profiles comes respective master data of the industrial sites as well as the information wether each quarterhour was a high load time of the connected German grid operator in 2016.
     The data was collected by the VEA.
-    The dataset as a whole was assembled by Paul Hendrik Tieman in 2017 by selectin complete load profiles without effects of renewable generation from a VEA internal database.
-    It is a research dataset and was used for master theses and publications.""",
-    "contact": "",
+    The dataset as a whole was assembled by Paul Hendrik Tiemann in 2017 by selecting complete load profiles without effects of renewable generation from a VEA internal database.
+    It is a research dataset and was used for research publications.""",
+    "contact": "komanns@fh-aachen.de",
     "temporal_start": "2016-01-01 00:00:00",
     "temporal_end": "2016-12-31 23:45:00",
     "concave_hull_geometry": None,
@@ -48,7 +48,7 @@ def request_zip_archive() -> requests.Response:
 
         response.raise_for_status()
 
-        log.info("Succesfully requested zip archive from zenodo")
+        log.info("Successfully requested zip archive from zenodo")
 
         return response
 
@@ -92,7 +92,7 @@ def read_file(file: zipfile.ZipExtFile, filename: str | None = None) -> pd.DataF
 
     df = pd.read_csv(file, sep="\t")
 
-    log.info("Succesfully read file into pd.DataFrame")
+    log.info("Successfully read file into pd.DataFrame")
 
     return df
 
@@ -125,7 +125,7 @@ def create_timestep_datetime_dict(columns: list[str]) -> dict[str : pd.Timestamp
         idx = int(timestep.split("time")[1])
         timestep_timestamp_map[timestep] = timestamps[idx]
 
-    log.info("Succesfully created dictionary")
+    log.info("Successfully created dictionary")
 
     return timestep_timestamp_map
 
@@ -155,12 +155,12 @@ def transform_load_hlt_data(
     # map timestamps onto timestamp column
     df["timestamp"] = df["timestamp"].map(timestep_datetime_map)
 
-    log.info("Succesfully converted hlt / load profile")
+    log.info("Successfully converted hlt / load profile")
 
     return df
 
 
-def write_to_database(data: pd.DataFrame, name: str) -> None:
+def write_to_database(db_conn: str, data: pd.DataFrame, name: str) -> None:
     """Writes dataframe to database.
 
     Args:
@@ -171,7 +171,7 @@ def write_to_database(data: pd.DataFrame, name: str) -> None:
 
     log.info(f"Trying to write {name} to database")
 
-    engine = create_engine(db_uri)
+    engine = create_engine(db_conn)
 
     rows = 200000
     list_df = [data[i : i + rows] for i in range(0, data.shape[0], rows)]
@@ -185,7 +185,7 @@ def write_to_database(data: pd.DataFrame, name: str) -> None:
             index=False,
         )
 
-    log.info("Succesfully inserted into databse")
+    log.info("Successfully inserted into databse")
 
 
 def create_schema():
@@ -210,19 +210,20 @@ def convert_to_hypertable(relation_name: str):
 
     log.info("Trying to create hypertable")
 
-    engine = create_engine(db_uri)
+    engine = create_engine(db_conn)
     try:
         with engine.begin() as conn:
             query = text(
                 f"SELECT public.create_hypertable('{relation_name}', 'timestamp', if_not_exists => TRUE, migrate_data => TRUE);"
             )
             conn.execute(query)
-        log.info("Succesfully create hypertable")
+        log.info("Successfully create hypertable")
     except Exception as e:
         log.error(f"could not create hypertable: {e}")
 
 
-def main(db_uri):
+def main(schema_name):
+
     # request zip archive
     response = request_zip_archive()
 
@@ -245,7 +246,8 @@ def main(db_uri):
     load_data = transform_load_hlt_data(
         df=load_data, timestep_datetime_map=timestep_dt_map, name=""
     )
-    write_to_database(data=load_data, name="load")
+    db_conn = db_uri(schema_name)
+    write_to_database(db_conn=db_conn, data=load_data, name="load")
     del load_data
 
     # read, transform and write hlt data
@@ -253,15 +255,17 @@ def main(db_uri):
     hlt_data = transform_load_hlt_data(
         df=hlt_data, timestep_datetime_map=timestep_dt_map, name=""
     )
-    write_to_database(data=hlt_data, name="high_load_times")
+    write_to_database(db_conn=db_conn, data=hlt_data, name="high_load_times")
     del hlt_data
 
     # read in master data and write to database
     master_data = read_file(master_file, filename="master")
-    write_to_database(data=master_data, name="master")
+    write_to_database(db_conn=db_conn, data=master_data, name="master")
     del master_data
 
     # convert to hypertable
+    convert_to_hypertable(db_conn=db_conn, "high_load_times")
+    convert_to_hypertable(db_conn=db_conn, "load")
     convert_to_hypertable("high_load_times")
     convert_to_hypertable("load")
 
