@@ -19,7 +19,7 @@ import pandas as pd
 import sqlalchemy
 from sqlalchemy import create_engine, text
 
-from .config import db_uri
+from common.config import db_uri
 
 log = logging.getLogger("regelleistung")
 log.setLevel(logging.INFO)

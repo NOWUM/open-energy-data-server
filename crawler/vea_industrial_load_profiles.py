@@ -16,7 +16,7 @@ metadata_info = {
     "schema_name": "vea-industrial-load-profiles",
     "data_date": "2016-01-01",
     "data_source": "https://zenodo.org/records/13910298",
-    "license": "Creative Commons Attribution 4.0 International Public License",
+    "license": "CC-BY-4.0",
     "description": """The data consists of 5359 one-year quarterhourly industrial load profiles (2016, leap year, 35136 values).
     Each describes the electricity consumption of one industrial commercial site in Germany used for official accounting.
     Local electricity generation was excluded from the data as far as it could be discovered (no guarantee of completeness).
@@ -194,11 +194,7 @@ def create_schema():
     engine = create_engine(db_uri)
 
     with engine.begin() as conn:
-        query = text(
-            """
-                CREATE SCHEMA IF NOT EXISTS "vea-industrial-load-profiles"
-            """
-        )
+        query = text('CREATE SCHEMA IF NOT EXISTS "vea-industrial-load-profiles"')
         conn.execute(query)
 
     log.info("Succesfully created schema")
@@ -215,17 +211,18 @@ def convert_to_hypertable(relation_name: str):
     log.info("Trying to create hypertable")
 
     engine = create_engine(db_uri)
+    try:
+        with engine.begin() as conn:
+            query = text(
+                f"SELECT public.create_hypertable('{relation_name}', 'timestamp', if_not_exists => TRUE, migrate_data => TRUE);"
+            )
+            conn.execute(query)
+        log.info("Succesfully create hypertable")
+    except Exception as e:
+        log.error(f"could not create hypertable: {e}")
 
-    with engine.begin() as conn:
-        query = text(
-            f"SELECT public.create_hypertable('{relation_name}', 'timestamp', if_not_exists => TRUE, migrate_data => TRUE);"
-        )
-        conn.execute(query)
 
-    log.info("Succesfully create hypertable")
-
-
-def main():
+def main(db_uri):
     # request zip archive
     response = request_zip_archive()
 
