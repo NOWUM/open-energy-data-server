@@ -10,7 +10,6 @@ from common.base_crawler import BaseCrawler
 from common.config import db_uri
 
 log = logging.getLogger("vea-industrial-load-profiles")
-log.setLevel(logging.INFO)
 
 
 metadata_info = {
@@ -42,10 +41,14 @@ def request_zip_archive() -> requests.Response:
 
     url = "https://zenodo.org/records/13910298/files/load-profile-data.zip?download=1"
 
+    log.info("Requesting zip archive from zenodo")
+
     try:
         response = requests.get(url)
 
         response.raise_for_status()
+
+        log.info("Succesfully requested zip archive from zenodo")
 
         return response
 
@@ -229,5 +232,11 @@ def main():
 
 
 if __name__ == "__main__":
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
+        datefmt='%d-%m-%Y %H:%M:%S')
+
     main()
 
