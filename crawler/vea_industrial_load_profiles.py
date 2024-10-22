@@ -209,13 +209,13 @@ def main():
     # extract files from response
     master_file, hlt_file, load_file = extract_files(response=response)
 
-    # create timestamp dictionary to replace "timeX" with datetime object
-    timestep_dt_map = create_timestep_datetime_dict(load_file.columns)
-
     # read in files
     master_data = read_file(master_file)
     hlt_data = read_file(hlt_file)
     load_data = read_file(load_file)
+
+    # create timestamp dictionary to replace "timeX" with datetime object
+    timestep_dt_map = create_timestep_datetime_dict(load_data.columns)
 
     # transform files
     hlt_data = transform_load_hlt_data(df=hlt_data, timestep_datetime_map=timestep_dt_map)
