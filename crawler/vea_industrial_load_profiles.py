@@ -4,6 +4,7 @@ import io
 import zipfile
 import requests
 import pandas as pd
+from sqlalchemy import create_engine
 
 from common.base_crawler import BaseCrawler
 from common.config import db_uri
@@ -136,6 +137,29 @@ def transform_load_hlt_data(
     return df
 
 
+def write_to_database(
+        data: pd.DataFrame,
+        name: str) -> None:
+    """Writes dataframe to database.
+
+    Args:
+        data (pd.DataFrame): The dataframe to write to database.
+    """
+
+    logging.info("Trying to write to database")
+
+    engine = create_engine(db_uri)
+
+    data.to_sql(
+        name=name,
+        con=engine,
+        if_exists="append",
+        schema="vea-industrial-load-profiles")
+
+    logging.info("Succesfully inserted into databse")
+
+
+
 def main():
     # request zip archive
     response = request_zip_archive()
@@ -157,6 +181,11 @@ def main():
     # transform files
     hlt_data = transform_load_hlt_data(df=hlt_data, timestep_datetime_map=timestep_dt_map)
     load_data = transform_load_hlt_data(df=load_data, timestep_datetime_map=timestep_dt_map)
+
+    # write to database
+    write_to_database(data=master_data, name="master")
+    write_to_database(data=hlt_data, name="high_load_times")
+    write_to_database(data=load_data, name="load")
 
 
 if __name__ == "__main__":
