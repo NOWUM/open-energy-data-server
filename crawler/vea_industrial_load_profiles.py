@@ -72,15 +72,12 @@ def read_file(file: zipfile.ZipExtFile) -> pd.DataFrame:
     """
 
     log.info("Trying to read file into pd.DataFrame")
-    try:
-        df = pd.read_csv(file, sep="\t")
-        log.info("Succesfully read file into pd.DataFrame")
 
-        return df
+    df = pd.read_csv(file, sep="\t")
 
-    except Exception as e:
-        log.error(f"Could not read file: {e}")
-        return -1
+    log.info("Succesfully read file into pd.DataFrame")
+
+    return df
 
 
 def create_timestep_datetime_dict(columns: list[str]) -> dict[str: pd.Timestamp]:
