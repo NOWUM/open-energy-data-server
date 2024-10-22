@@ -135,7 +135,8 @@ def create_timestep_datetime_dict(columns: list[str]) -> dict[str: pd.Timestamp]
 
 def transform_load_hlt_data(
         df: pd.DataFrame,
-        timestep_datetime_map: dict) -> pd.DataFrame:
+        timestep_datetime_map: dict,
+        name: str | None = None) -> pd.DataFrame:
     """Transform given dataframe of load or hlt profiles into long format.
 
     Args:
@@ -147,7 +148,7 @@ def transform_load_hlt_data(
         pd.DataFrame: The transformed dataframe.
     """
 
-    log.info("Trying to convert dataframe")
+    log.info(f"Trying to convert {name} dataframe")
 
     # remove unused column
     df.drop(columns="Unnamed: 35137", inplace=True)
@@ -158,7 +159,7 @@ def transform_load_hlt_data(
     # map timestamps onto timestamp column
     df["timestamp"] = df["timestamp"].map(timestep_datetime_map)
 
-    log.info("Succesfully converted hlt / load profil")
+    log.info("Succesfully converted hlt / load profile")
 
     return df
 
@@ -174,7 +175,7 @@ def write_to_database(
         name (str): The name of the table to insert data to.
     """
 
-    log.info("Trying to write to database")
+    log.info(f"Trying to write {name} to database")
 
     engine = create_engine(db_uri)
 
@@ -211,6 +212,7 @@ def convert_to_hypertable(relation_name: str):
         conn.execute(query)
 
     log.info("Succesfully create hypertable")
+
 
 def main():
     # request zip archive
