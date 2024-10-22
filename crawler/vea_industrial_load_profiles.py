@@ -7,7 +7,9 @@ import requests
 from sqlalchemy import create_engine, text
 from tqdm import tqdm
 
+from common.base_crawler import create_schema_only, set_metadata_only
 from common.config import db_uri
+
 
 log = logging.getLogger("vea-industrial-load-profiles")
 
@@ -181,26 +183,13 @@ def write_to_database(db_conn: str, data: pd.DataFrame, name: str) -> None:
             name=name,
             con=engine,
             if_exists="append",
-            schema="vea-industrial-load-profiles",
             index=False,
         )
 
     log.info("Successfully inserted into databse")
 
 
-def create_schema():
-    log.info("Trying to create schema")
-
-    engine = create_engine(db_uri)
-
-    with engine.begin() as conn:
-        query = text('CREATE SCHEMA IF NOT EXISTS "vea-industrial-load-profiles"')
-        conn.execute(query)
-
-    log.info("Succesfully created schema")
-
-
-def convert_to_hypertable(relation_name: str):
+def convert_to_hypertable(db_conn: str, relation_name: str):
     """
     Converts table to hypertable.
 
@@ -233,8 +222,9 @@ def main(schema_name):
     # extract files from response
     master_file, hlt_file, load_file = extract_files(response=response)
 
-    # creat schema
-    create_schema()
+    # create schema
+    engine = create_engine(db_uri(schema_name))
+    create_schema_only(engine, schema_name)
 
     # read load_data
     load_data = read_file(load_file, filename="load")
@@ -264,10 +254,10 @@ def main(schema_name):
     del master_data
 
     # convert to hypertable
-    convert_to_hypertable(db_conn=db_conn, "high_load_times")
-    convert_to_hypertable(db_conn=db_conn, "load")
-    convert_to_hypertable("high_load_times")
-    convert_to_hypertable("load")
+    convert_to_hypertable(db_conn, f"{schema_name}.high_load_times")
+    convert_to_hypertable(db_conn, f"{schema_name}.load")
+
+    set_metadata_only(engine, metadata_info)
 
 
 if __name__ == "__main__":
@@ -277,4 +267,4 @@ if __name__ == "__main__":
         datefmt="%d-%m-%Y %H:%M:%S",
     )
 
-    main()
+    main("vea-industrial-load-profiles")

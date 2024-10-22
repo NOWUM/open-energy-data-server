@@ -19,7 +19,7 @@ class BaseCrawler:
 
 def create_schema_only(engine, schema_name: str) -> None:
     with engine.begin() as conn:
-        conn.execute(text(f"CREATE SCHEMA IF NOT EXISTS {schema_name}"))
+        conn.execute(text(f'CREATE SCHEMA IF NOT EXISTS "{schema_name}"'))
 
 
 def set_metadata_only(engine, metadata_info: dict[str, str]):
