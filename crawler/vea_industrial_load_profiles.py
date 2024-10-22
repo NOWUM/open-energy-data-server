@@ -3,6 +3,7 @@ import io
 
 import zipfile
 import requests
+import pandas as pd
 
 from common.base_crawler import BaseCrawler
 from common.config import db_uri
@@ -33,6 +34,7 @@ def request_zip_archive() -> requests.Response:
 
     except Exception as e:
         log.error(f"Could not request file from zenodo: {e}")
+        return -1
 
 
 def extract_files(response: requests.Response) -> tuple[zipfile.ZipExtFile]:
@@ -56,9 +58,50 @@ def extract_files(response: requests.Response) -> tuple[zipfile.ZipExtFile]:
 
     except Exception as e:
         log.error(f"Could not extract file(s): {e}")
+        return -1, -1, -1
 
 
-class IndustrialLoadProfileCrawler(BaseCrawler):
+def read_file(file: zipfile.ZipExtFile) -> pd.DataFrame:
+    """Reads the given file and returns contents as pd.DataFrame.
 
-    def __init__(self, schema_name: str):
-        super().__init__(schema_name)
+    Args:
+        load (zipfile.ZipExtFile): Original file from zip archive.
+
+    Returns:
+        pd.DataFrame: The data as pd.DataFrame.
+    """
+
+    log.info("Trying to read file into pd.DataFrame")
+    try:
+        df = pd.read_csv(file, sep="\t")
+        log.info("Succesfully read file into pd.DataFrame")
+
+        return df
+
+    except Exception as e:
+        log.error(f"Could not read file: {e}")
+        return -1
+
+
+def main():
+    # request zip archive
+    response = request_zip_archive()
+
+    if response == -1:
+        return
+
+    # extract files from response
+    master_file, hlt_file, load_file = extract_files(response=response)
+
+    if master_file == -1:
+        return
+
+    # read in files
+    master_data = read_file(master_file)
+    hlt_data = read_file(hlt_file)
+    load_data = read_file(load_file)
+
+
+if __name__ == "__main__":
+    main()
+
