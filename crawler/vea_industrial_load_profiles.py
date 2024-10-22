@@ -13,7 +13,23 @@ log = logging.getLogger("vea-industrial-load-profiles")
 log.setLevel(logging.INFO)
 
 
-metadata = {}
+metadata_info = {
+    "schema_name": "vea-industrial-load-profiles",
+    "data_date": "2016-01-01",
+    "data_source": "https://zenodo.org/records/13910298",
+    "license": "Creative Commons Attribution 4.0 International Public License",
+    "description": """The data consists of 5359 one-year quarterhourly industrial load profiles (2016, leap year, 35136 values).
+    Each describes the electricity consumption of one industrial commercial site in Germany used for official accounting.
+    Local electricity generation was excluded from the data as far as it could be discovered (no guarantee of completeness).
+    Together with load profiles comes respective master data of the industrial sites as well as the information wether each quarterhour was a high load time of the connected German grid operator in 2016.
+    The data was collected by the VEA.
+    The dataset as a whole was assembled by Paul Hendrik Tieman in 2017 by selectin complete load profiles without effects of renewable generation from a VEA internal database.
+    It is a research dataset and was used for master theses and publications.""",
+    "contact": "",
+    "temporal_start": "2016-01-01 00:00:00",
+    "temporal_end": "2016-12-31 23:45:00",
+    "concave_hull_geometry": None,
+}
 
 
 def request_zip_archive() -> requests.Response:
