@@ -122,17 +122,15 @@ class IndustrialLoadProfileCrawler(BaseCrawler):
         log.info(f"Trying to convert {name} dataframe")
 
         # remove unused column
-        df.drop(columns="Unnamed: 35137", inplace=True)
+        self.df.drop(columns="Unnamed: 35137", inplace=True)
 
         # change to wide format
-        df = df.melt(id_vars="id", var_name="timestamp")
+        self.df = self.df.melt(id_vars="id", var_name="timestamp")
 
         # map timestamps onto timestamp column
-        df["timestamp"] = df["timestamp"].map(self.timestep_datetime_map)
+        self.df["timestamp"] = self.df["timestamp"].map(self.timestep_datetime_map)
 
         log.info("Succesfully converted hlt / load profile")
-
-        return df
 
 
     def write_to_database(
