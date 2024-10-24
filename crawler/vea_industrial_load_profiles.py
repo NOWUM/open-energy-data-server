@@ -221,6 +221,9 @@ def main():
     ilp_crawler.convert_to_hypertable("high_load_times")
     ilp_crawler.convert_to_hypertable("load")
 
+    # set metadata
+    ilp_crawler.set_metadata(metadata_info)
+
 
 if __name__ == "__main__":
 
