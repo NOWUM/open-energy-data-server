@@ -182,7 +182,7 @@ class IndustrialLoadProfileCrawler(BaseCrawler):
             log.info("Succesfully create hypertable")
 
         except Exception as e:
-            log.error(f"Could not create hyptertable for {relation_name}: e")
+            log.error(f"Could not create hyptertable for {relation_name}: {e}")
 
 
 def main():
