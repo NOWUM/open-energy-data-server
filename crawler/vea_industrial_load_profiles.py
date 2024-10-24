@@ -22,7 +22,7 @@ metadata_info = {
     Local electricity generation was excluded from the data as far as it could be discovered (no guarantee of completeness).
     Together with load profiles comes respective master data of the industrial sites as well as the information wether each quarterhour was a high load time of the connected German grid operator in 2016.
     The data was collected by the VEA.
-    The dataset as a whole was assembled by Paul Hendrik Tieman in 2017 by selectin complete load profiles without effects of renewable generation from a VEA internal database.
+    The dataset as a whole was assembled by Paul Hendrik Tiemann in 2017 by selecting complete load profiles without effects of renewable generation from a VEA internal database.
     It is a research dataset and was used for master theses and publications.""",
     "contact": "komanns@fh-aachen.de",
     "temporal_start": "2016-01-01 00:00:00",
@@ -37,7 +37,7 @@ class IndustrialLoadProfileCrawler(BaseCrawler):
         super().__init__(schema_name)
 
 
-    def request_zip_archive(self) -> requests.Response:
+    def request_extract_zip_archive(self):
         """
         Requests zip archive for industrial load profiles from zenodo.
         """
@@ -46,19 +46,13 @@ class IndustrialLoadProfileCrawler(BaseCrawler):
 
         log.info("Requesting zip archive from zenodo")
 
-        self.response = requests.get(url)
+        response = requests.get(url)
 
-        self.response.raise_for_status()
+        response.raise_for_status()
 
         log.info("Succesfully requested zip archive from zenodo")
 
-
-    def extract_files(self) :
-        """
-        Extract files from response object.
-        """
-
-        with zipfile.ZipFile(io.BytesIO(self.response.content)) as thezip:
+        with zipfile.ZipFile(io.BytesIO(response.content)) as thezip:
             self.master_data_file = thezip.open(name="master_data_tabsep.csv")
             self.hlt_profiles_file = thezip.open(name="hlt_profiles_tabsep.csv")
             self.load_profiles_file = thezip.open(name="load_profiles_tabsep.csv")
@@ -193,10 +187,7 @@ def main():
     ilp_crawler = IndustrialLoadProfileCrawler("vea_industrial_load_profiles")
 
     # request zip archive
-    ilp_crawler.request_zip_archive()
-
-    # extract files from response
-    ilp_crawler.extract_files()
+    ilp_crawler.request_extract_zip_archive()
 
     # read load_data
     ilp_crawler.read_file(filename="load")
