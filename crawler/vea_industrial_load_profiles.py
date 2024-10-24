@@ -16,7 +16,7 @@ metadata_info = {
     "schema_name": "vea_industrial_load_profiles",
     "data_date": "2016-01-01",
     "data_source": "https://zenodo.org/records/13910298",
-    "license": "Creative Commons Attribution 4.0 International Public License",
+    "license": "CC-BY-4.0",
     "description": """The data consists of 5359 one-year quarterhourly industrial load profiles (2016, leap year, 35136 values).
     Each describes the electricity consumption of one industrial commercial site in Germany used for official accounting.
     Local electricity generation was excluded from the data as far as it could be discovered (no guarantee of completeness).
