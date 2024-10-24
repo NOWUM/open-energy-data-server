@@ -152,7 +152,7 @@ class IndustrialLoadProfileCrawler(BaseCrawler):
                 name=name,
                 con=self.engine,
                 if_exists="append",
-                schema="vea-industrial-load-profiles",
+                schema="vea_industrial_load_profiles",
                 index=False)
 
         log.info("Succesfully inserted into databse")
