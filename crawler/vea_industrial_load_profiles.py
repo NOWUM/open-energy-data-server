@@ -172,13 +172,17 @@ class IndustrialLoadProfileCrawler(BaseCrawler):
 
         log.info("Trying to create hypertable")
 
-        with self.engine.begin() as conn:
-            query = text(
-                f"SELECT public.create_hypertable('{relation_name}', 'timestamp', if_not_exists => TRUE, migrate_data => TRUE);"
-            )
-            conn.execute(query)
+        try:
+            with self.engine.begin() as conn:
+                query = text(
+                    f"SELECT public.create_hypertable('{relation_name}', 'timestamp', if_not_exists => TRUE, migrate_data => TRUE);"
+                )
+                conn.execute(query)
 
-        log.info("Succesfully create hypertable")
+            log.info("Succesfully create hypertable")
+
+        except Exception as e:
+            log.error(f"Could not create hyptertable for {relation_name}: e")
 
 
 def main():
