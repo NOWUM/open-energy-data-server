@@ -36,6 +36,8 @@ class IndustrialLoadProfileCrawler(BaseCrawler):
     def __init__(self, schema_name):
         super().__init__(schema_name)
 
+        self.schema_name = schema_name
+
 
     def request_extract_zip_archive(self):
         """
@@ -152,7 +154,7 @@ class IndustrialLoadProfileCrawler(BaseCrawler):
                 name=name,
                 con=self.engine,
                 if_exists="append",
-                schema="vea_industrial_load_profiles",
+                schema=self.schema_name,
                 index=False)
 
         log.info("Succesfully inserted into databse")
