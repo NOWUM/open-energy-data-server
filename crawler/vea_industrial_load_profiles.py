@@ -4,10 +4,10 @@ import io
 import zipfile
 import requests
 import pandas as pd
-from sqlalchemy import create_engine, text
+from sqlalchemy import text
 from tqdm import tqdm
 
-from common.config import db_uri
+from common.base_crawler import BaseCrawler
 
 log = logging.getLogger("vea-industrial-load-profiles")
 
@@ -24,256 +24,202 @@ metadata_info = {
     The data was collected by the VEA.
     The dataset as a whole was assembled by Paul Hendrik Tieman in 2017 by selectin complete load profiles without effects of renewable generation from a VEA internal database.
     It is a research dataset and was used for master theses and publications.""",
-    "contact": "",
+    "contact": "komanns@fh-aachen.de",
     "temporal_start": "2016-01-01 00:00:00",
     "temporal_end": "2016-12-31 23:45:00",
     "concave_hull_geometry": None,
 }
 
 
-def request_zip_archive() -> requests.Response:
-    """
-    Requests zip archive for industrial load profiles from zenodo.
+class IndustrialLoadProfileCrawler(BaseCrawler):
 
-    Returns:
-        requests.Response: Response from server
-    """
+    def __init__(self, schema_name):
+        super().__init__(schema_name)
 
-    url = "https://zenodo.org/records/13910298/files/load-profile-data.zip?download=1"
 
-    log.info("Requesting zip archive from zenodo")
+    def request_zip_archive(self) -> requests.Response:
+        """
+        Requests zip archive for industrial load profiles from zenodo.
+        """
 
-    try:
-        response = requests.get(url)
+        url = "https://zenodo.org/records/13910298/files/load-profile-data.zip?download=1"
 
-        response.raise_for_status()
+        log.info("Requesting zip archive from zenodo")
+
+        self.response = requests.get(url)
+
+        self.response.raise_for_status()
 
         log.info("Succesfully requested zip archive from zenodo")
 
-        return response
 
-    except Exception as e:
-        log.error(f"Could not request file from zenodo: {e}")
-        return -1
+    def extract_files(self) :
+        """
+        Extract files from response object.
+        """
 
-
-def extract_files(response: requests.Response) -> tuple[zipfile.ZipExtFile]:
-    """
-    Extract files from response object.
-
-    Args:
-        response (requests.Response): The response from zenodo request.
-
-    Returns:
-        tuple[zipfile.ZipExtFile]: The three needed files: master_data, hlt_profiles and load_profiles.
-    """
-
-    with zipfile.ZipFile(io.BytesIO(response.content)) as thezip:
-        master_data_file = thezip.open(name="master_data_tabsep.csv")
-        hlt_profiles_file = thezip.open(name="hlt_profiles_tabsep.csv")
-        load_profiles_file = thezip.open(name="load_profiles_tabsep.csv")
-
-    return master_data_file, hlt_profiles_file, load_profiles_file
+        with zipfile.ZipFile(io.BytesIO(self.response.content)) as thezip:
+            self.master_data_file = thezip.open(name="master_data_tabsep.csv")
+            self.hlt_profiles_file = thezip.open(name="hlt_profiles_tabsep.csv")
+            self.load_profiles_file = thezip.open(name="load_profiles_tabsep.csv")
 
 
+    def read_file(
+            self,
+            filename: str | None = None):
+        """Reads the given file and returns contents as pd.DataFrame.
 
-def read_file(
-        file: zipfile.ZipExtFile,
-        filename: str | None = None) -> pd.DataFrame:
-    """Reads the given file and returns contents as pd.DataFrame.
+        Args:
+            filename (str | None, default: None): The name of the file being read.
+        """
 
-    Args:
-        load (zipfile.ZipExtFile): Original file from zip archive.
+        log.info(f"Trying to read file {filename} into pd.DataFrame")
 
-        filename (str | None, default: None): The name of the file being read.
+        if filename == "master":
+            file = self.master_data_file
+        elif filename == "load":
+            file = self.load_profiles_file
+        elif filename == "hlt":
+            file = self.hlt_profiles_file
 
-    Returns:
-        pd.DataFrame: The data as pd.DataFrame.
-    """
+        self.df = pd.read_csv(file, sep="\t")
 
-    log.info(f"Trying to read file {filename} into pd.DataFrame")
-
-    df = pd.read_csv(file, sep="\t")
-
-    log.info("Succesfully read file into pd.DataFrame")
-
-    return df
-
-
-def create_timestep_datetime_dict(columns: list[str]) -> dict[str: pd.Timestamp]:
-    """Creates a dictionary mapping the timesteps (time0, time1, ...) to pd.Timestamp objects.
-
-    Args:
-        columns (list[str]): Columns of either the load or hlt profile dataframe (the timesteps).
-
-    Returns:
-        dict[str: pd.Timestamp]: Dictionary containing a pd.Timestamp for each timestep.
-    """
-
-    log.info("Creating dictionary for timesteps mapping")
-
-    timesteps = list(columns.difference(["id", "Unnamed: 35137"]))
-
-    timestamps = pd.date_range(
-        start="2016-01-01 00:00:00",
-        end="2016-12-31 23:45:00",
-        freq="15min",
-        tz="Europe/Berlin")
-
-    timestamps = timestamps.tz_convert("UTC")
-
-    timestep_timestamp_map = {}
-    for timestep in timesteps:
-        idx = int(timestep.split("time")[1])
-        timestep_timestamp_map[timestep] = timestamps[idx]
-
-    log.info("Succesfully created dictionary")
-
-    return timestep_timestamp_map
+        log.info("Succesfully read file into pd.DataFrame")
 
 
-def transform_load_hlt_data(
-        df: pd.DataFrame,
-        timestep_datetime_map: dict,
-        name: str | None = None) -> pd.DataFrame:
-    """Transform given dataframe of load or hlt profiles into long format.
+    def create_timestep_datetime_dict(
+            self,
+            columns: list[str]):
+        """Creates a dictionary mapping the timesteps (time0, time1, ...) to pd.Timestamp objects.
 
-    Args:
-        df (pd.DataFrame): Original dataframe.
+        Args:
+            columns (list[str]): Columns of either the load or hlt profile dataframe (the timesteps).
+        """
 
-        timestep_datetime_map (dict): Dictionary containing timestamp object for each string like timestamp.
+        log.info("Creating dictionary for timesteps mapping")
 
-    Returns:
-        pd.DataFrame: The transformed dataframe.
-    """
+        timesteps = list(columns.difference(["id", "Unnamed: 35137"]))
 
-    log.info(f"Trying to convert {name} dataframe")
+        timestamps = pd.date_range(
+            start="2016-01-01 00:00:00",
+            end="2016-12-31 23:45:00",
+            freq="15min",
+            tz="Europe/Berlin")
 
-    # remove unused column
-    df.drop(columns="Unnamed: 35137", inplace=True)
+        timestamps = timestamps.tz_convert("UTC")
 
-    # change to wide format
-    df = df.melt(id_vars="id", var_name="timestamp")
+        self.timestep_timestamp_map = {}
+        for timestep in timesteps:
+            idx = int(timestep.split("time")[1])
+            self.timestep_timestamp_map[timestep] = timestamps[idx]
 
-    # map timestamps onto timestamp column
-    df["timestamp"] = df["timestamp"].map(timestep_datetime_map)
-
-    log.info("Succesfully converted hlt / load profile")
-
-    return df
+        log.info("Succesfully created dictionary")
 
 
-def write_to_database(
-        data: pd.DataFrame,
-        name: str) -> None:
-    """Writes dataframe to database.
+    def transform_load_hlt_data(
+            self,
+            name: str | None = None):
+        """Transform dataframe of load or hlt profiles into long format.
 
-    Args:
-        data (pd.DataFrame): The dataframe to write to database.
+        Args:
+            name (str | None, default None): a
+        """
 
-        name (str): The name of the table to insert data to.
-    """
+        log.info(f"Trying to convert {name} dataframe")
 
-    log.info(f"Trying to write {name} to database")
+        # remove unused column
+        df.drop(columns="Unnamed: 35137", inplace=True)
 
-    engine = create_engine(db_uri)
+        # change to wide format
+        df = df.melt(id_vars="id", var_name="timestamp")
 
-    rows = 200000
-    list_df = [data[i:i+rows] for i in range(0, data.shape[0], rows)]
+        # map timestamps onto timestamp column
+        df["timestamp"] = df["timestamp"].map(self.timestep_datetime_map)
 
-    for df in tqdm(list_df):
-        df.to_sql(
-            name=name,
-            con=engine,
-            if_exists="append",
-            schema="vea-industrial-load-profiles",
-            index=False)
+        log.info("Succesfully converted hlt / load profile")
 
-    log.info("Succesfully inserted into databse")
+        return df
 
 
-def create_schema():
+    def write_to_database(
+            self,
+            name: str) -> None:
+        """Writes dataframe to database.
 
-    log.info("Trying to create schema")
+        Args:
+            name (str): The name of the table to insert data to.
+        """
 
-    engine = create_engine(db_uri)
+        log.info(f"Trying to write {name} to database")
 
-    with engine.begin() as conn:
-        query = text(
-            """
-                CREATE SCHEMA IF NOT EXISTS "vea-industrial-load-profiles"
-            """)
-        conn.execute(query)
+        rows = 200000
+        list_df = [self.df[i:i+rows] for i in range(0, self.df.shape[0], rows)]
 
-    log.info("Succesfully created schema")
+        for df in tqdm(list_df):
+            df.to_sql(
+                name=name,
+                con=self.engine,
+                if_exists="append",
+                schema="vea-industrial-load-profiles",
+                index=False)
+
+        log.info("Succesfully inserted into databse")
 
 
-def convert_to_hypertable(relation_name: str):
-    """
-    Converts table to hypertable.
+    def convert_to_hypertable(
+            self,
+            relation_name: str):
+        """
+        Converts table to hypertable.
 
-    Args:
-        relation_name (str): The relation to convert to hypertable.
-    """
+        Args:
+            relation_name (str): The relation to convert to hypertable.
+        """
 
-    log.info("Trying to create hypertable")
+        log.info("Trying to create hypertable")
 
-    engine = create_engine(db_uri)
+        with self.engine.begin() as conn:
+            query = text(
+                f"SELECT public.create_hypertable('{relation_name}', 'timestamp', if_not_exists => TRUE, migrate_data => TRUE);"
+            )
+            conn.execute(query)
 
-    with engine.begin() as conn:
-        query = text(
-            f"SELECT public.create_hypertable('{relation_name}', 'timestamp', if_not_exists => TRUE, migrate_data => TRUE);"
-        )
-        conn.execute(query)
-
-    log.info("Succesfully create hypertable")
+        log.info("Succesfully create hypertable")
 
 
 def main():
-    # request zip archive
-    response = request_zip_archive()
 
-    if response == -1:
-        return
+    # create crawler instance
+    ilp_crawler = IndustrialLoadProfileCrawler("vea_industrial_load_profiles")
+
+    # request zip archive
+    ilp_crawler.request_zip_archive()
 
     # extract files from response
-    master_file, hlt_file, load_file = extract_files(response=response)
-
-    # creat schema
-    create_schema()
+    ilp_crawler.extract_files()
 
     # read load_data
-    load_data = read_file(load_file, filename="load")
+    ilp_crawler.read_file(filename="load")
 
     # create timestamp dictionary to replace "timeX" with datetime object
-    timestep_dt_map = create_timestep_datetime_dict(load_data.columns)
+    ilp_crawler.create_timestep_datetime_dict(ilp_crawler.df.columns)
 
     # transform and write load data
-    load_data = transform_load_hlt_data(
-        df=load_data,
-        timestep_datetime_map=timestep_dt_map,
-        name="")
-    write_to_database(data=load_data, name="load")
-    del load_data
-
+    ilp_crawler.transform_load_hlt_data(name="load")
+    ilp_crawler.write_to_database(name="load")
 
     # read, transform and write hlt data
-    hlt_data = read_file(hlt_file, filename="hlt")
-    hlt_data = transform_load_hlt_data(
-        df=hlt_data,
-        timestep_datetime_map=timestep_dt_map,
-        name="")
-    write_to_database(data=hlt_data, name="high_load_times")
-    del hlt_data
+    ilp_crawler.read_file(filename="hlt")
+    ilp_crawler.transform_load_hlt_data(name="hlt")
+    ilp_crawler.write_to_database(name="high_load_times")
 
     # read in master data and write to database
-    master_data = read_file(master_file, filename="master")
-    write_to_database(data=master_data, name="master")
-    del master_data
+    ilp_crawler.read_file(filename="master")
+    ilp_crawler.write_to_database(name="master")
 
     # convert to hypertable
-    convert_to_hypertable("high_load_times")
-    convert_to_hypertable("load")
+    ilp_crawler.convert_to_hypertable("high_load_times")
+    ilp_crawler.convert_to_hypertable("load")
 
 
 if __name__ == "__main__":
