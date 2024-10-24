@@ -13,7 +13,7 @@ log = logging.getLogger("vea-industrial-load-profiles")
 
 
 metadata_info = {
-    "schema_name": "vea-industrial-load-profiles",
+    "schema_name": "vea_industrial_load_profiles",
     "data_date": "2016-01-01",
     "data_source": "https://zenodo.org/records/13910298",
     "license": "Creative Commons Attribution 4.0 International Public License",
