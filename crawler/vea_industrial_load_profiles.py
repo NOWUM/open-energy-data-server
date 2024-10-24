@@ -102,10 +102,10 @@ class IndustrialLoadProfileCrawler(BaseCrawler):
 
         timestamps = timestamps.tz_convert("UTC")
 
-        self.timestep_timestamp_map = {}
+        self.timestep_datetime_map = {}
         for timestep in timesteps:
             idx = int(timestep.split("time")[1])
-            self.timestep_timestamp_map[timestep] = timestamps[idx]
+            self.timestep_datetime_map[timestep] = timestamps[idx]
 
         log.info("Succesfully created dictionary")
 
