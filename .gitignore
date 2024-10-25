@@ -12,6 +12,7 @@ ninja_*
 *.log
 *.ipynb
 config.py
+/env/
 .env
 .venv
 crawler/data/Waermebedarf_NRW.gdb/
