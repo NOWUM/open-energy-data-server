@@ -160,6 +160,11 @@ class IndustrialLoadProfileCrawler(BaseCrawler):
         log.info("Succesfully inserted into databse")
 
 
+    def lower_column_names(self):
+
+        self.df.columns = [x.lower() for x in self.df.columns]
+
+
     def convert_to_hypertable(
             self,
             relation_name: str):
@@ -210,6 +215,7 @@ def main():
 
     # read in master data and write to database
     ilp_crawler.read_file(filename="master")
+    ilp_crawler.lower_column_names()
     ilp_crawler.write_to_database(name="master")
 
     # convert to hypertable
