@@ -56,10 +56,27 @@ class SmardCrawler(BaseCrawler):
             log.info("created hypertable smard")
         except Exception as e:
             log.error(f"could not create hypertable: {e}")
+        try:
+            query_create_hypertable_prices = "SELECT public.create_hypertable('prices', 'timestamp', if_not_exists => TRUE, migrate_data => TRUE);"
+            with self.engine.begin() as conn:
+                conn.execute(
+                    text(
+                        "CREATE TABLE IF NOT EXISTS prices( "
+                        "timestamp timestamp without time zone NOT NULL, "
+                        "commodity_id text, "
+                        "price double precision, "
+                        "PRIMARY KEY (timestamp , commodity_id));"
+                    )
+                )
+                conn.execute(text(query_create_hypertable_prices))
+            log.info("created hypertable prices")
+        except Exception as e:
+            log.error(f"could not create hypertable: {e}")
 
     def get_data_per_commodity(self):
         keys = {
             # 411: 'Prognostizierter Stromverbrauch',
+            4169: "Preis",
             410: "Realisierter Stromverbrauch",
             4066: "Biomasse",
             1226: "Wasserkraft",
@@ -93,10 +110,14 @@ class SmardCrawler(BaseCrawler):
                 log.info(f"Received empty data for commodity: {commodity_id}")
                 continue
             timeseries[0] = pd.to_datetime(timeseries[0], unit="ms", utc=True)
-            timeseries.columns = ["timestamp", "mwh"]
+            if commodity_id == 4169:
+                timeseries.columns = ["timestamp", "price"]
+                timeseries = timeseries.dropna(subset="price")
+            else:
+                timeseries.columns = ["timestamp", "mwh"]
+                timeseries = timeseries.dropna(subset="mwh")
+                timeseries["commodity_name"] = commodity_name
             timeseries["commodity_id"] = commodity_id
-            timeseries["commodity_name"] = commodity_name
-            timeseries = timeseries.dropna(subset="mwh")
             if latest is not None:
                 timeseries = timeseries[timeseries["timestamp"] > latest]
 
@@ -108,7 +129,10 @@ class SmardCrawler(BaseCrawler):
         # day = default_start_date
         # today = date.today().strftime('%d.%m.%Y')
         # sql = f"select timestamp from smard where timestamp > '{day}' and timestamp < '{today}' order by timestamp desc limit 1"
-        sql = f"select timestamp from smard where commodity_id='{commodity_id}' order by timestamp desc limit 1"
+        if commodity_id != 4169:
+            sql = f"select timestamp from smard where commodity_id='{commodity_id}' order by timestamp desc limit 1"
+        else:
+            sql = f"select timestamp from prices where commodity_id='{commodity_id}' order by timestamp desc limit 1"
         try:
             with self.engine.begin() as conn:
                 latest = pd.read_sql(sql, conn, parse_dates=["timestamp"]).values[0][0]
@@ -147,8 +171,13 @@ class SmardCrawler(BaseCrawler):
             ]
 
             log.info(df_for_commodity)
-            with self.engine.begin() as conn:
-                df_for_commodity.to_sql("smard", con=conn, if_exists="append")
+            # check if commodity_id is == 4169 then it is price data
+            if df_for_commodity.index.get_level_values("commodity_id")[0] == 4169:
+                with self.engine.begin() as conn:
+                    df_for_commodity.to_sql("prices", con=conn, if_exists="append")
+            else:
+                with self.engine.begin() as conn:
+                    df_for_commodity.to_sql("smard", con=conn, if_exists="append")
 
 
 def main(schema_name):
