@@ -105,6 +105,11 @@ def create_db_from_export(connection):
             df = pd.read_xml(file.read(), encoding="utf-16le")
             pk = set_index(df)
 
+            # parse date if possible
+            for column in df.columns:
+                if "Datum" in column:
+                    df[column] = pd.to_datetime(df[column], errors="coerce")
+
             try:
                 # this will fail if there is a new column
                 with connection.begin() as conn:
@@ -136,14 +141,15 @@ def create_db_from_export(connection):
         else:
             query = f'ALTER TABLE "{table_name}" ADD PRIMARY KEY ("{pk}");'
         try:
-            connection.execute(text(query))
+            with connection.begin() as conn:
+                conn.execute(text(query))
         except Exception:
             log.exception("Error adding pk")
     return tables
 
 
 def main(schema_name):
-    engine = create_engine(db_uri(schema_name))
+    engine = create_engine(db_uri(schema_name), pool_pre_ping=True)
     create_schema_only(engine, schema_name)
     try:
         create_db_from_export(connection=engine)
