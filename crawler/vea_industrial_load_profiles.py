@@ -1,9 +1,9 @@
-import logging
 import io
-
+import logging
 import zipfile
-import requests
+
 import pandas as pd
+import requests
 from sqlalchemy import text
 from tqdm import tqdm
 
@@ -32,19 +32,19 @@ metadata_info = {
 
 
 class IndustrialLoadProfileCrawler(BaseCrawler):
-
     def __init__(self, schema_name):
         super().__init__(schema_name)
 
         self.schema_name = schema_name
-
 
     def request_extract_zip_archive(self):
         """
         Requests zip archive for industrial load profiles from zenodo.
         """
 
-        url = "https://zenodo.org/records/13910298/files/load-profile-data.zip?download=1"
+        url = (
+            "https://zenodo.org/records/13910298/files/load-profile-data.zip?download=1"
+        )
 
         log.info("Requesting zip archive from zenodo")
 
@@ -59,10 +59,7 @@ class IndustrialLoadProfileCrawler(BaseCrawler):
             self.hlt_profiles_file = thezip.open(name="hlt_profiles_tabsep.csv")
             self.load_profiles_file = thezip.open(name="load_profiles_tabsep.csv")
 
-
-    def read_file(
-            self,
-            filename: str | None = None):
+    def read_file(self, filename: str | None = None):
         """Reads the given file and returns contents as pd.DataFrame.
 
         Args:
@@ -82,10 +79,7 @@ class IndustrialLoadProfileCrawler(BaseCrawler):
 
         log.info("Succesfully read file into pd.DataFrame")
 
-
-    def create_timestep_datetime_dict(
-            self,
-            columns: list[str]):
+    def create_timestep_datetime_dict(self, columns: list[str]):
         """Creates a dictionary mapping the timesteps (time0, time1, ...) to pd.Timestamp objects.
 
         Args:
@@ -100,7 +94,8 @@ class IndustrialLoadProfileCrawler(BaseCrawler):
             start="2016-01-01 00:00:00",
             end="2016-12-31 23:45:00",
             freq="15min",
-            tz="Europe/Berlin")
+            tz="Europe/Berlin",
+        )
 
         timestamps = timestamps.tz_convert("UTC")
 
@@ -111,10 +106,7 @@ class IndustrialLoadProfileCrawler(BaseCrawler):
 
         log.info("Succesfully created dictionary")
 
-
-    def transform_load_hlt_data(
-            self,
-            name: str | None = None):
+    def transform_load_hlt_data(self, name: str | None = None):
         """Transform dataframe of load or hlt profiles into long format.
 
         Args:
@@ -134,10 +126,7 @@ class IndustrialLoadProfileCrawler(BaseCrawler):
 
         log.info("Succesfully converted hlt / load profile")
 
-
-    def write_to_database(
-            self,
-            name: str) -> None:
+    def write_to_database(self, name: str) -> None:
         """Writes dataframe to database.
 
         Args:
@@ -147,7 +136,7 @@ class IndustrialLoadProfileCrawler(BaseCrawler):
         log.info(f"Trying to write {name} to database")
 
         rows = 200000
-        list_df = [self.df[i:i+rows] for i in range(0, self.df.shape[0], rows)]
+        list_df = [self.df[i : i + rows] for i in range(0, self.df.shape[0], rows)]
 
         for df in tqdm(list_df):
             df.to_sql(
@@ -155,19 +144,15 @@ class IndustrialLoadProfileCrawler(BaseCrawler):
                 con=self.engine,
                 if_exists="append",
                 schema=self.schema_name,
-                index=False)
+                index=False,
+            )
 
         log.info("Succesfully inserted into databse")
 
-
     def lower_column_names(self):
-
         self.df.columns = [x.lower() for x in self.df.columns]
 
-
-    def convert_to_hypertable(
-            self,
-            relation_name: str):
+    def convert_to_hypertable(self, relation_name: str):
         """
         Converts table to hypertable.
 
@@ -191,7 +176,6 @@ class IndustrialLoadProfileCrawler(BaseCrawler):
 
 
 def main():
-
     # create crawler instance
     ilp_crawler = IndustrialLoadProfileCrawler("vea_industrial_load_profiles")
 
@@ -227,11 +211,10 @@ def main():
 
 
 if __name__ == "__main__":
-
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s',
-        datefmt='%d-%m-%Y %H:%M:%S')
+        format="%(asctime)s.%(msecs)03d %(levelname)s %(module)s - %(funcName)s: %(message)s",
+        datefmt="%d-%m-%Y %H:%M:%S",
+    )
 
     main()
-

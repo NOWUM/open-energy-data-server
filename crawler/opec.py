@@ -43,7 +43,7 @@ metadata_info = {
 
 headers = {
     "Host": "www.opec.org",
-    "User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/128.0",
+    #"User-Agent": "Mozilla/5.0 (X11; Linux x86_64; rv:129.0) Gecko/20100101 Firefox/128.0",
 }
 
 DOWNLOAD_URL = "https://www.opec.org/basket/basketDayArchives.xml"
@@ -53,10 +53,11 @@ def main(schema_name):
     engine = create_engine(db_uri(schema_name), pool_pre_ping=True)
     create_schema_only(engine, schema_name)
 
-    scraper = cloudscraper.create_scraper()
+    
     retries = 0
     max_retries = 5
     while retries < max_retries:
+        scraper = cloudscraper.create_scraper()
         resp = scraper.get(DOWNLOAD_URL, headers=headers)
 
         if resp.status_code > 200:
@@ -83,10 +84,10 @@ def main(schema_name):
     df["euro_per_barrel"] = df["usd_eur"] * df["usd_per_barrel"]
     # convert euro/barrel to euro/kWh (thermal)
     # 159L, 10kWh/L
-    df["euro_per_kWh"] = df["euro_per_barrel"] / 159 / 10
+    df["euro_per_kwh"] = df["euro_per_barrel"] / 159 / 10
 
     # usdeur["Close"].plot()
-    # df["euro_per_kWh"].plot()
+    # df["euro_per_kwh"].plot()
     try:
         with engine.begin() as conn:
             df.to_sql(name="opec", con=conn, if_exists="replace", index=True)
