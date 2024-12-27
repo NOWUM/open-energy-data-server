@@ -77,7 +77,10 @@ def main(schema_name):
                             df.columns = df.columns.map("_".join).map(
                                 lambda x: x.strip("_")
                             )
-                        _, section, zone = thefile.name.split(".")[0].split("_")
+                        splitted = thefile.name.split(".")[0].split("_")
+                        zone = splitted[-1]
+                        # the middle part is the section - might be more than one word
+                        section = "_".join(splitted[1:-1])
                         # insert as to leftmost columns
                         df.insert(0, "zone", zone)
 
