@@ -38,7 +38,9 @@ COAL_URL = "https://energy-instrat-api.azurewebsites.net/api/coal/pscmi_1?all=1"
 # the heat_url switches between Y-m-d and Y-d-m and is not practicable to parse
 COAL_HEAT_URL = "https://energy-instrat-api.azurewebsites.net/api/coal/pscmi_2?all=1"
 # gas used for electricity generation PLN/MWh
-GAS_URL = "https://energy-instrat-api.azurewebsites.net/api/prices/gas_price_rdn_daily?all=1"
+GAS_URL = (
+    "https://energy-instrat-api.azurewebsites.net/api/prices/gas_price_rdn_daily?all=1"
+)
 
 
 def main(schema_name):
@@ -58,13 +60,17 @@ def main(schema_name):
     start = coal_data.index[0].strftime("%Y-%m-%d")
     end = coal_data.index[-1].strftime("%Y-%m-%d")
     pln_eur = yf.download("PLNEUR=X", start=start, end=end)["Close"]["PLNEUR=X"]
-    #coal_data["pscmi1_pln_per_gj"].plot()
+    # coal_data["pscmi1_pln_per_gj"].plot()
     resample_pln_eur = pln_eur.resample("MS").bfill().ffill()
     resample_pln_eur = resample_pln_eur.reindex(coal_data.index).ffill()
-    coal_data["steam_coal_eur_per_gj"] = coal_data["pscmi1_pln_per_gj"]*resample_pln_eur
-    coal_data["steam_coal_eur_per_t"] = coal_data["pscmi1_pln_per_t"]*resample_pln_eur
+    coal_data["steam_coal_eur_per_gj"] = (
+        coal_data["pscmi1_pln_per_gj"] * resample_pln_eur
+    )
+    coal_data["steam_coal_eur_per_t"] = coal_data["pscmi1_pln_per_t"] * resample_pln_eur
     # 1 GJ = 1e9 Ws = 1e9/3600 Wh = 1e6/3600 kWh
-    coal_data["price_eur_per_kwh"] = coal_data["steam_coal_eur_per_gj"] /(1e6/3600) # GJ to kWh
+    coal_data["price_eur_per_kwh"] = coal_data["steam_coal_eur_per_gj"] / (
+        1e6 / 3600
+    )  # GJ to kWh
 
     ### GAS data
     gas_data = pd.read_json(GAS_URL).set_index("date")
@@ -77,12 +83,14 @@ def main(schema_name):
     resample_pln_eur = pln_eur.reindex(gas_data.index).bfill().ffill()
 
     gas_data.rename(columns={"price": "price_pln_per_mwh"}, inplace=True)
-    gas_data["price_eur_per_mwh"] = gas_data["price_pln_per_mwh"]*resample_pln_eur
-    gas_data["price_eur_per_kwh"] = gas_data["price_eur_per_mwh"]/1e3
+    gas_data["price_eur_per_mwh"] = gas_data["price_pln_per_mwh"] * resample_pln_eur
+    gas_data["price_eur_per_kwh"] = gas_data["price_eur_per_mwh"] / 1e3
     try:
         with engine.begin() as conn:
             eu_ets_data.to_sql(name="eu_ets", con=conn, if_exists="replace", index=True)
-            coal_data.to_sql(name="coal_price", con=conn, if_exists="replace", index=True)
+            coal_data.to_sql(
+                name="coal_price", con=conn, if_exists="replace", index=True
+            )
             gas_data.to_sql(name="gas_price", con=conn, if_exists="replace", index=True)
     except Exception:
         log.exception("error in eu_ets")
